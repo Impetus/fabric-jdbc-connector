@@ -5,11 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.impetus.blkch.sql.schema.ColumnType;
-import com.impetus.blkch.sql.schema.Metadata;
-import com.impetus.blkch.sql.schema.MetadataManager;
+import com.impetus.blkch.sql.schema.Schema;
 import com.impetus.blkch.sql.schema.Table;
 
-public class FabricMetadata implements Metadata {
+public class FabricMetadata implements Schema {
 	
 	private List<Table> tables = new ArrayList<Table>();
 
@@ -28,6 +27,12 @@ public class FabricMetadata implements Metadata {
 			}
 		}
 		throw new RuntimeException("Table " + tableName + " doesn't exist");
+	}
+
+	@Override
+	public List<Table> getTables() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
