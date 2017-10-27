@@ -41,4 +41,10 @@ public class FabricTable implements Table {
 		return name;
 	}
 
+	@Override
+	public Column getColumn(String name) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

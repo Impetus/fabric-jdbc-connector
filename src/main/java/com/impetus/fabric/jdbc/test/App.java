@@ -16,7 +16,7 @@ public class App {
 	
 	private static void test1() {
 		FromItem fromItem = new FromItem(MetadataManager.getMetadata().getTable("table1"));
-		SelectItem selectItem = new SelectItem(fromItem.getTable().getColumnByName("col2"));
+		SelectItem selectItem = new SelectItem(fromItem.getTable().getColumn("col2"));
 		DataBase db = new DataBase();
 		List<Object> data = db.getData(fromItem, selectItem);
 		System.out.println(data);
