@@ -11,7 +11,6 @@ import java.sql.Clob;
 import java.sql.Date;
 import java.sql.NClob;
 import java.sql.Ref;
-import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
@@ -26,7 +25,9 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-public class FabricResultSet implements ResultSet {
+import com.impetus.blkch.jdbc.BlkchnResultSet;
+
+public class FabricResultSet implements BlkchnResultSet {
 	
 	private Statement statement;
 	

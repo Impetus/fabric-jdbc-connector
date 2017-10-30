@@ -1,7 +1,6 @@
 package com.impetus.fabric.jdbc;
 
 import java.sql.Connection;
-import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
@@ -14,7 +13,9 @@ import java.util.regex.Pattern;
 
 import org.slf4j.LoggerFactory;
 
-public class FabricDriver implements Driver {
+import com.impetus.blkch.jdbc.BlkchnDriver;
+
+public class FabricDriver implements BlkchnDriver {
 	
 	private static final int MAJOR_VERSION = 1;
 	
