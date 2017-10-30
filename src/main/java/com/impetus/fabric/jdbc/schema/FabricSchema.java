@@ -8,11 +8,11 @@ import com.impetus.blkch.sql.schema.ColumnType;
 import com.impetus.blkch.sql.schema.Schema;
 import com.impetus.blkch.sql.schema.Table;
 
-public class FabricMetadata implements Schema {
+public class FabricSchema implements Schema {
 	
 	private List<Table> tables = new ArrayList<Table>();
 
-	public FabricMetadata() {
+	public FabricSchema() {
 		Table table1 = new FabricTable("table1", Arrays.asList(new FabricColumn("col1", ColumnType.INT), new FabricColumn("col2", ColumnType.STRING), new FabricColumn("col3", ColumnType.DOUBLE)));
 		Table table2 = new FabricTable("table2", Arrays.asList(new FabricColumn("col4", ColumnType.INT), new FabricColumn("col5", ColumnType.STRING)));
 		tables.add(table1);

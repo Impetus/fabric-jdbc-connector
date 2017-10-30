@@ -5,12 +5,12 @@ import java.util.List;
 import com.impetus.blkch.sql.query.FromItem;
 import com.impetus.blkch.sql.query.SelectItem;
 import com.impetus.blkch.sql.schema.MetadataManager;
-import com.impetus.fabric.jdbc.schema.FabricMetadata;
+import com.impetus.fabric.jdbc.schema.FabricSchema;
 
 public class App {
 
 	public static void main(String[] args) {
-		MetadataManager.setMetadata(new FabricMetadata());
+		MetadataManager.setMetadata(new FabricSchema());
 		test1();
 	}
 	
