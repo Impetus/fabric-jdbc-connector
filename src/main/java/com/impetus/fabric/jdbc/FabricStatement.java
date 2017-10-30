@@ -4,12 +4,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
-import java.sql.Statement;
 import java.util.List;
 
+import com.impetus.blkch.jdbc.BlkchnStatement;
 import com.impetus.fabric.query.QueryBlock;
 
-public class FabricStatement implements Statement {
+public class FabricStatement implements BlkchnStatement {
 	
 	private FabricConnection connection;
 	

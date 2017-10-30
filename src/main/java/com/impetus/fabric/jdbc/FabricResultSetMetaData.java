@@ -1,9 +1,10 @@
 package com.impetus.fabric.jdbc;
 
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-public class FabricResultSetMetaData implements ResultSetMetaData {
+import com.impetus.blkch.jdbc.BlkchnResultSetMetaData;
+
+public class FabricResultSetMetaData implements BlkchnResultSetMetaData {
 
 	public boolean isWrapperFor(Class<?> iface) throws SQLException {
 		// TODO Auto-generated method stub

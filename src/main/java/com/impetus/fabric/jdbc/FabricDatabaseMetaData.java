@@ -1,12 +1,13 @@
 package com.impetus.fabric.jdbc;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
 
-public class FabricDatabaseMetaData implements DatabaseMetaData {
+import com.impetus.blkch.jdbc.BlkchnDatabaseMetaData;
+
+public class FabricDatabaseMetaData implements BlkchnDatabaseMetaData {
 
 	public boolean isWrapperFor(Class<?> iface) throws SQLException {
 		// TODO Auto-generated method stub

@@ -4,7 +4,6 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.NClob;
 import java.sql.PreparedStatement;
@@ -20,7 +19,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-public class FabricConnection implements Connection {
+import com.impetus.blkch.jdbc.BlkchnConnection;
+
+public class FabricConnection implements BlkchnConnection {
 	
 	private String configPath;
 	
