@@ -1,0 +1,9 @@
+target/
+.classpath
+.settings/
+.project
+.wtpmodules
+.pydevproject
+**/.DS_Store
+dependency-reduced-pom.xml
+bin/
