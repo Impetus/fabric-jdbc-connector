@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.apache.commons.codec.binary.Hex;
 import org.hyperledger.fabric.protos.ledger.rwset.kvrwset.KvRwset;
+import org.hyperledger.fabric.protos.msp.Identities;
 import org.hyperledger.fabric.sdk.BlockInfo;
 import org.hyperledger.fabric.sdk.BlockchainInfo;
 import org.hyperledger.fabric.sdk.ChaincodeID;
@@ -32,6 +33,7 @@ import org.hyperledger.fabric.sdk.EventHub;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.TxReadWriteSetInfo;
+import org.hyperledger.fabric.sdk.BlockInfo.EndorserInfo;
 import org.hyperledger.fabric.sdk.exception.CryptoException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
@@ -48,7 +50,7 @@ import com.impetus.fabric.model.Store;
 //import static org.junit.Assert.fail;
 
 /**
- * 
+ *
  * class for implementing all the services of blockchain such as create channel,
  * recreate channel, install chaincode, instantiate chaincode, invoke chaincode,
  * query chaincode
@@ -78,7 +80,9 @@ public class QueryBlock {
 	}
 
 	ChaincodeID chaincodeID;
+
 	private Collection<Org> SampleOrgs;
+
 	HFClient client = HFClient.createNewInstance();
 
 	static void out(String format, Object... args) {
@@ -109,8 +113,8 @@ public class QueryBlock {
 
 	/**
 	 * takes input as chaincode name and returns chaincode id
-	 * 
-	 * @param chaincodename
+	 *
+	 * @param name
 	 * @return ChaincodeID
 	 */
 	public ChaincodeID getChaincodeId(String name) {
@@ -120,7 +124,6 @@ public class QueryBlock {
 	}
 
 	/**
-	 * 
 	 * checking config at starting
 	 */
 	public void checkConfig() {
@@ -147,7 +150,7 @@ public class QueryBlock {
 				e.printStackTrace();
 			}
 		}
-		
+
 		org.apache.log4j.Level setTo = null;
 		setTo = org.apache.log4j.Level.DEBUG;
 		org.apache.log4j.Logger.getLogger("org.hyperledger.fabric").setLevel(setTo);
@@ -160,8 +163,8 @@ public class QueryBlock {
 	/**
 	 * For loading user from persistence,if user already exists by taking as
 	 * input username
-	 * 
-	 * @param username
+	 *
+	 * @param name
 	 * @return status as string
 	 */
 
@@ -288,7 +291,7 @@ public class QueryBlock {
 			org.apache.log4j.Level setTo = null;
 			setTo = org.apache.log4j.Level.DEBUG;
 			org.apache.log4j.Logger.getLogger("org.hyperledger.fabric").setLevel(setTo);
-			
+
 			Org sampleOrg = conf.getSampleOrg("peerOrg1");
 			Properties per = new Properties();
 			System.out.println("1...");
@@ -302,15 +305,13 @@ public class QueryBlock {
 				System.out.println("4...");
 				System.out.println("Order Name " + orderName);
 				System.out.println("Order Name " + sampleOrg.getOrdererLocation(orderName));
-				//orderName="172.25.41.74";
-				
+				// orderName="172.25.41.74";
+
 				newChannel.addOrderer(client.newOrderer(orderName, sampleOrg.getOrdererLocation(orderName),
 						conf.getOrdererProperties(orderName)));
-				//per.setProperty("ordererWaitTimeMilliSecs", "50000");
-				//newChannel.addOrderer(client.newOrderer(orderName,"grpc://172.25.41.74:7050",per));
-				
-				
-				
+				// per.setProperty("ordererWaitTimeMilliSecs", "50000");
+				// newChannel.addOrderer(client.newOrderer(orderName,"grpc://172.25.41.74:7050",per));
+
 			}
 			System.out.println("6...");
 			for (String peerName : sampleOrg.getPeerNames()) {
@@ -318,12 +319,13 @@ public class QueryBlock {
 				logger.debug(peerName);
 				String peerLocation = sampleOrg.getPeerLocation(peerName);
 				System.out.println("6222...");
-				
+
 				System.out.println(peerLocation);
 				System.out.println(peerName);
 				Peer peer = client.newPeer(peerName, peerLocation, conf.getPeerProperties(peerName));
-				
-				//Peer peer = client.newPeer(peerName, "grpc://172.25.41.74:7051", per);
+
+				// Peer peer = client.newPeer(peerName,
+				// "grpc://172.25.41.74:7051", per);
 				System.out.println("7...");
 
 				// Query the actual peer for which channels it belongs to and
@@ -337,13 +339,14 @@ public class QueryBlock {
 				sampleOrg.addPeer(peer);
 			}
 			System.out.println("8...");
-			
+
 			for (String eventHubName : sampleOrg.getEventHubNames()) {
 				EventHub eventHub = client.newEventHub(eventHubName, sampleOrg.getEventHubLocation(eventHubName),
 						conf.getEventHubProperties(eventHubName));
 				System.out.println(eventHubName);
 				System.out.println(sampleOrg.getEventHubLocation(eventHubName));
-				//EventHub eventHub = client.newEventHub(eventHubName, sampleOrg.getEventHubLocation(eventHubName),null);				
+				// EventHub eventHub = client.newEventHub(eventHubName,
+				// sampleOrg.getEventHubLocation(eventHubName),null);
 				newChannel.addEventHub(eventHub);
 			}
 			System.out.println("9...");
@@ -360,7 +363,6 @@ public class QueryBlock {
 
 	/**
 	 * gives blockchain info
-	 * 
 	 */
 	public String blockchainInfo() {
 
@@ -443,19 +445,19 @@ public class QueryBlock {
 			}
 			// Query by block hash. Using latest block's previous hash so should
 			// return block number 1
-			/*
-			 * byte[] hashQuery = returnedBlock.getPreviousHash(); returnedBlock
-			 * = channel.queryBlockByHash(hashQuery);
-			 * logger.info("queryBlockByHash returned block with blockNumber " +
-			 * returnedBlock.getBlockNumber());
-			 */
+            /*
+             * byte[] hashQuery = returnedBlock.getPreviousHash(); returnedBlock
+             * = channel.queryBlockByHash(hashQuery);
+             * logger.info("queryBlockByHash returned block with blockNumber " +
+             * returnedBlock.getBlockNumber());
+             */
 
 		} catch (Exception e) {
 			logger.error("QueryBlock | blockchainInfo | " + e.getMessage());
 		}
 		return returnQuery;
 	}
-	
+
 	public List<Object[]> blockchainInfoList() {
 		List<Object[]> returnList = new ArrayList<>();
 
@@ -495,57 +497,62 @@ public class QueryBlock {
 					record.add(envelopeInfo.getTransactionID());
 					record.add(envelopeInfo.getChannelId());
 					record.add(envelopeInfo.getType());
-					System.out.println("Record:- "  + record);
-					/*if (envelopeInfo.getType() == TRANSACTION_ENVELOPE) {
-						BlockInfo.TransactionEnvelopeInfo transactionEnvelopeInfo = (BlockInfo.TransactionEnvelopeInfo) envelopeInfo;
-						returnQuery += " Transaction Action " + transactionEnvelopeInfo.getTransactionActionInfoCount();
-						for (BlockInfo.TransactionEnvelopeInfo.TransactionActionInfo transactionActionInfo : transactionEnvelopeInfo
-								.getTransactionActionInfos()) {
-							returnQuery += " Transaction Response Status " + transactionActionInfo.getResponseStatus();
-							returnQuery += " Transaction response message bytes " + printableString(
-									new String(transactionActionInfo.getResponseMessageBytes(), "UTF-8"));
-							returnQuery += " Transaction Args ";
-							for (int z = 0; z < transactionActionInfo.getChaincodeInputArgsCount(); ++z) {
-								returnQuery += printableString(
-										new String(transactionActionInfo.getChaincodeInputArgs(z), "UTF-8")) + " ";
-							}
-							returnQuery += " Transaction Payload " + printableString(
-									new String(transactionActionInfo.getProposalResponsePayload(), "UTF-8"));
-							TxReadWriteSetInfo rwsetInfo = transactionActionInfo.getTxReadWriteSet();
-							if (null != rwsetInfo) {
-								returnQuery += " Transaction count name space read write sets"
-										+ rwsetInfo.getNsRwsetCount();
-								for (TxReadWriteSetInfo.NsRwsetInfo nsRwsetInfo : rwsetInfo.getNsRwsetInfos()) {
-									final String namespace = nsRwsetInfo.getNamespace();
-									KvRwset.KVRWSet rws = nsRwsetInfo.getRwset();
-
-									for (KvRwset.KVRead readList : rws.getReadsList()) {
-										returnQuery += " Transaction Namespace " + namespace + " Transaction Read Key "
-												+ readList.getKey() + " BLOCK NUMBER "
-												+ readList.getVersion().getBlockNum() + " TRANS VERS "
-												+ readList.getVersion().getTxNum();
-									}
-									for (KvRwset.KVWrite writeList : rws.getWritesList()) {
-										String valAsString = printableString(
-												new String(writeList.getValue().toByteArray(), "UTF-8"));
-										returnQuery += " TRANS WRITE SET KEY " + writeList.getKey() + " VALUE "
-												+ valAsString;
-									}
-								}
-							}
-						}
-					}*/
+					System.out.println("Record:- " + record);
+                    /*
+                     * if (envelopeInfo.getType() == TRANSACTION_ENVELOPE) {
+                     * BlockInfo.TransactionEnvelopeInfo transactionEnvelopeInfo
+                     * = (BlockInfo.TransactionEnvelopeInfo) envelopeInfo;
+                     * returnQuery += " Transaction Action " +
+                     * transactionEnvelopeInfo.getTransactionActionInfoCount();
+                     * for
+                     * (BlockInfo.TransactionEnvelopeInfo.TransactionActionInfo
+                     * transactionActionInfo : transactionEnvelopeInfo
+                     * .getTransactionActionInfos()) { returnQuery +=
+                     * " Transaction Response Status " +
+                     * transactionActionInfo.getResponseStatus(); returnQuery +=
+                     * " Transaction response message bytes " + printableString(
+                     * new
+                     * String(transactionActionInfo.getResponseMessageBytes(),
+                     * "UTF-8")); returnQuery += " Transaction Args "; for (int
+                     * z = 0; z <
+                     * transactionActionInfo.getChaincodeInputArgsCount(); ++z)
+                     * { returnQuery += printableString( new
+                     * String(transactionActionInfo.getChaincodeInputArgs(z),
+                     * "UTF-8")) + " "; } returnQuery += " Transaction Payload "
+                     * + printableString( new
+                     * String(transactionActionInfo.getProposalResponsePayload()
+                     * , "UTF-8")); TxReadWriteSetInfo rwsetInfo =
+                     * transactionActionInfo.getTxReadWriteSet(); if (null !=
+                     * rwsetInfo) { returnQuery +=
+                     * " Transaction count name space read write sets" +
+                     * rwsetInfo.getNsRwsetCount(); for
+                     * (TxReadWriteSetInfo.NsRwsetInfo nsRwsetInfo :
+                     * rwsetInfo.getNsRwsetInfos()) { final String namespace =
+                     * nsRwsetInfo.getNamespace(); KvRwset.KVRWSet rws =
+                     * nsRwsetInfo.getRwset();
+                     *
+                     * for (KvRwset.KVRead readList : rws.getReadsList()) {
+                     * returnQuery += " Transaction Namespace " + namespace +
+                     * " Transaction Read Key " + readList.getKey() +
+                     * " BLOCK NUMBER " + readList.getVersion().getBlockNum() +
+                     * " TRANS VERS " + readList.getVersion().getTxNum(); } for
+                     * (KvRwset.KVWrite writeList : rws.getWritesList()) {
+                     * String valAsString = printableString( new
+                     * String(writeList.getValue().toByteArray(), "UTF-8"));
+                     * returnQuery += " TRANS WRITE SET KEY " +
+                     * writeList.getKey() + " VALUE " + valAsString; } } } } }
+                     */
 					returnList.add(record.toArray());
 				}
 			}
 			// Query by block hash. Using latest block's previous hash so should
 			// return block number 1
-			/*
-			 * byte[] hashQuery = returnedBlock.getPreviousHash(); returnedBlock
-			 * = channel.queryBlockByHash(hashQuery);
-			 * logger.info("queryBlockByHash returned block with blockNumber " +
-			 * returnedBlock.getBlockNumber());
-			 */
+            /*
+             * byte[] hashQuery = returnedBlock.getPreviousHash(); returnedBlock
+             * = channel.queryBlockByHash(hashQuery);
+             * logger.info("queryBlockByHash returned block with blockNumber " +
+             * returnedBlock.getBlockNumber());
+             */
 
 		} catch (Exception e) {
 			logger.error("QueryBlock | blockchainInfo | " + e.getMessage());
@@ -616,8 +623,9 @@ public class QueryBlock {
 
 								for (KvRwset.KVRead readList : rws.getReadsList()) {
 									returnQuery += "\nTransaction Namespace " + namespace + "\nTransaction Read Key "
-											+ readList.getKey() + "\nBLOCK NUMBER " + readList.getVersion().getBlockNum()
-											+ "\nTRANS VERS " + readList.getVersion().getTxNum();
+											+ readList.getKey() + "\nBLOCK NUMBER "
+											+ readList.getVersion().getBlockNum() + "\nTRANS VERS "
+											+ readList.getVersion().getTxNum();
 								}
 								for (KvRwset.KVWrite writeList : rws.getWritesList()) {
 									String valAsString = printableString(
@@ -637,22 +645,128 @@ public class QueryBlock {
 		}
 		return returnQuery;
 	}
-	
+
 	public File findFileSk(File directory) {
 
-        File[] matches = directory.listFiles((dir, name) -> name.endsWith("_sk"));
-        System.out.println(directory.toString());
+		File[] matches = directory.listFiles((dir, name) -> name.endsWith("_sk"));
+		System.out.println(directory.toString());
 
-        if (null == matches) {
-            throw new RuntimeException(format("Matches returned null does %s directory exist?", directory.getAbsoluteFile().getName()));
-        }
+		if (null == matches) {
+			throw new RuntimeException(
+					format("Matches returned null does %s directory exist?", directory.getAbsoluteFile().getName()));
+		}
 
-        if (matches.length != 1) {
-            throw new RuntimeException(format("Expected in %s only 1 sk file but found %d", directory.getAbsoluteFile().getName(), matches.length));
-        }
+		if (matches.length != 1) {
+			throw new RuntimeException(format("Expected in %s only 1 sk file but found %d",
+					directory.getAbsoluteFile().getName(), matches.length));
+		}
 
-        return matches[0];
+		return matches[0];
 
-    }
+	}
+
+	public List<Object[]> GetBlock(long blockNum) {
+		List<Object[]> returnList = new ArrayList<>();
+
+		try {
+			checkConfig();
+
+			Channel channel = reconstructChannel();
+			String channelName = channel.getName();
+
+			if (blockNum != -1) {
+				BlockInfo returnedBlock = channel.queryBlockByNumber(blockNum);
+
+				FabricBlock fabObj = new FabricBlock();
+				fabObj.setBlockHash(Hex.encodeHexString(returnedBlock.getDataHash()));
+				fabObj.setPrevBlockHash(Hex.encodeHexString(returnedBlock.getPreviousHash()));
+				fabObj.setBlockId(blockNum);
+				fabObj.setChannelName(channelName);
+				fabObj.setTransacCount(returnedBlock.getEnvelopeCount());
+				returnList.add(fabObj.getRecordData().toArray());
+			} else {
+				BlockchainInfo channelInfo = channel.queryBlockchainInfo();
+				for (long j = channelInfo.getHeight() - 1; j > 0; --j) {
+					BlockInfo returnedBlock = channel.queryBlockByNumber(j);
+
+					FabricBlock fabObj = new FabricBlock();
+					fabObj.setBlockHash(Hex.encodeHexString(returnedBlock.getDataHash()));
+					fabObj.setPrevBlockHash(Hex.encodeHexString(returnedBlock.getPreviousHash()));
+					fabObj.setBlockId(j);
+					fabObj.setChannelName(channelName);
+					fabObj.setTransacCount(returnedBlock.getEnvelopeCount());
+					returnList.add(fabObj.getRecordData().toArray());
+				}
+			}
+		} catch (Exception e) {
+			logger.error("QueryBlock | QueryBlockWithId | " + e.getMessage());
+		}
+		return returnList;
+	}
+
+	public FabricTransaction QueryTransactionWithBlkID(long blockNum, String txId) {
+		FabricTransaction fabTransObj = new FabricTransaction();
+		try {
+			checkConfig();
+			Channel channel = reconstructChannel();
+			String channelName = channel.getName();
+			BlockInfo returnedBlock = channel.queryBlockByNumber(blockNum);
+
+			for (BlockInfo.EnvelopeInfo envelopeInfo : returnedBlock.getEnvelopeInfos()) {
+				if (envelopeInfo.getTransactionID().equalsIgnoreCase(txId)) {
+					fabTransObj.setTransaction_id(envelopeInfo.getTransactionID());
+					fabTransObj.setChannel_id(envelopeInfo.getChannelId());
+					if (envelopeInfo.getType() == TRANSACTION_ENVELOPE) {
+						BlockInfo.TransactionEnvelopeInfo transactionEnvelopeInfo = (BlockInfo.TransactionEnvelopeInfo) envelopeInfo;
+						for (BlockInfo.TransactionEnvelopeInfo.TransactionActionInfo transactionActionInfo : transactionEnvelopeInfo
+								.getTransactionActionInfos()) {
+							fabTransObj.setTransaction_status(transactionActionInfo.getResponseStatus());
+							String input_args = "";
+							for (int z = 0; z < transactionActionInfo.getChaincodeInputArgsCount(); ++z) {
+								input_args += printableString(
+										new String(transactionActionInfo.getChaincodeInputArgs(z), "UTF-8")) + " ";
+							}
+							fabTransObj.setTransaction_args(input_args);
+							TxReadWriteSetInfo rwsetInfo = transactionActionInfo.getTxReadWriteSet();
+							if (null != rwsetInfo) {
+								String readKey = "";
+								String writekey = "";
+								String chaincodeID = "";
+								for (TxReadWriteSetInfo.NsRwsetInfo nsRwsetInfo : rwsetInfo.getNsRwsetInfos()) {
+									KvRwset.KVRWSet rws = nsRwsetInfo.getRwset();
+
+									for (KvRwset.KVRead readList : rws.getReadsList()) {
+										if (chaincodeID == "")
+											chaincodeID = readList.getKey();
+										else
+											readKey += readList.getKey() + " ";
+									}
+									for (KvRwset.KVWrite writeList : rws.getWritesList()) {
+										String valAsString = printableString(
+												new String(writeList.getValue().toByteArray(), "UTF-8"));
+										writekey += writeList.getKey() + "=" + valAsString + " ";
+									}
+								}
+								fabTransObj.setChaincode_name(chaincodeID);
+								fabTransObj.setTrans_read_key(readKey);
+								fabTransObj.setTrans_write_key(writekey);
+							}
+							for (int i = 0; i < transactionActionInfo.getEndorsementsCount(); i++) {
+								EndorserInfo endorserObj = transactionActionInfo.getEndorsementInfo(i);
+								Identities.SerializedIdentity endorser = Identities.SerializedIdentity
+										.parseFrom(endorserObj.getEndorser());
+								fabTransObj.setEndorser_id(endorser.getMspid());
+							}
+						}
+					}
+				} else
+					continue;
+
+			}
+		} catch (Exception e) {
+			logger.error("QueryTransactionWithBlkID | QueryBlockWithId | " + e.getMessage());
+		}
+		return fabTransObj;
+	}
 
 }
