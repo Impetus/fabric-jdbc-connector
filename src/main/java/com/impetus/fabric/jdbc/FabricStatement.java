@@ -94,13 +94,23 @@ public class FabricStatement implements BlkchnStatement {
 	public ResultSet executeQuery(String query) throws SQLException {
 		QueryBlock qb = new QueryBlock(this.connection.getConfigPath());
 		qb.enrollAndRegister("Swati Raj");
-		List<Object[]> blockdata = qb.blockchainInfoList();
-		String[] columns = new String[] {"block_num", "transaction_count", "transaction_data", "transaction_id", "channel_id", "transaction_type"};
+
+		//List<Object[]> blockdata = qb.blockchainInfoList();FabricResultSet
+		String[] columns = new String[] {"block_num", "block_hash", "prev_block_hash", "channel_name", "transaction_count"};
 		System.out.println("Creating result set");
-		ResultSet rs = new FabricResultSet(this, blockdata, columns);
-		
-		/*String blockInfo = qb.QueryBlockWithId(3);
-		System.out.println(blockInfo);*/
+		String result = qb.blockchainInfo();
+		System.out.println(result);
+		//List<Object[]> fab = qb.GetBlock(8);
+		//ResultSet rs = new FabricResultSet(this, fab, columns);
+
+		System.out.println( "Querying The Full BlockChain");
+		List<Object[]> fab = qb.GetBlock(-1);
+		ResultSet rs = new FabricResultSet(this, fab, columns);
+
+		// Query For Transaction Within a Block
+		/*String[] columns = new String[] {"transaction_id", "channel_id", "transaction_status", "transaction_args", "endorser_id","chaincode_name","trans_read_key","trans_write_key"};
+		FabricTransaction fab = qb.QueryTransactionWithBlkID(3, "dfd3da947750f35b78654e696f7ee6c5420c9fe0e2a316f31de97e215951d1a1");
+		ResultSet rs = new FabricResultSet(this, fab.getRecordData(), columns);*/
 		return rs;
 	}
 
