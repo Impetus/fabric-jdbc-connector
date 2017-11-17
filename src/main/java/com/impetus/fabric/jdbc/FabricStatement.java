@@ -4,9 +4,18 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
-import java.util.List;
+
+import org.antlr.v4.runtime.CommonTokenStream;
 
 import com.impetus.blkch.jdbc.BlkchnStatement;
+import com.impetus.blkch.sql.generated.SqlBaseLexer;
+import com.impetus.blkch.sql.generated.SqlBaseParser;
+import com.impetus.blkch.sql.parser.AbstractSyntaxTreeVisitor;
+import com.impetus.blkch.sql.parser.BlockchainVisitor;
+import com.impetus.blkch.sql.parser.CaseInsensitiveCharStream;
+import com.impetus.blkch.sql.parser.LogicalPlan;
+import com.impetus.fabric.parser.APIConverter;
+import com.impetus.fabric.parser.DataFrame;
 import com.impetus.fabric.query.QueryBlock;
 
 public class FabricStatement implements BlkchnStatement {
@@ -92,26 +101,20 @@ public class FabricStatement implements BlkchnStatement {
 	}
 
 	public ResultSet executeQuery(String query) throws SQLException {
-		QueryBlock qb = new QueryBlock(this.connection.getConfigPath());
-		qb.enrollAndRegister("Swati Raj");
-
-		//List<Object[]> blockdata = qb.blockchainInfoList();FabricResultSet
-		String[] columns = new String[] {"block_num", "block_hash", "prev_block_hash", "channel_name", "transaction_count"};
-		System.out.println("Creating result set");
-		String result = qb.blockchainInfo();
-		System.out.println(result);
-		//List<Object[]> fab = qb.GetBlock(8);
-		//ResultSet rs = new FabricResultSet(this, fab, columns);
-
-		System.out.println( "Querying The Full BlockChain");
-		List<Object[]> fab = qb.GetBlock(-1);
-		ResultSet rs = new FabricResultSet(this, fab, columns);
-
-		// Query For Transaction Within a Block
-		/*String[] columns = new String[] {"transaction_id", "channel_id", "transaction_status", "transaction_args", "endorser_id","chaincode_name","trans_read_key","trans_write_key"};
-		FabricTransaction fab = qb.QueryTransactionWithBlkID(3, "dfd3da947750f35b78654e696f7ee6c5420c9fe0e2a316f31de97e215951d1a1");
-		ResultSet rs = new FabricResultSet(this, fab.getRecordData(), columns);*/
+		LogicalPlan logicalPlan = getLogicalPlan(query);
+		QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath());
+		queryBlock.enrollAndRegister("Swati Raj");
+		DataFrame dataframe = new APIConverter(logicalPlan, queryBlock).executeQuery();
+		ResultSet rs = new FabricResultSet(this, dataframe);
 		return rs;
+	}
+	
+	private LogicalPlan getLogicalPlan(String query) {
+		SqlBaseLexer lexer = new SqlBaseLexer(new CaseInsensitiveCharStream(query));
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		SqlBaseParser parser = new SqlBaseParser(tokens);
+		AbstractSyntaxTreeVisitor visitor = new BlockchainVisitor();
+		return visitor.visitSingleStatement(parser.singleStatement());
 	}
 
 	public int executeUpdate(String arg0) throws SQLException {

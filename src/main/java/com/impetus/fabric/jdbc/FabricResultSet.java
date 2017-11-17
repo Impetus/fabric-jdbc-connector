@@ -11,16 +11,15 @@ import java.text.ParseException;
 import java.util.List;
 
 import com.impetus.blkch.jdbc.AbstractResultSet;
+import com.impetus.fabric.parser.DataFrame;
 
 public class FabricResultSet extends AbstractResultSet {
 	
 	private Statement statement;
 	
-	private String[] columns;
-	
 	private Object[] recordData;
 	
-	private List<Object[]> data;
+	private DataFrame dataframe;
 	
 	private int recIdx;
 	
@@ -28,10 +27,9 @@ public class FabricResultSet extends AbstractResultSet {
 	
 	private static final int BEFORE_FIRST = -1;
 	
-	FabricResultSet(Statement statement, List<Object[]> data, String[] columns) {
+	FabricResultSet(Statement statement, DataFrame dataframe) {
 		this.statement = statement;
-		this.data = data;
-		this.columns = columns;
+		this.dataframe = dataframe;
 		this.recIdx = BEFORE_FIRST;
 		this.closed = false;
 	}
@@ -45,8 +43,8 @@ public class FabricResultSet extends AbstractResultSet {
 	}
 
 	public int findColumn(String column) throws SQLException {
-		for(int i = 0 ; i < columns.length ; i++) {
-			if(columns[i].equalsIgnoreCase(column)) {
+		for(int i = 0 ; i < dataframe.getColumns().size() ; i++) {
+			if(dataframe.getColumns().get(i).equalsIgnoreCase(column)) {
 				return i + 1;
 			}
 		}
@@ -224,14 +222,14 @@ public class FabricResultSet extends AbstractResultSet {
 	}
 
 	public boolean isLast() throws SQLException {
-		return recIdx == data.size() - 1;
+		return recIdx == dataframe.getData().size() - 1;
 	}
 
 	public boolean next() throws SQLException {
-		if(++recIdx >= data.size()) {
+		if(++recIdx >= dataframe.getData().size()) {
 			return false;
 		}
-		recordData = data.get(recIdx);
+		recordData = dataframe.getData().get(recIdx).toArray();
 		return true;
 	}
 
