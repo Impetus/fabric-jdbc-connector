@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.hyperledger.fabric.sdk.BlockInfo;
 import org.hyperledger.fabric.sdk.Channel;
@@ -70,7 +71,7 @@ public class APIConverter {
 		Table table = fromItem.getChildType(Table.class, 0);
 		String tableName = table.getChildType(IdentifierNode.class, 0).getValue();
 		if("block".equalsIgnoreCase(tableName)) {
-			if(logicalPlan.hasChildType(WhereClause.class)) {
+			if(logicalPlan.getQuery().hasChildType(WhereClause.class)) {
 				return executeWithWhereClause(tableName);
 			} else {
 				//TODO
@@ -134,13 +135,13 @@ public class APIConverter {
 			}
 		} else if("blockHash".equalsIgnoreCase(filterColumn)) {
 			try {
-				blockInfo = channel.queryBlockByHash(value.getBytes());
-			} catch (InvalidArgumentException | ProposalException e) {
+				blockInfo = channel.queryBlockByHash(Hex.decodeHex(value.replace("'", "").toCharArray()));
+			} catch (InvalidArgumentException | ProposalException | DecoderException e) {
 				throw new RuntimeException(e);
 			}
 		} else {
 			try {
-				blockInfo = channel.queryBlockByTransactionID(value);
+				blockInfo = channel.queryBlockByTransactionID(value.replace("'", ""));
 			} catch (InvalidArgumentException | ProposalException e) {
 				throw new RuntimeException(e);
 			}
