@@ -33,7 +33,7 @@ public class APIConverter {
 	
 	private QueryBlock queryBlock;
 	
-	private List<String> selectItems = new ArrayList<>();
+	private List<SelectItem> selectItems = new ArrayList<>();
 	
 	private static final String[] filterableCols = {"blockNo", "blockHash", "transactionId"};
 	
@@ -45,10 +45,10 @@ public class APIConverter {
 		SelectClause selectClause = logicalPlan.getQuery().getChildType(SelectClause.class, 0);
 		List<SelectItem> selItems = selectClause.getChildType(SelectItem.class);
 		for(SelectItem selItem : selItems) {
-			String colName = selItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
-			selectItems.add(colName);
+			selectItems.add(selItem);
 			if(selItem.hasChildType(IdentifierNode.class)) {
 				String alias = selItem.getChildType(IdentifierNode.class, 0).getValue();
+				String colName = selItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
 				if(aliasMapping.containsKey(alias)) {
 					throw new RuntimeException("Alias " + alias + " is ambiguous");
 				} else {
