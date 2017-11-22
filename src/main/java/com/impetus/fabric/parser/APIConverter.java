@@ -46,7 +46,7 @@ public class APIConverter {
 		List<SelectItem> selItems = selectClause.getChildType(SelectItem.class);
 		for(SelectItem selItem : selItems) {
 			selectItems.add(selItem);
-			if(selItem.hasChildType(IdentifierNode.class)) {
+			if(selItem.hasChildType(IdentifierNode.class) && selItem.hasChildType(Column.class)) {
 				String alias = selItem.getChildType(IdentifierNode.class, 0).getValue();
 				String colName = selItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
 				if(aliasMapping.containsKey(alias)) {
