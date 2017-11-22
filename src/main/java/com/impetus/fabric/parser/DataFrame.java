@@ -93,6 +93,21 @@ public class DataFrame {
 		return new DataFrame(returnData, returnCols, aliasMapping);
 	}
 	
+	public GroupedDataFrame group(List<String> groupCols) {
+		List<Integer> groupIndices = new ArrayList<>();
+		for(String colName : groupCols) {
+			if(columns.contains(colName)) {
+				groupIndices.add(columns.indexOf(colName));
+			} else if(aliasMapping.containsKey(colName)) {
+				String actualCol = aliasMapping.get(colName);
+				groupIndices.add(columns.indexOf(actualCol));
+			} else {
+				throw new RuntimeException("Column " + colName + " doesn't exist in table");
+			}
+		}
+		return new GroupedDataFrame(groupIndices, data, columns, aliasMapping);
+	}
+	
 	private Object computeFunction(FunctionNode function) {
 		String func = function.getChildType(IdentifierNode.class, 0).getValue();
 		List<Object> columnData = new ArrayList<>();

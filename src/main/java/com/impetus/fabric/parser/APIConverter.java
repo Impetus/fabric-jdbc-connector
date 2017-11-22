@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -19,6 +20,7 @@ import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.FilterItem;
 import com.impetus.blkch.sql.query.FromItem;
+import com.impetus.blkch.sql.query.GroupByClause;
 import com.impetus.blkch.sql.query.IdentifierNode;
 import com.impetus.blkch.sql.query.LogicalOperation;
 import com.impetus.blkch.sql.query.SelectClause;
@@ -65,6 +67,12 @@ public class APIConverter {
 			dataframe = blockToDataFrame(blockInfos);
 		} catch (InvalidProtocolBufferException e) {
 			throw new RuntimeException(e);
+		}
+		if(logicalPlan.getQuery().hasChildType(GroupByClause.class)) {
+			GroupByClause groupByClause = logicalPlan.getQuery().getChildType(GroupByClause.class, 0);
+			List<Column> groupColumns = groupByClause.getChildType(Column.class);
+			List<String> groupByCols = groupColumns.stream().map(col -> col.getChildType(IdentifierNode.class, 0).getValue()).collect(Collectors.toList());
+			return dataframe.group(groupByCols).select(selectItems);
 		}
 		return dataframe.select(selectItems);
 	}
