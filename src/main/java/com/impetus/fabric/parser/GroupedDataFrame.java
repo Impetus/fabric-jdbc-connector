@@ -33,48 +33,49 @@ public class GroupedDataFrame {
 		List<String> returnCols = new ArrayList<>();
 		boolean columnsInitialized = false;
 		for(Map.Entry<List<Object>, List<List<Object>>> entry : groupData.entrySet()) {
-			for(List<Object> record : entry.getValue()) {
-				List<Object> returnRec = new ArrayList<>();
-				for(SelectItem col : cols) {
-					if(col.hasChildType(Column.class)) {
-						int colIndex;
-						String colName = col.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
-						if(columns.contains(colName)) {
-							colIndex = columns.indexOf(colName);
-							if(!groupIndices.contains(colIndex)) {
-								throw new RuntimeException("Select column " + colName + " should exist in group by clause");
-							}
-							if (!columnsInitialized) {
-								returnCols.add(colName);
-							}
-						} else if(aliasMapping.containsKey(colName)) {
-							String actualCol = aliasMapping.get(colName);
-							colIndex = columns.indexOf(actualCol);
-							if(!groupIndices.contains(colIndex)) {
-								throw new RuntimeException("Select column " + colName + " should exist in group by clause");
-							}
-							if (!columnsInitialized) {
-								returnCols.add(actualCol);
-							}
-						} else {
-							throw new RuntimeException("Column " + colName + " doesn't exist in table");
+			List<Object> returnRec = new ArrayList<>();
+			if(entry.getValue().size() == 0) {
+				continue;
+			}
+			for(SelectItem col : cols) {
+				if(col.hasChildType(Column.class)) {
+					int colIndex;
+					String colName = col.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
+					if(columns.contains(colName)) {
+						colIndex = columns.indexOf(colName);
+						if(!groupIndices.contains(colIndex)) {
+							throw new RuntimeException("Select column " + colName + " should exist in group by clause");
 						}
-						returnRec.add(record.get(colIndex));
-					} else if(col.hasChildType(FunctionNode.class)) {
-						Object computeResult = computeFunction(col.getChildType(FunctionNode.class, 0), entry.getValue());
-						returnRec.add(computeResult);
-						if(col.hasChildType(IdentifierNode.class)) {
-							if (!columnsInitialized) {
-								returnCols.add(col.getChildType(IdentifierNode.class, 0).getValue());
-							}
-						} else if(!columnsInitialized) {
-							returnCols.add(createFunctionColName(col.getChildType(FunctionNode.class, 0)));
+						if (!columnsInitialized) {
+							returnCols.add(colName);
 						}
+					} else if(aliasMapping.containsKey(colName)) {
+						String actualCol = aliasMapping.get(colName);
+						colIndex = columns.indexOf(actualCol);
+						if(!groupIndices.contains(colIndex)) {
+							throw new RuntimeException("Select column " + colName + " should exist in group by clause");
+						}
+						if (!columnsInitialized) {
+							returnCols.add(actualCol);
+						}
+					} else {
+						throw new RuntimeException("Column " + colName + " doesn't exist in table");
+					}
+					returnRec.add(entry.getValue().get(0).get(colIndex));
+				} else if(col.hasChildType(FunctionNode.class)) {
+					Object computeResult = computeFunction(col.getChildType(FunctionNode.class, 0), entry.getValue());
+					returnRec.add(computeResult);
+					if(col.hasChildType(IdentifierNode.class)) {
+						if (!columnsInitialized) {
+							returnCols.add(col.getChildType(IdentifierNode.class, 0).getValue());
+						}
+					} else if(!columnsInitialized) {
+						returnCols.add(createFunctionColName(col.getChildType(FunctionNode.class, 0)));
 					}
 				}
-				returnData.add(returnRec);
-				columnsInitialized = true;
 			}
+			returnData.add(returnRec);
+			columnsInitialized = true;
 		}
 		System.out.println(returnCols);
 		return new DataFrame(returnData, returnCols, aliasMapping);

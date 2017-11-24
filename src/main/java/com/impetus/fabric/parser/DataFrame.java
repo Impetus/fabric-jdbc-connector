@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.FunctionNode;
 import com.impetus.blkch.sql.query.IdentifierNode;
+import com.impetus.blkch.sql.query.LimitClause;
 import com.impetus.blkch.sql.query.OrderItem;
 import com.impetus.blkch.sql.query.OrderingDirection;
 import com.impetus.blkch.sql.query.SelectItem;
@@ -96,7 +97,6 @@ public class DataFrame {
 			returnData.add(returnRec);
 			columnsInitialized = true;
 		}
-		System.out.println(returnCols);
 		return new DataFrame(returnData, returnCols, aliasMapping);
 	}
 	
@@ -148,6 +148,21 @@ public class DataFrame {
 		return new DataFrame(sortData, columns, aliasMapping);
 	}
 	
+	public DataFrame limit(LimitClause limitClause) {
+		String limitValue = limitClause.getChildType(IdentifierNode.class, 0).getValue();
+		int limit;
+		try {
+			limit = Integer.parseInt(limitValue);
+		} catch (NumberFormatException e) {
+			throw new RuntimeException(e);
+		}
+		if(limit < 0) {
+			throw new RuntimeException("limit value should not be less than zero");
+		}
+		List<List<Object>> limitedData = data.stream().limit(limit).collect(Collectors.toList());
+		return new DataFrame(limitedData, columns, aliasMapping);
+	}
+	
 	public GroupedDataFrame group(List<String> groupCols) {
 		List<Integer> groupIndices = new ArrayList<>();
 		for(String colName : groupCols) {
@@ -161,6 +176,15 @@ public class DataFrame {
 			}
 		}
 		return new GroupedDataFrame(groupIndices, data, columns, aliasMapping);
+	}
+	
+	public void show() {
+		columns.stream().forEach(col -> System.out.print(col + " "));
+		System.out.println();
+		data.stream().forEach(list -> {
+			list.stream().forEach(cell -> System.out.print(cell + " ")); 
+			System.out.println();
+		});
 	}
 	
 	private Object computeFunction(FunctionNode function) {
