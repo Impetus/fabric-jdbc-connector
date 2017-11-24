@@ -2,12 +2,19 @@ package com.impetus.fabric.parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.FunctionNode;
 import com.impetus.blkch.sql.query.IdentifierNode;
+import com.impetus.blkch.sql.query.OrderItem;
+import com.impetus.blkch.sql.query.OrderingDirection;
 import com.impetus.blkch.sql.query.SelectItem;
 import com.impetus.blkch.sql.query.StarNode;
 
@@ -93,6 +100,54 @@ public class DataFrame {
 		return new DataFrame(returnData, returnCols, aliasMapping);
 	}
 	
+	public DataFrame order(List<OrderItem> orderItems) {
+		Map<Integer, OrderingDirection> order = new HashMap<>();
+		for(OrderItem orderItem : orderItems) {
+			OrderingDirection direction = orderItem.getChildType(OrderingDirection.class, 0);
+			String col = orderItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
+			if(columns.contains(col)) {
+				order.put(columns.indexOf(col), direction);
+			} else if(aliasMapping.containsKey(col)) {
+				String actualCol = aliasMapping.get(col);
+				order.put(columns.indexOf(actualCol), direction);
+			} else {
+				throw new RuntimeException("Column " + col + " doesn't exist in table");
+			}
+		}
+		List<List<Object>> sortData = data.stream().map(list -> list.stream().map(obj -> obj).collect(Collectors.toList())).collect(Collectors.toList());
+		Collections.sort(sortData, new Comparator<List<Object>>() {
+			
+			@Override
+			public int compare(List<Object> first, List<Object> second) {
+				for(Map.Entry<Integer, OrderingDirection> entry : order.entrySet()) {
+					int colIndex = entry.getKey();
+					Object firstObject = first.get(colIndex);
+					Object secondObject = second.get(colIndex);
+					if(firstObject.equals(secondObject)) {
+						continue;
+					}
+					OrderingDirection direction = entry.getValue();
+					int diff;
+					if(firstObject instanceof Integer) {
+						diff = (((Integer)firstObject) - ((Integer)secondObject)) < 0 ? -1 : +1;
+					} else if(firstObject instanceof Long) {
+						diff = (((Long)firstObject) - ((Long)secondObject)) < 0 ? -1 : +1;
+					} else if(firstObject instanceof Double) {
+						diff = (((Double)firstObject) - ((Double)secondObject)) < 0.0 ? -1 : +1;
+					} else if(firstObject instanceof Date) {
+						diff = (((Date)firstObject).getTime() - ((Date)secondObject).getTime()) < 0.0 ? -1 : +1;
+					} else {
+						diff = firstObject.toString().compareTo(secondObject.toString());
+					}
+					return direction.isAsc() ? diff : diff * -1;
+				}
+				return 0;
+			}
+			
+		});
+		return new DataFrame(sortData, columns, aliasMapping);
+	}
+	
 	public GroupedDataFrame group(List<String> groupCols) {
 		List<Integer> groupIndices = new ArrayList<>();
 		for(String colName : groupCols) {
@@ -144,4 +199,5 @@ public class DataFrame {
 			return func + "(" + colName + ")";
 		}
 	}
+	
 }

@@ -23,6 +23,8 @@ import com.impetus.blkch.sql.query.FromItem;
 import com.impetus.blkch.sql.query.GroupByClause;
 import com.impetus.blkch.sql.query.IdentifierNode;
 import com.impetus.blkch.sql.query.LogicalOperation;
+import com.impetus.blkch.sql.query.OrderByClause;
+import com.impetus.blkch.sql.query.OrderItem;
 import com.impetus.blkch.sql.query.SelectClause;
 import com.impetus.blkch.sql.query.SelectItem;
 import com.impetus.blkch.sql.query.Table;
@@ -68,13 +70,29 @@ public class APIConverter {
 		} catch (InvalidProtocolBufferException e) {
 			throw new RuntimeException(e);
 		}
+		List<OrderItem> orderItems = null;
+		if(logicalPlan.getQuery().hasChildType(OrderByClause.class)) {
+			OrderByClause orderByClause = logicalPlan.getQuery().getChildType(OrderByClause.class, 0);
+			orderItems = orderByClause.getChildType(OrderItem.class);
+		}
 		if(logicalPlan.getQuery().hasChildType(GroupByClause.class)) {
 			GroupByClause groupByClause = logicalPlan.getQuery().getChildType(GroupByClause.class, 0);
 			List<Column> groupColumns = groupByClause.getChildType(Column.class);
 			List<String> groupByCols = groupColumns.stream().map(col -> col.getChildType(IdentifierNode.class, 0).getValue()).collect(Collectors.toList());
-			return dataframe.group(groupByCols).select(selectItems);
+			DataFrame afterSelect = dataframe.group(groupByCols).select(selectItems);
+			if(orderItems != null) {
+				return afterSelect.order(orderItems);
+			} else {
+				return afterSelect;
+			}
 		}
-		return dataframe.select(selectItems);
+		DataFrame preSelect = null;
+		if(orderItems != null) {
+			preSelect = dataframe.order(orderItems).select(selectItems);
+		} else {
+			preSelect = dataframe;
+		}
+		return preSelect.select(selectItems);
 	}
 	
 	public List<BlockInfo> getFromTable() {
