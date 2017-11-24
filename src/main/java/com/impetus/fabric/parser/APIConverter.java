@@ -22,6 +22,7 @@ import com.impetus.blkch.sql.query.FilterItem;
 import com.impetus.blkch.sql.query.FromItem;
 import com.impetus.blkch.sql.query.GroupByClause;
 import com.impetus.blkch.sql.query.IdentifierNode;
+import com.impetus.blkch.sql.query.LimitClause;
 import com.impetus.blkch.sql.query.LogicalOperation;
 import com.impetus.blkch.sql.query.OrderByClause;
 import com.impetus.blkch.sql.query.OrderItem;
@@ -75,24 +76,40 @@ public class APIConverter {
 			OrderByClause orderByClause = logicalPlan.getQuery().getChildType(OrderByClause.class, 0);
 			orderItems = orderByClause.getChildType(OrderItem.class);
 		}
+		LimitClause limitClause = null;
+		if(logicalPlan.getQuery().hasChildType(LimitClause.class)) {
+			limitClause = logicalPlan.getQuery().getChildType(LimitClause.class, 0);
+		}
 		if(logicalPlan.getQuery().hasChildType(GroupByClause.class)) {
 			GroupByClause groupByClause = logicalPlan.getQuery().getChildType(GroupByClause.class, 0);
 			List<Column> groupColumns = groupByClause.getChildType(Column.class);
 			List<String> groupByCols = groupColumns.stream().map(col -> col.getChildType(IdentifierNode.class, 0).getValue()).collect(Collectors.toList());
 			DataFrame afterSelect = dataframe.group(groupByCols).select(selectItems);
+			DataFrame afterOrder;
 			if(orderItems != null) {
-				return afterSelect.order(orderItems);
+				afterOrder = afterSelect.order(orderItems);
 			} else {
-				return afterSelect;
+				afterOrder = afterSelect;
+			}
+			if(limitClause == null) {
+				return afterOrder;
+			} else {
+				return afterOrder.limit(limitClause);
 			}
 		}
-		DataFrame preSelect = null;
+		DataFrame preSelect;
 		if(orderItems != null) {
-			preSelect = dataframe.order(orderItems).select(selectItems);
+			preSelect = dataframe.order(orderItems);
 		} else {
 			preSelect = dataframe;
 		}
-		return preSelect.select(selectItems);
+		DataFrame afterOrder;
+		if(limitClause == null) {
+			afterOrder = preSelect;
+		} else {
+			afterOrder = preSelect.limit(limitClause);
+		}
+		return afterOrder.select(selectItems);
 	}
 	
 	public List<BlockInfo> getFromTable() {
