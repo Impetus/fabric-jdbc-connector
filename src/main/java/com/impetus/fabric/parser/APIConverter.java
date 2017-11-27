@@ -21,6 +21,7 @@ import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.FilterItem;
 import com.impetus.blkch.sql.query.FromItem;
 import com.impetus.blkch.sql.query.GroupByClause;
+import com.impetus.blkch.sql.query.HavingClause;
 import com.impetus.blkch.sql.query.IdentifierNode;
 import com.impetus.blkch.sql.query.LimitClause;
 import com.impetus.blkch.sql.query.LogicalOperation;
@@ -85,7 +86,13 @@ public class APIConverter {
             List<Column> groupColumns = groupByClause.getChildType(Column.class);
             List<String> groupByCols = groupColumns.stream()
                     .map(col -> col.getChildType(IdentifierNode.class, 0).getValue()).collect(Collectors.toList());
-            DataFrame afterSelect = dataframe.group(groupByCols).select(selectItems);
+            GroupedDataFrame groupedDF = dataframe.group(groupByCols);
+            DataFrame afterSelect;
+            if(logicalPlan.getQuery().hasChildType(HavingClause.class)) {
+                afterSelect = groupedDF.having(logicalPlan.getQuery().getChildType(HavingClause.class, 0)).select(selectItems);
+            } else {
+                afterSelect = groupedDF.select(selectItems);
+            }
             DataFrame afterOrder;
             if (orderItems != null) {
                 afterOrder = afterSelect.order(orderItems);
