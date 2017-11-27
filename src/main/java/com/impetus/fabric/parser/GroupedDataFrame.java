@@ -1,13 +1,18 @@
 package com.impetus.fabric.parser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.impetus.blkch.sql.query.Column;
+import com.impetus.blkch.sql.query.Comparator;
+import com.impetus.blkch.sql.query.FilterItem;
 import com.impetus.blkch.sql.query.FunctionNode;
+import com.impetus.blkch.sql.query.HavingClause;
 import com.impetus.blkch.sql.query.IdentifierNode;
+import com.impetus.blkch.sql.query.LogicalOperation;
 import com.impetus.blkch.sql.query.SelectItem;
 
 public class GroupedDataFrame {
@@ -29,6 +34,14 @@ public class GroupedDataFrame {
                 Collectors.groupingBy(
                         list -> groupIndices.stream().map(index -> list.get(index)).collect(Collectors.toList()),
                         Collectors.toList()));
+    }
+    
+    private GroupedDataFrame(List<Integer> groupIndices, Map<List<Object>, List<List<Object>>> groupData, List<String> columns,
+            Map<String, String> aliasMapping) {
+        this.groupIndices = groupIndices;
+        this.columns = columns;
+        this.aliasMapping = aliasMapping;
+        this.groupData = groupData;
     }
 
     public DataFrame select(List<SelectItem> cols) {
@@ -80,8 +93,117 @@ public class GroupedDataFrame {
             returnData.add(returnRec);
             columnsInitialized = true;
         }
-        System.out.println(returnCols);
         return new DataFrame(returnData, returnCols, aliasMapping);
+    }
+    
+    public GroupedDataFrame having(HavingClause havingClause) {
+        Map<List<Object>, List<List<Object>>> groupData;
+        if(havingClause.hasChildType(FilterItem.class)) {
+            groupData = executeSingleHavingClause(havingClause.getChildType(FilterItem.class, 0));
+        } else {
+            groupData = executeMultipleHavingClause(havingClause.getChildType(LogicalOperation.class, 0));
+        }
+        return new GroupedDataFrame(groupIndices, groupData, columns, aliasMapping);
+    }
+    
+    private Map<List<Object>, List<List<Object>>> executeSingleHavingClause(FilterItem filterItem) {
+        String column = filterItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
+        Comparator comparator = filterItem.getChildType(Comparator.class, 0);
+        String value = filterItem.getChildType(IdentifierNode.class, 0).getValue().replace("'", "");
+        System.out.println(value);
+        int groupIdx = -1;
+        boolean invalidFilterCol = false;
+        if(columns.contains(column)) {
+            if(groupIndices.contains(columns.indexOf(column))) {
+                groupIdx = groupIndices.indexOf(columns.indexOf(column));
+            } else {
+                invalidFilterCol = true;
+            }
+        } else if(aliasMapping.containsKey(column)) {
+            if(groupIndices.contains(columns.indexOf(aliasMapping.get(column)))) {
+                groupIdx = groupIndices.indexOf(columns.indexOf(aliasMapping.get(column)));
+            } else {
+                invalidFilterCol = true;
+            }
+        } else {
+            invalidFilterCol = true;
+        }
+        if(invalidFilterCol || (groupIdx == -1)) {
+            throw new RuntimeException("Column " + column + " must appear in GROUP BY clause");
+        }
+        final int groupIndex = groupIdx;
+        Map<List<Object>, List<List<Object>>> filterData = groupData.entrySet().stream().filter(entry -> {
+            List<Object> keys = entry.getKey();
+            Object cellValue = keys.get(groupIndex);
+            if(cellValue == null) {
+                return false;
+            }
+            if(cellValue instanceof Number) {
+                Double cell = Double.parseDouble(cellValue.toString());
+                Double doubleValue = Double.parseDouble(value);
+                if(comparator.isEQ()) {
+                    return cell.equals(doubleValue);
+                } else if(comparator.isGT()) {
+                    return cell > doubleValue;
+                } else if(comparator.isGTE()) {
+                    return cell >= doubleValue;
+                } else if(comparator.isLT()) {
+                    return cell < doubleValue;
+                } else if(comparator.isLTE()) {
+                    return cell <= doubleValue;
+                } else {
+                    return !cell.equals(doubleValue);
+                }
+            } else {
+                int comparisionValue = cellValue.toString().compareTo(value);
+                if(comparator.isEQ()) {
+                    return comparisionValue == 0;
+                } else if(comparator.isGT()) {
+                    return comparisionValue > 0;
+                } else if(comparator.isGTE()) {
+                    return comparisionValue >= 0;
+                } else if(comparator.isLT()) {
+                    return comparisionValue < 0;
+                } else if(comparator.isLTE()) {
+                    return comparisionValue <= 0;
+                } else {
+                    return comparisionValue != 0;
+                }
+            }
+        }).collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+        return filterData;
+    }
+    
+    private Map<List<Object>, List<List<Object>>> executeMultipleHavingClause(LogicalOperation operation) {
+        if (operation.getChildNodes().size() != 2) {
+            throw new RuntimeException("Logical operation should have two boolean expressions");
+        }
+        Map<List<Object>, List<List<Object>>> firstOut, secondOut, returnMap = new HashMap<>();
+        if (operation.getChildNode(0) instanceof LogicalOperation) {
+            firstOut = executeMultipleHavingClause((LogicalOperation) operation.getChildNode(0));
+        } else {
+            FilterItem filterItem = (FilterItem) operation.getChildNode(0);
+            firstOut = executeSingleHavingClause(filterItem);
+        }
+        if (operation.getChildNode(1) instanceof LogicalOperation) {
+            secondOut = executeMultipleHavingClause((LogicalOperation) operation.getChildNode(1));
+        } else {
+            FilterItem filterItem = (FilterItem) operation.getChildNode(1);
+            secondOut = executeSingleHavingClause(filterItem);
+        }
+        if(operation.isAnd()) {
+            for(List<Object> key : firstOut.keySet()) {
+                if(secondOut.containsKey(key)) {
+                    returnMap.put(key, secondOut.get(key));
+                }
+            }
+        } else {
+            returnMap.putAll(firstOut);
+            for(Map.Entry<List<Object>, List<List<Object>>> entry : secondOut.entrySet()) {
+                returnMap.putIfAbsent(entry.getKey(), entry.getValue());
+            }
+        }
+        return returnMap;
     }
 
     private Object computeFunction(FunctionNode function, List<List<Object>> data) {
