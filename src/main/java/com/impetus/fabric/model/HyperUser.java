@@ -3,7 +3,6 @@
  * COYPYRIGHT FOR IMPETUS
  */
 
-
 package com.impetus.fabric.model;
 
 import java.io.ByteArrayInputStream;
@@ -23,14 +22,21 @@ public class HyperUser implements User, Serializable {
     private static final long serialVersionUID = 8077132186383604355L;
 
     private String name;
+
     private Set<String> roles;
+
     private String account;
+
     private String affiliation;
+
     private String organization;
+
     private String enrollmentSecret;
-    Enrollment enrollment = null; //need access in test env.
+
+    Enrollment enrollment = null; // need access in test env.
 
     private transient Store keyValStore;
+
     private String keyValStoreName;
 
     HyperUser(String name, String org, Store fs) {
@@ -40,12 +46,12 @@ public class HyperUser implements User, Serializable {
         this.organization = org;
         this.keyValStoreName = toKeyValStoreName(this.name, org);
         String memberStr = keyValStore.getValue(keyValStoreName);
-        
+
         if (null == memberStr) {
             saveState();
-           
+
         } else {
-        	
+
             restoreState();
         }
 
@@ -80,7 +86,8 @@ public class HyperUser implements User, Serializable {
     /**
      * Set the account.
      *
-     * @param account The account.
+     * @param account
+     *            The account.
      */
     public void setAccount(String account) {
 
@@ -96,7 +103,8 @@ public class HyperUser implements User, Serializable {
     /**
      * Set the affiliation.
      *
-     * @param affiliation the affiliation.
+     * @param affiliation
+     *            the affiliation.
      */
     public void setAffiliation(String affiliation) {
         this.affiliation = affiliation;
@@ -134,11 +142,9 @@ public class HyperUser implements User, Serializable {
         try {
             ObjectOutputStream oos = new ObjectOutputStream(bos);
             oos.writeObject(this);
-           
+
             oos.flush();
-            
-        
-            
+
             keyValStore.setValue(keyValStoreName, Hex.toHexString(bos.toByteArray()));
             bos.close();
         } catch (IOException e) {
@@ -147,21 +153,22 @@ public class HyperUser implements User, Serializable {
     }
 
     /**
-     * Restore the state of this user from the key value store (if found).  If not found, do nothing.
+     * Restore the state of this user from the key value store (if found). If
+     * not found, do nothing.
      */
     HyperUser restoreState() {
         String memberStr = keyValStore.getValue(keyValStoreName);
-        
+
         if (null != memberStr) {
             // The user was found in the key value store, so restore the
             // state.
             byte[] serialized = Hex.decode(memberStr);
             ByteArrayInputStream bis = new ByteArrayInputStream(serialized);
-           
+
             try {
                 ObjectInputStream ois = new ObjectInputStream(bis);
                 HyperUser state = (HyperUser) ois.readObject();
-                
+
                 if (state != null) {
                     this.name = state.name;
                     this.roles = state.roles;
@@ -171,7 +178,7 @@ public class HyperUser implements User, Serializable {
                     this.enrollmentSecret = state.enrollmentSecret;
                     this.enrollment = state.enrollment;
                     this.mspId = state.mspId;
-                    
+
                     return this;
                 }
             } catch (Exception e) {

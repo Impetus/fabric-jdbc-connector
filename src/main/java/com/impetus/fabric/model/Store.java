@@ -3,7 +3,6 @@
  * COYPYRIGHT FOR IMPETUS
  */
 
-
 package com.impetus.fabric.model;
 
 import java.io.File;
@@ -40,6 +39,7 @@ import org.hyperledger.fabric.sdk.Enrollment;
 public class Store {
 
     private String file;
+
     private Log logger = LogFactory.getLog(Store.class);
 
     public Store(File file) {
@@ -77,8 +77,7 @@ public class Store {
         } catch (FileNotFoundException e) {
             logger.warn(String.format("Could not find the file \"%s\"", file));
         } catch (IOException e) {
-            logger.warn(String.format("Could not load keyvalue store from file \"%s\", reason:%s",
-                    file, e.getMessage()));
+            logger.warn(String.format("Could not load keyvalue store from file \"%s\", reason:%s", file, e.getMessage()));
         }
 
         return properties;
@@ -87,14 +86,14 @@ public class Store {
     /**
      * Set the value associated with name.
      *
-     * @param name  The name of the parameter
-     * @param value Value for the parameter
+     * @param name
+     *            The name of the parameter
+     * @param value
+     *            Value for the parameter
      */
     public void setValue(String name, String value) {
         Properties properties = loadProperties();
-        try (
-                OutputStream output = new FileOutputStream(file)
-        ) {
+        try (OutputStream output = new FileOutputStream(file)) {
             properties.setProperty(name, value);
             properties.store(output, "");
             output.close();
@@ -121,7 +120,8 @@ public class Store {
             return sampleUser;
         }
 
-        // Create the SampleUser and try to restore it's state from the key value store (if found).
+        // Create the SampleUser and try to restore it's state from the key
+        // value store (if found).
         sampleUser = new HyperUser(name, org, this);
 
         return sampleUser;
@@ -160,8 +160,8 @@ public class Store {
      * @throws NoSuchProviderException
      * @throws InvalidKeySpecException
      */
-    public HyperUser getMember(String name, String org, String mspId, File privateKeyFile,
-                                File certificateFile) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    public HyperUser getMember(String name, String org, String mspId, File privateKeyFile, File certificateFile)
+            throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
 
         try {
             // Try to get the SampleUser state from the cache
@@ -170,7 +170,8 @@ public class Store {
                 return sampleUser;
             }
 
-            // Create the SampleUser and try to restore it's state from the key value store (if found).
+            // Create the SampleUser and try to restore it's state from the key
+            // value store (if found).
             sampleUser = new HyperUser(name, org, this);
             sampleUser.setMspId(mspId);
 
@@ -207,7 +208,8 @@ public class Store {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }
 
-    static PrivateKey getPrivateKeyFromBytes(byte[] data) throws IOException, NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException {
+    static PrivateKey getPrivateKeyFromBytes(byte[] data) throws IOException, NoSuchProviderException,
+            NoSuchAlgorithmException, InvalidKeySpecException {
         final Reader pemReader = new StringReader(new String(data));
 
         final PrivateKeyInfo pemPair;
@@ -215,7 +217,8 @@ public class Store {
             pemPair = (PrivateKeyInfo) pemParser.readObject();
         }
 
-        PrivateKey privateKey = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getPrivateKey(pemPair);
+        PrivateKey privateKey = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getPrivateKey(
+                pemPair);
 
         return privateKey;
     }
@@ -223,16 +226,16 @@ public class Store {
     static final class SampleStoreEnrollement implements Enrollment, Serializable {
 
         private static final long serialVersionUID = -2784835212445309006L;
+
         private final PrivateKey privateKey;
+
         private final String certificate;
 
-
-        SampleStoreEnrollement(PrivateKey privateKey, String certificate)  {
-
+        SampleStoreEnrollement(PrivateKey privateKey, String certificate) {
 
             this.certificate = certificate;
 
-            this.privateKey =  privateKey;
+            this.privateKey = privateKey;
         }
 
         @Override
