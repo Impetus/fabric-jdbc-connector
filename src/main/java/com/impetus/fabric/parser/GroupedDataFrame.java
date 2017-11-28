@@ -125,7 +125,6 @@ public class GroupedDataFrame {
         String column = filterItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
         Comparator comparator = filterItem.getChildType(Comparator.class, 0);
         String value = filterItem.getChildType(IdentifierNode.class, 0).getValue().replace("'", "");
-        System.out.println(value);
         int groupIdx = -1;
         boolean invalidFilterCol = false;
         if(columns.contains(column)) {
