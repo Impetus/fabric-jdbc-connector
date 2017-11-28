@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -116,7 +116,7 @@ public class DataFrame {
     }
 
     public DataFrame order(List<OrderItem> orderItems) {
-        Map<Integer, OrderingDirection> order = new HashMap<>();
+        Map<Integer, OrderingDirection> order = new LinkedHashMap<>();
         for (OrderItem orderItem : orderItems) {
             OrderingDirection direction = orderItem.getChildType(OrderingDirection.class, 0);
             String col = orderItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
