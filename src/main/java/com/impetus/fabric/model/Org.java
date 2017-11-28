@@ -3,7 +3,6 @@
  * COYPYRIGHT FOR IMPETUS
  */
 
-
 package com.impetus.fabric.model;
 
 import java.util.Collection;
@@ -18,8 +17,6 @@ import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 
-
-
 /**
  * Sample Organization Representation
  *
@@ -28,20 +25,28 @@ import org.hyperledger.fabric_ca.sdk.HFCAClient;
  */
 public class Org {
     final String name;
+
     final String mspid;
+
     HFCAClient caClient;
 
     Map<String, User> userMap = new HashMap<>();
+
     Map<String, String> peerLocations = new HashMap<>();
+
     Map<String, String> ordererLocations = new HashMap<>();
+
     Map<String, String> eventHubLocations = new HashMap<>();
+
     Set<Peer> peers = new HashSet<>();
+
     private HyperUser admin;
+
     private String caLocation;
+
     private Properties caProperties = null;
 
     private HyperUser peerAdmin;
-
 
     private String domainName;
 
@@ -105,7 +110,6 @@ public class Org {
         return Collections.unmodifiableSet(peerLocations.keySet());
     }
 
-
     public Set<String> getOrdererNames() {
 
         return Collections.unmodifiableSet(ordererLocations.keySet());
@@ -161,7 +165,6 @@ public class Org {
     public Properties getCAProperties() {
         return caProperties;
     }
-
 
     public HyperUser getPeerAdmin() {
         return peerAdmin;

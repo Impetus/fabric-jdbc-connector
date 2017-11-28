@@ -16,77 +16,77 @@ import org.slf4j.LoggerFactory;
 import com.impetus.blkch.jdbc.BlkchnDriver;
 
 public class FabricDriver implements BlkchnDriver {
-	
-	private static final int MAJOR_VERSION = 1;
-	
-	private static final int MINOR_VERSION = 1;
-	
-	private static Pattern pattern = Pattern.compile("jdbc:fabric://(.*)");
-	
-	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(FabricDriver.class);
-	
-	static {
-		try {
-			DriverManager.registerDriver(new FabricDriver());
-		} catch (SQLException e) {
-			LOGGER.error("Failed to register Fabric Driver", e);
-		}
-	}
-	
-	private FabricDriver() {
-		//Prevents Instantiation
-	}
 
-	public boolean acceptsURL(String url) throws SQLException {
-		if(url == null || !url.startsWith("jdbc:fabric")) {
-			return false;
-		}
-		return true;
-	}
+    private static final int MAJOR_VERSION = 1;
 
-	public Connection connect(String url, Properties info) throws SQLException {
-		Properties props = parseURL(url, info);
-		return new FabricConnection(url, props);
-	}
+    private static final int MINOR_VERSION = 1;
 
-	public int getMajorVersion() {
-		return MAJOR_VERSION;
-	}
+    private static Pattern pattern = Pattern.compile("jdbc:fabric://(.*)");
 
-	public int getMinorVersion() {
-		return MINOR_VERSION;
-	}
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(FabricDriver.class);
 
-	public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    static {
+        try {
+            DriverManager.registerDriver(new FabricDriver());
+        } catch (SQLException e) {
+            LOGGER.error("Failed to register Fabric Driver", e);
+        }
+    }
 
-	public DriverPropertyInfo[] getPropertyInfo(String arg0, Properties arg1) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    private FabricDriver() {
+        // Prevents Instantiation
+    }
 
-	public boolean jdbcCompliant() {
-		return false;
-	}
-	
-	private Properties parseURL(String url, Properties info) {
-		Properties props = new Properties();
-		for(Enumeration<?> e = info.propertyNames() ; e.hasMoreElements();) {
-			String key = (String)e.nextElement();
-			String value = info.getProperty(key);
-			if(value != null) {
-				props.put(key.toUpperCase(), value);
-			}
-		}
-		Matcher m = pattern.matcher(url);
-		if(m.matches() && m.groupCount() == 1) {
-			props.put("configPath", m.group(1).trim());
-		} else {
-			throw new RuntimeException("fabric jdbc url is wrong");
-		}
-		return props;
-	}
+    public boolean acceptsURL(String url) throws SQLException {
+        if (url == null || !url.startsWith("jdbc:fabric")) {
+            return false;
+        }
+        return true;
+    }
+
+    public Connection connect(String url, Properties info) throws SQLException {
+        Properties props = parseURL(url, info);
+        return new FabricConnection(url, props);
+    }
+
+    public int getMajorVersion() {
+        return MAJOR_VERSION;
+    }
+
+    public int getMinorVersion() {
+        return MINOR_VERSION;
+    }
+
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public DriverPropertyInfo[] getPropertyInfo(String arg0, Properties arg1) throws SQLException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public boolean jdbcCompliant() {
+        return false;
+    }
+
+    private Properties parseURL(String url, Properties info) {
+        Properties props = new Properties();
+        for (Enumeration<?> e = info.propertyNames(); e.hasMoreElements();) {
+            String key = (String) e.nextElement();
+            String value = info.getProperty(key);
+            if (value != null) {
+                props.put(key.toUpperCase(), value);
+            }
+        }
+        Matcher m = pattern.matcher(url);
+        if (m.matches() && m.groupCount() == 1) {
+            props.put("configPath", m.group(1).trim());
+        } else {
+            throw new RuntimeException("fabric jdbc url is wrong");
+        }
+        return props;
+    }
 
 }
