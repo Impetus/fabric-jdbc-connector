@@ -56,7 +56,7 @@ public class APIConverter {
 
     private List<SelectItem> selectItems = new ArrayList<>();
 
-    private static final String[] filterableCols = { "blockNo", "blockHash", "transactionId" };
+    private static final String[] filterableCols = { "blockNo", "previousHash", "transactionId" };
 
     private Map<String, String> aliasMapping = new HashMap<>();
 
@@ -167,7 +167,8 @@ public class APIConverter {
             FilterItem filterItem = whereClause.getChildType(FilterItem.class, 0);
             return executeSingleWhereClause(tableName, filterItem);
         } else {
-            return executeMultipleWhereClause(tableName, whereClause);
+            LogicalOperation operation = whereClause.getChildType(LogicalOperation.class, 0);
+            return executeMultipleWhereClause(tableName, operation);
         }
     }
 
@@ -211,7 +212,7 @@ public class APIConverter {
             } catch (NumberFormatException | InvalidArgumentException | ProposalException e) {
                 throw new RuntimeException(e);
             }
-        } else if ("blockHash".equalsIgnoreCase(filterColumn)) {
+        } else if ("previousHash".equalsIgnoreCase(filterColumn)) {
             try {
                 blockInfo = channel.queryBlockByHash(Hex.decodeHex(value.replace("'", "").toCharArray()));
             } catch (InvalidArgumentException | ProposalException | DecoderException e) {
@@ -228,24 +229,19 @@ public class APIConverter {
         return Arrays.asList(blockInfo);
     }
 
-    public List<BlockInfo> executeMultipleWhereClause(String tableName, WhereClause whereClause) {
-        LogicalOperation operation = whereClause.getChildType(LogicalOperation.class, 0);
-        return executeLogicalOperation(tableName, operation);
-    }
-
-    public List<BlockInfo> executeLogicalOperation(String tableName, LogicalOperation operation) {
+    public List<BlockInfo> executeMultipleWhereClause(String tableName, LogicalOperation operation) {
         if (operation.getChildNodes().size() != 2) {
             throw new RuntimeException("Logical operation should have two boolean expressions");
         }
         List<BlockInfo> firstBlock, secondBlock;
         if (operation.getChildNode(0) instanceof LogicalOperation) {
-            firstBlock = executeLogicalOperation(tableName, (LogicalOperation) operation.getChildNode(0));
+            firstBlock = executeMultipleWhereClause(tableName, (LogicalOperation) operation.getChildNode(0));
         } else {
             FilterItem filterItem = (FilterItem) operation.getChildNode(0);
             firstBlock = executeSingleWhereClause(tableName, filterItem);
         }
         if (operation.getChildNode(1) instanceof LogicalOperation) {
-            secondBlock = executeLogicalOperation(tableName, (LogicalOperation) operation.getChildNode(1));
+            secondBlock = executeMultipleWhereClause(tableName, (LogicalOperation) operation.getChildNode(1));
         } else {
             FilterItem filterItem = (FilterItem) operation.getChildNode(1);
             secondBlock = executeSingleWhereClause(tableName, filterItem);
