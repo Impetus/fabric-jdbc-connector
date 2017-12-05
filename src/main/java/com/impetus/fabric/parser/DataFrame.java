@@ -91,7 +91,7 @@ public class DataFrame {
                         String actualCol = aliasMapping.get(colName);
                         colIndex = columns.indexOf(actualCol);
                         if (!columnsInitialized) {
-                            returnCols.add(actualCol);
+                            returnCols.add(colName);
                         }
                     } else {
                         throw new RuntimeException("Column " + colName + " doesn't exist in table");
