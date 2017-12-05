@@ -175,7 +175,7 @@ public class APIConverter {
     public List<BlockInfo> executeSingleWhereClause(String tableName, FilterItem filterItem) {
         String filterColumn = null;
         if (filterItem.hasChildType(Column.class)) {
-            String colName = filterItem.getChildType(Column.class, 0).getName();
+            String colName = filterItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
             boolean colIdentified = false;
             for (String filterableCol : filterableCols) {
                 if (filterableCol.equalsIgnoreCase(colName)) {
