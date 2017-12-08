@@ -58,6 +58,11 @@ public class GroupedDataFrame {
         this.aliasMapping = aliasMapping;
         this.groupData = groupData;
     }
+    
+    // Exposed this getter for test cases. Should be package private.
+    Map<List<Object>, List<List<Object>>> getGroupData() {
+        return groupData;
+    }
 
     public DataFrame select(List<SelectItem> cols) {
         List<List<Object>> returnData = new ArrayList<>();
