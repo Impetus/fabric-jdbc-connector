@@ -1,5 +1,11 @@
 package com.impetus.fabric.parser;
 
+import static com.impetus.fabric.parser.UtilityClass.createAggregateFunction;
+import static com.impetus.fabric.parser.UtilityClass.createColSelectItem;
+import static com.impetus.fabric.parser.UtilityClass.createLimitClause;
+import static com.impetus.fabric.parser.UtilityClass.createOrderItem;
+import static com.impetus.fabric.parser.UtilityClass.createStarSelectItem;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,15 +17,12 @@ import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.FunctionNode;
 import com.impetus.blkch.sql.query.IdentifierNode;
 import com.impetus.blkch.sql.query.LimitClause;
 import com.impetus.blkch.sql.query.OrderItem;
-import com.impetus.blkch.sql.query.OrderingDirection;
 import com.impetus.blkch.sql.query.OrderingDirection.Direction;
 import com.impetus.blkch.sql.query.SelectItem;
-import com.impetus.blkch.sql.query.StarNode;
 
 public class DataFrameTest extends TestCase {
     
@@ -138,47 +141,6 @@ public class DataFrameTest extends TestCase {
         LimitClause limitClause = createLimitClause("3");
         DataFrame afterLimit = dataframe.limit(limitClause);
         assertEquals(3, afterLimit.getData().size());
-    }
-    
-    private SelectItem createColSelectItem(String colName) {
-        SelectItem selectItem = new SelectItem();
-        Column column = new Column();
-        IdentifierNode identifierNode = new IdentifierNode(colName);
-        column.addChildNode(identifierNode);
-        selectItem.addChildNode(column);
-        return selectItem;
-    }
-    
-    private SelectItem createStarSelectItem() {
-        SelectItem selectItem = new SelectItem();
-        selectItem.addChildNode(new StarNode());
-        return selectItem;
-    }
-    
-    private FunctionNode createAggregateFunction(String func, String colName) {
-        FunctionNode function = new FunctionNode();
-        function.addChildNode(new IdentifierNode(func));
-        Column column = new Column();
-        IdentifierNode identifierNode = new IdentifierNode(colName);
-        column.addChildNode(identifierNode);
-        function.addChildNode(column);
-        return function;
-    }
-    
-    private OrderItem createOrderItem(String colName, Direction direction) {
-        OrderItem orderItem = new OrderItem();
-        orderItem.addChildNode(new OrderingDirection(direction));
-        Column column = new Column();
-        IdentifierNode identifierNode = new IdentifierNode(colName);
-        column.addChildNode(identifierNode);
-        orderItem.addChildNode(column);
-        return orderItem;
-    }
-    
-    private LimitClause createLimitClause(String limit) {
-        LimitClause limitClause = new LimitClause();
-        limitClause.addChildNode(new IdentifierNode(limit));
-        return limitClause;
     }
     
 }
