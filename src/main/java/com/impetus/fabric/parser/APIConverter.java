@@ -135,7 +135,7 @@ public class APIConverter {
         return afterOrder.select(selectItems);
     }
 
-    public List<BlockInfo> getFromTable() {
+    private List<BlockInfo> getFromTable() {
         List<BlockInfo> blockInfos = new ArrayList<>();
         FromItem fromItem = logicalPlan.getQuery().getChildType(FromItem.class, 0);
         Table table = fromItem.getChildType(Table.class, 0);
@@ -161,7 +161,7 @@ public class APIConverter {
         return blockInfos;
     }
 
-    public List<BlockInfo> executeWithWhereClause(String tableName) {
+    private List<BlockInfo> executeWithWhereClause(String tableName) {
         WhereClause whereClause = logicalPlan.getQuery().getChildType(WhereClause.class, 0);
         if (whereClause.hasChildType(FilterItem.class)) {
             FilterItem filterItem = whereClause.getChildType(FilterItem.class, 0);
@@ -172,7 +172,7 @@ public class APIConverter {
         }
     }
 
-    public List<BlockInfo> executeSingleWhereClause(String tableName, FilterItem filterItem) {
+    private List<BlockInfo> executeSingleWhereClause(String tableName, FilterItem filterItem) {
         String filterColumn = null;
         if (filterItem.hasChildType(Column.class)) {
             String colName = filterItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
@@ -229,7 +229,7 @@ public class APIConverter {
         return Arrays.asList(blockInfo);
     }
 
-    public List<BlockInfo> executeMultipleWhereClause(String tableName, LogicalOperation operation) {
+    private List<BlockInfo> executeMultipleWhereClause(String tableName, LogicalOperation operation) {
         if (operation.getChildNodes().size() != 2) {
             throw new RuntimeException("Logical operation should have two boolean expressions");
         }
@@ -271,8 +271,8 @@ public class APIConverter {
         return returnBlocks;
     }
 
-    public DataFrame blockToDataFrame(List<BlockInfo> blockInfos) throws InvalidProtocolBufferException {
-        String[] columns = { "previousHash", "blockHash", "transActionsMetaData", "transactionCount", "blockNo",
+    private DataFrame blockToDataFrame(List<BlockInfo> blockInfos) throws InvalidProtocolBufferException {
+        String[] columns = { "previousHash", "blockDataHash", "transActionsMetaData", "transactionCount", "blockNo",
                 "channelId", "transactionId", "transactionType", "timestamp" };
         List<List<Object>> data = new ArrayList<>();
         for (BlockInfo blockInfo : blockInfos) {
