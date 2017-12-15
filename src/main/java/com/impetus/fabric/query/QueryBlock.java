@@ -25,7 +25,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
-import java.util.Properties;
 import java.util.Set;
 
 import org.hyperledger.fabric.sdk.ChaincodeID;
@@ -70,13 +69,13 @@ public class QueryBlock {
 
     // For setting CryptoSuite only if the application is running for the first
     // time.
-    int counter = 0;
+    private int counter = 0;
 
-    ChaincodeID chaincodeID;
+    private ChaincodeID chaincodeID;
 
     private Collection<Org> SampleOrgs;
 
-    HFClient client = HFClient.createNewInstance();
+    private HFClient client = HFClient.createNewInstance();
 
     public QueryBlock(String configPath) {
         conf = Config.getConfig(configPath);
@@ -173,7 +172,7 @@ public class QueryBlock {
                         sampleOrgName + "Admin",
                         sampleOrgName,
                         sampleOrg.getMSPID(),
-                        findFileSk(Paths.get(conf.getChannelPath(), "crypto-config/peerOrganizations/",
+                        conf.findFileSk(Paths.get(conf.getChannelPath(), "crypto-config/peerOrganizations/",
                                 sampleOrgDomainName, format("/users/Admin@%s/msp/keystore", sampleOrgDomainName))
                                 .toFile()),
                         Paths.get(
@@ -242,7 +241,7 @@ public class QueryBlock {
                         sampleOrgName + "Admin",
                         sampleOrgName,
                         sampleOrg.getMSPID(),
-                        findFileSk(Paths.get(conf.getChannelPath(), "crypto-config/peerOrganizations/",
+                        conf.findFileSk(Paths.get(conf.getChannelPath(), "crypto-config/peerOrganizations/",
                                 sampleOrgDomainName, format("/users/Admin@%s/msp/keystore", sampleOrgDomainName))
                                 .toFile()),
                         Paths.get(
@@ -275,7 +274,6 @@ public class QueryBlock {
             org.apache.log4j.Logger.getLogger("org.hyperledger.fabric").setLevel(setTo);
 
             Org sampleOrg = conf.getSampleOrg("peerOrg1");
-            Properties per = new Properties();
 
             client.setUserContext(sampleOrg.getPeerAdmin());
             Channel newChannel = client.newChannel(channelName);
@@ -309,24 +307,6 @@ public class QueryBlock {
             logger.error("ChaincodeServiceImpl | reconstructChannel " + e.getMessage());
             return null;
         }
-
-    }
-
-    public File findFileSk(File directory) {
-
-        File[] matches = directory.listFiles((dir, name) -> name.endsWith("_sk"));
-
-        if (null == matches) {
-            throw new RuntimeException(format("Matches returned null does %s directory exist?", directory
-                    .getAbsoluteFile().getName()));
-        }
-
-        if (matches.length != 1) {
-            throw new RuntimeException(format("Expected in %s only 1 sk file but found %d", directory.getAbsoluteFile()
-                    .getName(), matches.length));
-        }
-
-        return matches[0];
 
     }
 
