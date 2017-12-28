@@ -23,14 +23,16 @@ import java.sql.SQLWarning;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import com.impetus.blkch.jdbc.BlkchnStatement;
-import com.impetus.blkch.sql.generated.SqlBaseLexer;
-import com.impetus.blkch.sql.generated.SqlBaseParser;
+import com.impetus.blkch.sql.generated.BlkchnSqlLexer;
+import com.impetus.blkch.sql.generated.BlkchnSqlParser;
 import com.impetus.blkch.sql.parser.AbstractSyntaxTreeVisitor;
 import com.impetus.blkch.sql.parser.BlockchainVisitor;
 import com.impetus.blkch.sql.parser.CaseInsensitiveCharStream;
 import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.fabric.parser.APIConverter;
 import com.impetus.fabric.parser.DataFrame;
+import com.impetus.fabric.parser.FunctionExecutor;
+import com.impetus.fabric.parser.InsertExecutor;
 import com.impetus.fabric.query.QueryBlock;
 
 public class FabricStatement implements BlkchnStatement {
@@ -90,9 +92,25 @@ public class FabricStatement implements BlkchnStatement {
 
     }
 
-    public boolean execute(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean execute(String sql) throws SQLException {
+        LogicalPlan logicalPlan = getLogicalPlan(sql);
+        QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath());
+        queryBlock.enrollAndRegister("Swati Raj");
+        switch(logicalPlan.getType()) {
+            case CREATE_FUNCTION : new FunctionExecutor(logicalPlan, queryBlock).executeCreate();
+                                   return false;
+                                   
+            case CALL_FUNCTION : new FunctionExecutor(logicalPlan, queryBlock).executeCall();
+                                 return false;
+                                 
+            case QUERY : executeQuery(sql);
+                         return true;
+                         
+            case INSERT : new InsertExecutor(logicalPlan, queryBlock).executeInsert();
+                          return false;
+            
+            default: return false;
+        }
     }
 
     public boolean execute(String arg0, int arg1) throws SQLException {
@@ -125,9 +143,9 @@ public class FabricStatement implements BlkchnStatement {
     }
 
     private LogicalPlan getLogicalPlan(String query) {
-        SqlBaseLexer lexer = new SqlBaseLexer(new CaseInsensitiveCharStream(query));
+        BlkchnSqlLexer lexer = new BlkchnSqlLexer(new CaseInsensitiveCharStream(query));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        SqlBaseParser parser = new SqlBaseParser(tokens);
+        BlkchnSqlParser parser = new BlkchnSqlParser(tokens);
         AbstractSyntaxTreeVisitor visitor = new BlockchainVisitor();
         return visitor.visitSingleStatement(parser.singleStatement());
     }

@@ -16,6 +16,7 @@
 package com.impetus.fabric.query;
 
 import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,16 +25,29 @@ import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import org.hyperledger.fabric.sdk.BlockEvent;
 import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.EventHub;
 import org.hyperledger.fabric.sdk.HFClient;
+import org.hyperledger.fabric.sdk.InstallProposalRequest;
+import org.hyperledger.fabric.sdk.InstantiateProposalRequest;
+import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
+import org.hyperledger.fabric.sdk.ProposalResponse;
+import org.hyperledger.fabric.sdk.SDKUtils;
+import org.hyperledger.fabric.sdk.TransactionProposalRequest;
 import org.hyperledger.fabric.sdk.exception.CryptoException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
+import org.hyperledger.fabric.sdk.exception.TransactionEventException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
@@ -61,17 +75,11 @@ public class QueryBlock {
 
     private String adminName = "admin";
 
-    private String chainCodePath;
-
-    private String chainCodeVersion;
-
     private String channelName = "mychannel";
 
     // For setting CryptoSuite only if the application is running for the first
     // time.
     private int counter = 0;
-
-    private ChaincodeID chaincodeID;
 
     private Collection<Org> SampleOrgs;
 
@@ -79,6 +87,10 @@ public class QueryBlock {
 
     public QueryBlock(String configPath) {
         conf = Config.getConfig(configPath);
+    }
+    
+    public Config getConf() {
+        return conf;
     }
 
     public String getAdminName() {
@@ -95,18 +107,6 @@ public class QueryBlock {
 
     public void setChannelName(String channelName) {
         this.channelName = channelName;
-    }
-
-    /**
-     * takes input as chaincode name and returns chaincode id
-     *
-     * @param name
-     * @return ChaincodeID
-     */
-    public ChaincodeID getChaincodeId(String name) {
-        chaincodeID = ChaincodeID.newBuilder().setName(name).setVersion(chainCodeVersion).setPath(chainCodePath)
-                .build();
-        return chaincodeID;
     }
 
     /**
@@ -308,6 +308,239 @@ public class QueryBlock {
             return null;
         }
 
+    }
+
+    public String installChaincode(String chaincodeName, String version, String goPath, String chainCodePath) {
+        Collection<ProposalResponse> responses;
+        Collection<ProposalResponse> successful = new ArrayList<>();
+        Collection<ProposalResponse> failed = new ArrayList<>();
+        try {
+            checkConfig();
+            Org sampleOrg = conf.getSampleOrg("peerOrg1");
+            InstallProposalRequest installProposalRequest = getInstallProposalRequest(chaincodeName, version, goPath,
+                    chainCodePath, sampleOrg);
+            logger.info("Sending install proposal");
+            int numInstallProposal = 0;
+
+            Set<Peer> peersFromOrg = sampleOrg.getPeers();
+            numInstallProposal = numInstallProposal + peersFromOrg.size();
+            responses = client.sendInstallProposal(installProposalRequest, peersFromOrg);
+
+            for (ProposalResponse response : responses) {
+                if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
+                    logger.debug(String.format("Successful install proposal response Txid: %s from peer %s",
+                            response.getTransactionID(), response.getPeer().getName()));
+                    successful.add(response);
+                } else {
+                    failed.add(response);
+                }
+            }
+            SDKUtils.getProposalConsistencySets(responses);
+            logger.info(String.format("Received %d install proposal responses. Successful+verified: %d . Failed: %d",
+                    numInstallProposal, successful.size(), failed.size()));
+            if (failed.size() > 0) {
+                ProposalResponse first = failed.iterator().next();
+                return "Not enough endorsers for install :" + successful.size() + ".  " + first.getMessage();
+            }
+
+            return "Chaincode installed successfully";
+        } catch (Exception e) {
+            logger.error("ChaincodeServiceImpl | installChaincode | " + e.getMessage());
+            e.printStackTrace();
+            return "Chaincode installation failed";
+        }
+    }
+
+    public String instantiateChaincode(String chaincodeName, String chainCodeVersion, String chainCodePath,
+            String chaincodeFunction, String[] chaincodeArgs) {
+
+        Collection<ProposalResponse> responses;
+        Collection<ProposalResponse> successful = new ArrayList<>();
+        Collection<ProposalResponse> failed = new ArrayList<>();
+
+        try {
+            checkConfig();
+
+            Org sampleOrg = conf.getSampleOrg("peerOrg1");
+            Channel channel = reconstructChannel();
+            Collection<Orderer> orderers = channel.getOrderers();
+            InstantiateProposalRequest instantiateProposalRequest = getInstantiateProposalRequest(chaincodeName,
+                    chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs, sampleOrg, channel);
+            Map<String, byte[]> tm = new HashMap<>();
+            tm.put("HyperLedgerFabric", "InstantiateProposalRequest:JavaSDK".getBytes(UTF_8));
+            tm.put("method", "InstantiateProposalRequest".getBytes(UTF_8));
+            instantiateProposalRequest.setTransientMap(tm);
+            logger.info(
+                    "Sending instantiateProposalRequest to all peers with arguments: a and b set to 100 and %s respectively",
+                    "" + (200));
+
+            responses = channel.sendInstantiationProposal(instantiateProposalRequest, channel.getPeers());
+            for (ProposalResponse response : responses) {
+                if (response.isVerified() && response.getStatus() == ProposalResponse.Status.SUCCESS) {
+                    successful.add(response);
+                    logger.info("Succesful instantiate proposal response Txid: %s from peer %s",
+                            response.getTransactionID(), response.getPeer().getName());
+                } else {
+                    failed.add(response);
+                }
+            }
+            logger.info("Received %d instantiate proposal responses. Successful+verified: %d . Failed: %d",
+                    responses.size(), successful.size(), failed.size());
+            if (failed.size() > 0) {
+                ProposalResponse first = failed.iterator().next();
+
+                return "Chaincode instantiation failed , reason " + "Not enough endorsers for instantiate :"
+                        + successful.size() + "endorser failed with " + first.getMessage() + ". Was verified:"
+                        + first.isVerified();
+            }
+
+            logger.info("Sending instantiateTransaction to orderer with a and b set to 100 and %s respectively",
+                    "" + (200));
+            logger.info("orderers", orderers);
+            channel.sendTransaction(successful, orderers)
+                    .thenApply(
+                            transactionEvent -> {
+                                logger.info("transaction event is valid", transactionEvent.isValid());
+                                logger.info("Finished instantiate transaction with transaction id %s",
+                                        transactionEvent.getTransactionID());
+                                return null;
+                            })
+                    .exceptionally(
+                            e -> {
+                                if (e instanceof TransactionEventException) {
+                                    BlockEvent.TransactionEvent te = ((TransactionEventException) e)
+                                            .getTransactionEvent();
+                                    if (te != null) {
+                                        logger.info("Transaction with txid %s failed. %s", te.getTransactionID(),
+                                                e.getMessage());
+                                    }
+                                }
+                                logger.info(" failed with %s exception %s", e.getClass().getName(), e.getMessage());
+                                return null;
+                            }).get(conf.getTransactionWaitTime(), TimeUnit.SECONDS);
+
+            return "Chaincode instantiated Successfully";
+
+        } catch (Exception e) {
+
+            logger.error("ChaincodeServiceImpl | instantiateChaincode |" + e.getMessage());
+            return "Chaincode instantiation failed , reason " + e.getMessage();
+
+        }
+
+    }
+
+    public String invokeChaincode(String chaincodename, String chaincodeFunction, String[] chaincodeArgs) {
+
+        try {
+            Collection<ProposalResponse> responses;
+            Collection<ProposalResponse> successful = new ArrayList<>();
+            Collection<ProposalResponse> failed = new ArrayList<>();
+
+            checkConfig();
+
+            ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodename).build();
+            Channel channel = reconstructChannel();
+            logger.info(String.format("[Channel Name:- %s, Chaincode Function:- %s, Chaincode Args:- %s]",
+                    channel.getName(), chaincodeFunction, Arrays.asList(chaincodeArgs)));
+            TransactionProposalRequest transactionProposalRequest = client.newTransactionProposalRequest();
+            transactionProposalRequest.setChaincodeID(chaincodeID);
+            transactionProposalRequest.setFcn(chaincodeFunction);
+            transactionProposalRequest.setProposalWaitTime(conf.getProposalWaitTime());
+            transactionProposalRequest.setArgs(chaincodeArgs);
+
+            Map<String, byte[]> tm = new HashMap<>();
+            tm.put("HyperLedgerFabric", "TransactionProposalRequest:JavaSDK".getBytes(UTF_8));
+            tm.put("method", "TransactionProposalRequest".getBytes(UTF_8));
+            tm.put("result", ":)".getBytes(UTF_8));
+            transactionProposalRequest.setTransientMap(tm);
+
+            logger.info("sending transactionProposal to all peers with arguments");
+
+            responses = channel.sendTransactionProposal(transactionProposalRequest, channel.getPeers());
+            for (ProposalResponse response : responses) {
+                if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
+                    logger.info("Successful transaction proposal response Txid: " + response.getTransactionID()
+                            + "from peer " + response.getPeer().getName());
+                    successful.add(response);
+                } else {
+                    failed.add(response);
+                }
+            }
+            Collection<Set<ProposalResponse>> proposalConsistencySets = SDKUtils.getProposalConsistencySets(responses);
+            if (proposalConsistencySets.size() != 1) {
+                logger.info(format("Expected only one set of consistent proposal responses but got "
+                        + proposalConsistencySets.size()));
+            }
+
+            logger.info("Received " + responses.size() + " transaction proposal responses. Successful+verified: "
+                    + successful.size() + " . Failed: " + failed.size());
+            if (failed.size() > 0) {
+                ProposalResponse firstTransactionProposalResponse = failed.iterator().next();
+                logger.info("Not enough endorsers for invoke:" + failed.size() + " endorser error: "
+                        + firstTransactionProposalResponse.getMessage() + ". Was verified: "
+                        + firstTransactionProposalResponse.isVerified());
+            }
+            logger.info("Successfully received transaction proposal responses.");
+            ProposalResponse resp = responses.iterator().next();
+            logger.debug("getChaincodeActionResponseReadWriteSetInfo:::"
+                    + resp.getChaincodeActionResponseReadWriteSetInfo());
+            logger.info("Sending chaincode transaction to orderer.");
+            channel.sendTransaction(successful)
+                    .thenApply(transactionEvent -> {
+
+                        logger.info("transaction event is valid " + transactionEvent.isValid());
+                        logger.info("Finished invoke transaction with transaction id "
+                                    + transactionEvent.getTransactionID());
+                        return "Chaincode invoked successfully " + transactionEvent.getTransactionID();
+                    })
+                    .exceptionally(e -> {
+                        if (e instanceof TransactionEventException) {
+                            BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
+                            if (te != null) {
+                                logger.info("Transaction with txid " + te.getTransactionID() + " failed. " + e.getMessage());
+                        }
+                    }
+                    logger.info("failed with " + e.getClass().getName() + " exception " + e.getMessage());
+                    return "Error";
+                }   ).get(conf.getTransactionWaitTime(), TimeUnit.SECONDS);
+        } catch (Exception e) {
+            logger.info("Caught an exception while invoking chaincode");
+            logger.error("ChaincodeServiceImpl | invokeChaincode | " + e.getMessage());
+            e.printStackTrace();
+            return "Caught an exception while invoking chaincode";
+
+        }
+        return "Transaction invoked successfully ";
+    }
+
+    private InstallProposalRequest getInstallProposalRequest(String chaincodeName, String version, String goPath,
+            String chainCodePath, Org sampleOrg) throws InvalidArgumentException {
+        ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(version)
+                .setPath(chainCodePath).build();
+        Channel channel = reconstructChannel();
+        final String channelName = channel.getName();
+        logger.info(String.format("Running channel %s", channelName));
+
+        client.setUserContext(sampleOrg.getPeerAdmin());
+        logger.info("Creating install proposal");
+        InstallProposalRequest installProposalRequest = client.newInstallProposalRequest();
+        installProposalRequest.setChaincodeID(chaincodeID);
+        installProposalRequest.setChaincodeSourceLocation(new File(goPath));
+        installProposalRequest.setChaincodeVersion(version);
+        return installProposalRequest;
+    }
+
+    private InstantiateProposalRequest getInstantiateProposalRequest(String chaincodeName, String chainCodeVersion,
+            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs, Org sampleOrg, Channel channel) {
+        ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(chainCodeVersion)
+                .setPath(chainCodePath).build();
+        InstantiateProposalRequest instantiateProposalRequest = client.newInstantiationProposalRequest();
+        instantiateProposalRequest.setProposalWaitTime(conf.getProposalWaitTime());
+        instantiateProposalRequest.setChaincodeID(chaincodeID);
+        instantiateProposalRequest.setFcn(chaincodeFunction);
+        instantiateProposalRequest.setArgs(chaincodeArgs);
+        return instantiateProposalRequest;
     }
 
 }
