@@ -258,7 +258,7 @@ public class QueryBlock {
             }
 
         } catch (Exception e) {
-            logger.error("ChaincodeServiceImpl | enrollAndRegister | " + e.getMessage());
+            logger.error("QueryBlock | enrollAndRegister | " + e.getMessage());
             return "Failed to enroll user";
 
         }
@@ -304,7 +304,7 @@ public class QueryBlock {
             newChannel.initialize();
             return newChannel;
         } catch (Exception e) {
-            logger.error("ChaincodeServiceImpl | reconstructChannel " + e.getMessage());
+            logger.error("QueryBlock | reconstructChannel " + e.getMessage());
             return null;
         }
 
@@ -345,7 +345,7 @@ public class QueryBlock {
 
             return "Chaincode installed successfully";
         } catch (Exception e) {
-            logger.error("ChaincodeServiceImpl | installChaincode | " + e.getMessage());
+            logger.error("QueryBlock | installChaincode | " + e.getMessage());
             e.printStackTrace();
             return "Chaincode installation failed";
         }
@@ -423,7 +423,7 @@ public class QueryBlock {
 
         } catch (Exception e) {
 
-            logger.error("ChaincodeServiceImpl | instantiateChaincode |" + e.getMessage());
+            logger.error("QueryBlock | instantiateChaincode |" + e.getMessage());
             return "Chaincode instantiation failed , reason " + e.getMessage();
 
         }
@@ -506,7 +506,7 @@ public class QueryBlock {
                 }   ).get(conf.getTransactionWaitTime(), TimeUnit.SECONDS);
         } catch (Exception e) {
             logger.info("Caught an exception while invoking chaincode");
-            logger.error("ChaincodeServiceImpl | invokeChaincode | " + e.getMessage());
+            logger.error("QueryBlock | invokeChaincode | " + e.getMessage());
             e.printStackTrace();
             return "Caught an exception while invoking chaincode";
 
