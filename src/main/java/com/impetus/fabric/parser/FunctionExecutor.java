@@ -48,7 +48,7 @@ public class FunctionExecutor {
         TreeNode callFunc = logicalPlan.getCallFunction();
         String chaincodeName = callFunc.getChildType(IdentifierNode.class, 0).getValue();
         List<String> args = new ArrayList<>();
-        if(callFunc.hasChildType(Parameters.class)) {
+        if(!callFunc.hasChildType(Parameters.class)) {
             throw new RuntimeException("Invalid number of parameters");
         }
         Parameters params = callFunc.getChildType(Parameters.class, 0);
