@@ -36,7 +36,7 @@ public class FabricDriver implements BlkchnDriver {
 
     private static final int MINOR_VERSION = 1;
 
-    private static Pattern pattern = Pattern.compile("jdbc:fabric://(.*)");
+    private static Pattern pattern = Pattern.compile("jdbc:fabric://([^:]*):(.*)");
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(FabricDriver.class);
 
@@ -96,8 +96,9 @@ public class FabricDriver implements BlkchnDriver {
             }
         }
         Matcher m = pattern.matcher(url);
-        if (m.matches() && m.groupCount() == 1) {
+        if (m.matches() && m.groupCount() == 2) {
             props.put("configPath", m.group(1).trim());
+            props.put("channel", m.group(2).trim());
         } else {
             throw new RuntimeException("fabric jdbc url is wrong");
         }

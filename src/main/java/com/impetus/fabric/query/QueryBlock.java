@@ -73,9 +73,9 @@ public class QueryBlock {
 
     private Config conf;
 
-    private String adminName = "admin";
+    private String adminName;
 
-    private String channelName = "mychannel";
+    private String channelName;
 
     // For setting CryptoSuite only if the application is running for the first
     // time.
@@ -85,8 +85,10 @@ public class QueryBlock {
 
     private HFClient client = HFClient.createNewInstance();
 
-    public QueryBlock(String configPath) {
+    public QueryBlock(String configPath, String channel) {
         conf = Config.getConfig(configPath);
+        channelName = channel;
+        adminName = conf.getAdmin();
     }
     
     public Config getConf() {
@@ -154,13 +156,11 @@ public class QueryBlock {
         for (Org sampleOrg : SampleOrgs) {
 
             final String orgName = sampleOrg.getName();
-            HyperUser admin = sampleStore.getMember(adminName, orgName);
-            sampleOrg.setAdmin(admin);
 
             HyperUser user = sampleStore.getMember(name, orgName);
             sampleOrg.addUser(user);
 
-            sampleOrg.setPeerAdmin(sampleStore.getMember(orgName + "Admin", orgName));
+            sampleOrg.setPeerAdmin(sampleStore.getMember(orgName + adminName, orgName));
 
             final String sampleOrgName = sampleOrg.getName();
             final String sampleOrgDomainName = sampleOrg.getDomainName();
@@ -169,17 +169,17 @@ public class QueryBlock {
 
             try {
                 peerOrgAdmin = sampleStore.getMember(
-                        sampleOrgName + "Admin",
+                        sampleOrgName + adminName,
                         sampleOrgName,
                         sampleOrg.getMSPID(),
                         conf.findFileSk(Paths.get(conf.getChannelPath(), "crypto-config/peerOrganizations/",
-                                sampleOrgDomainName, format("/users/Admin@%s/msp/keystore", sampleOrgDomainName))
+                                sampleOrgDomainName, format("/users/%s@%s/msp/keystore", adminName, sampleOrgDomainName))
                                 .toFile()),
                         Paths.get(
                                 conf.getChannelPath(),
                                 "crypto-config/peerOrganizations/",
                                 sampleOrgDomainName,
-                                format("/users/Admin@%s/msp/signcerts/Admin@%s-cert.pem", sampleOrgDomainName,
+                                format("/users/%s@%s/msp/signcerts/%s@%s-cert.pem", adminName, sampleOrgDomainName, adminName,
                                         sampleOrgDomainName)).toFile());
                 sampleOrg.setPeerAdmin(peerOrgAdmin);
             } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException | IOException e) {
@@ -209,13 +209,11 @@ public class QueryBlock {
                 final String orgName = sampleOrg.getName();
                 final String mspid = sampleOrg.getMSPID();
                 ca.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-                HyperUser admin = sampleStore.getMember(adminName, orgName);
+                HyperUser admin = sampleStore.getMember(orgName + adminName, orgName);
                 if (!admin.isEnrolled()) {
-                    admin.setEnrollment(ca.enroll(admin.getName(), "adminpw"));
+                    admin.setEnrollment(ca.enroll(admin.getName(), ""));
                     admin.setMspId(mspid);
                 }
-
-                sampleOrg.setAdmin(admin);
 
                 if (sampleStore.hasMember(uname, sampleOrg.getName())) {
                     String result = loadUserFromPersistence(uname);
@@ -224,7 +222,7 @@ public class QueryBlock {
                 HyperUser user = sampleStore.getMember(uname, sampleOrg.getName());
 
                 if (!user.isRegistered()) {
-                    RegistrationRequest rr = new RegistrationRequest(user.getName(), "org1.department1");
+                    RegistrationRequest rr = new RegistrationRequest(user.getName(), "");
 
                     user.setEnrollmentSecret(ca.register(rr, admin));
 
@@ -238,17 +236,17 @@ public class QueryBlock {
                 final String sampleOrgDomainName = sampleOrg.getDomainName();
 
                 HyperUser peerOrgAdmin = sampleStore.getMember(
-                        sampleOrgName + "Admin",
+                        sampleOrgName + adminName,
                         sampleOrgName,
                         sampleOrg.getMSPID(),
                         conf.findFileSk(Paths.get(conf.getChannelPath(), "crypto-config/peerOrganizations/",
-                                sampleOrgDomainName, format("/users/Admin@%s/msp/keystore", sampleOrgDomainName))
+                                sampleOrgDomainName, format("/users/%s@%s/msp/keystore", adminName, sampleOrgDomainName))
                                 .toFile()),
                         Paths.get(
                                 conf.getChannelPath(),
                                 "crypto-config/peerOrganizations/",
                                 sampleOrgDomainName,
-                                format("/users/Admin@%s/msp/signcerts/Admin@%s-cert.pem", sampleOrgDomainName,
+                                format("/users/%s@%s/msp/signcerts/%s@%s-cert.pem", adminName, sampleOrgDomainName, adminName,
                                         sampleOrgDomainName)).toFile());
 
                 sampleOrg.setPeerAdmin(peerOrgAdmin);
@@ -273,7 +271,7 @@ public class QueryBlock {
             setTo = org.apache.log4j.Level.DEBUG;
             org.apache.log4j.Logger.getLogger("org.hyperledger.fabric").setLevel(setTo);
 
-            Org sampleOrg = conf.getSampleOrg("peerOrg1");
+            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[]{})[0];
 
             client.setUserContext(sampleOrg.getPeerAdmin());
             Channel newChannel = client.newChannel(channelName);
@@ -316,7 +314,7 @@ public class QueryBlock {
         Collection<ProposalResponse> failed = new ArrayList<>();
         try {
             checkConfig();
-            Org sampleOrg = conf.getSampleOrg("peerOrg1");
+            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[]{})[0];
             InstallProposalRequest installProposalRequest = getInstallProposalRequest(chaincodeName, version, goPath,
                     chainCodePath, sampleOrg);
             logger.info("Sending install proposal");
@@ -361,7 +359,7 @@ public class QueryBlock {
         try {
             checkConfig();
 
-            Org sampleOrg = conf.getSampleOrg("peerOrg1");
+            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[]{})[0];
             Channel channel = reconstructChannel();
             Collection<Orderer> orderers = channel.getOrderers();
             InstantiateProposalRequest instantiateProposalRequest = getInstantiateProposalRequest(chaincodeName,
