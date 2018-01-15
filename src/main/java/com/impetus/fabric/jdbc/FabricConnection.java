@@ -39,16 +39,32 @@ import com.impetus.blkch.jdbc.BlkchnConnection;
 public class FabricConnection implements BlkchnConnection {
 
     private String configPath;
+    
+    private String channel;
 
     private String url;
+    
+    private String user;
+    
+    private static final String DEFAULT_USER = "test";
 
     FabricConnection(String url, Properties props) {
         this.url = url;
         this.configPath = props.getProperty("configPath");
+        this.channel = props.getProperty("channel");
+        this.user = props.getProperty("user") != null ? props.getProperty("user") : DEFAULT_USER;
     }
 
     String getConfigPath() {
         return configPath;
+    }
+    
+    String getChannel() {
+        return channel;
+    }
+    
+    String getUser() {
+        return user;
     }
 
     public boolean isWrapperFor(Class<?> arg0) throws SQLException {

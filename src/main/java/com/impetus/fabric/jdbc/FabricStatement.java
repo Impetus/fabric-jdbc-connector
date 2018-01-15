@@ -94,8 +94,8 @@ public class FabricStatement implements BlkchnStatement {
 
     public boolean execute(String sql) throws SQLException {
         LogicalPlan logicalPlan = getLogicalPlan(sql);
-        QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath());
-        queryBlock.enrollAndRegister("Swati Raj");
+        QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath(), this.connection.getChannel());
+        queryBlock.enrollAndRegister(this.connection.getUser());
         switch(logicalPlan.getType()) {
             case CREATE_FUNCTION : new FunctionExecutor(logicalPlan, queryBlock).executeCreate();
                                    return false;
@@ -135,8 +135,8 @@ public class FabricStatement implements BlkchnStatement {
 
     public ResultSet executeQuery(String query) throws SQLException {
         LogicalPlan logicalPlan = getLogicalPlan(query);
-        QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath());
-        queryBlock.enrollAndRegister("Swati Raj");
+        QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath(), this.connection.getChannel());
+        queryBlock.enrollAndRegister(this.connection.getUser());
         DataFrame dataframe = new APIConverter(logicalPlan, queryBlock).executeQuery();
         ResultSet rs = new FabricResultSet(this, dataframe);
         return rs;

@@ -50,8 +50,6 @@ public class Org {
 
     Set<Peer> peers = new HashSet<>();
 
-    private HyperUser admin;
-
     private String caLocation;
 
     private Properties caProperties = null;
@@ -63,14 +61,6 @@ public class Org {
     public Org(String name, String mspid) {
         this.name = name;
         this.mspid = mspid;
-    }
-
-    public HyperUser getAdmin() {
-        return admin;
-    }
-
-    public void setAdmin(HyperUser admin) {
-        this.admin = admin;
     }
 
     public String getMSPID() {

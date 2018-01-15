@@ -54,6 +54,10 @@ public class Config {
     private static final String DEPLOYWAITTIME = PROPBASE + "DeployWaitTime";
 
     private static final String PROPOSALWAITTIME = PROPBASE + "ProposalWaitTime";
+    
+    private static final String ADMIN_NAME = "ADMIN_NAME";
+    
+    private static final String DEFAULT_ADMIN = "admin";
 
     public static final String LOGGERLEVEL = "org.hyperledger.fabric.sdk.loglevel";
 
@@ -74,6 +78,10 @@ public class Config {
     private final boolean runningFabricTLS;
 
     private static final Map<String, Org> orgs = new HashMap<>();
+    
+    private Properties hyperledgerProperties = new Properties();
+    
+    private String admin;
 
     private Config(String configPath) {
         this.path = configPath.endsWith("/") ? configPath : configPath + "/";
@@ -185,7 +193,17 @@ public class Config {
             }
 
         }
-
+        
+        try {
+            hyperledgerProperties.load(new FileInputStream(path + "/hyperledger.properties"));
+            admin = hyperledgerProperties.getProperty(ADMIN_NAME) != null ? hyperledgerProperties.getProperty(ADMIN_NAME) : DEFAULT_ADMIN;
+        } catch(IOException e) {
+            logger.error("Error loading hyperledger.properties file from location " + path + ", loading default props", e);
+        } finally {
+            if(hyperledgerProperties.getProperty(ADMIN_NAME) == null) {
+                admin = DEFAULT_ADMIN;
+            }
+        }
     }
 
     private String grpcTLSify(String location) {
@@ -215,6 +233,10 @@ public class Config {
         }
         return config;
 
+    }
+    
+    public String getAdmin() {
+        return admin;
     }
 
     /**
@@ -319,19 +341,7 @@ public class Config {
     }
 
     public String getChannelPath() {
-
-        /**
-         * for loading properties from hyperledger.properties file
-         */
-        Properties hyperproperties = new Properties();
-        try {
-            hyperproperties.load(new FileInputStream(path + "/hyperledger.properties"));
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
         return path + "/artifacts/channel";
-
     }
 
     public String getConfigPath() {
