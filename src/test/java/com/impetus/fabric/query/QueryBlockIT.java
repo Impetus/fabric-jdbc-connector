@@ -1,4 +1,5 @@
-package query;
+package com.impetus.fabric.query;
+
 
 import junit.framework.TestCase;
 import org.junit.Test;
