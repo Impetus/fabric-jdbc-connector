@@ -2,11 +2,16 @@ package com.impetus.fabric.query;
 
 
 import junit.framework.TestCase;
+
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import com.impetus.test.catagory.IntegrationTest;
 
 import java.io.File;
 import java.sql.*;
 
+@Category(IntegrationTest.class)
 public class QueryBlockIT extends TestCase {
 
     @Test
