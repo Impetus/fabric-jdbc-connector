@@ -20,6 +20,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import java.io.File;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.*;
 import static org.powermock.configuration.ConfigurationType.PowerMock;
@@ -145,14 +146,64 @@ public class QueryBlockTest extends TestCase {
         String version = "1.0";
         String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
         String chaincodePath = "hyperledger/fabric/examples/chaincode/go/chaincode_example02";
+
+//        BlockEvent.TransactionEvent mockTranEvent = mock(BlockEvent.TransactionEvent.class);
+//      CompletableFuture<BlockEvent.TransactionEvent> mockCompletableFutureTEvent = new CompletableFuture<BlockEvent.TransactionEvent>();
+
+//        when(mockChannel.sendTransaction(any(ArrayList.class),anyCollection())).thenReturn(mockCompletableFutureTEvent);// .thenReturn(mockCompletableFutureTEvent);
+
+        String result = qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"});
+
+        assert(result.equals("Chaincode instantiated Successfully"));
+    }
+
+    @Test
+    public void testInvokeChaincode() throws ClassNotFoundException, SQLException, InvalidArgumentException, ProposalException{
+
+        PowerMockito.mockStatic(HFClient.class);
+        when(HFClient.createNewInstance()).thenReturn(mockClient);
+
+        Channel mockChannel = mock(Channel.class);
+        when(mockClient.newChannel(anyString())).thenReturn(mockChannel);
+
+
+
+        InstantiateProposalRequest mockInstantiateProposalRequest = mock(InstantiateProposalRequest.class);
+        when(mockClient.newInstantiationProposalRequest()).thenReturn(mockInstantiateProposalRequest);
+
+        TransactionProposalRequest mockTransactionProposalRequest = mock(TransactionProposalRequest.class);
+        when(mockClient.newTransactionProposalRequest()).thenReturn(mockTransactionProposalRequest);
+
+        Collection<ProposalResponse> mockProposalResponses = new ArrayList<ProposalResponse>();
+        mockProposalResponses.add(mock(ProposalResponse.class));
+        mockProposalResponses.add(mock(ProposalResponse.class));
+        when(mockChannel.sendTransactionProposal(any(TransactionProposalRequest.class),anyCollectionOf(Peer.class))).thenReturn(mockProposalResponses);
+
+
+        PowerMockito.mockStatic(SDKUtils.class);
+
+        String configPath = "src/test/resources/blockchain-query";
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        QueryBlock qb = new QueryBlock(configPath,"mychannel");
+        //QueryBlock qb = mock(QueryBlock.class);
+        String chaincodeName ="chncodefunc";
+        String version = "1.0";
+        String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
+        String chaincodePath = "hyperledger/fabric/examples/chaincode/go/chaincode_example02";
         //when(qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"})).thenCallRealMethod();
 
+        when(mockSDKUtils.getProposalConsistencySets(anyCollection())).thenReturn(new ArrayList());
+
+//        BlockEvent.TransactionEvent mockTranEvent = mock(BlockEvent.TransactionEvent.class);
+//        CompletableFuture<BlockEvent.TransactionEvent> mockCompletableFutureTEvent = new CompletableFuture<BlockEvent.TransactionEvent>();//{mockTranEvent};
+//        when(mockChannel.sendTransaction(any(ArrayList.class))).thenReturn(mockCompletableFutureTEvent);// .thenReturn(mockCompletableFutureTEvent);
 
 
+        String result = qb.invokeChaincode(chaincodeName,"testFunction", new String[]{"a","b","5","10"});
+        //qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"});
 
-        //String result = qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"});
+        assert(result.equals("Transaction invoked successfully "));
 
-        //assert(result.equals("Chaincode instantiated Successfully"));
     }
 
 }

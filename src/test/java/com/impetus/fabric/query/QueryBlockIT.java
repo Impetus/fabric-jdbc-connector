@@ -20,17 +20,6 @@ public class QueryBlockIT extends TestCase {
         assert(rs != null);
     }
 
-    @Test
-    public void testFunctionCall() throws ClassNotFoundException, SQLException{
-        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        File configFolder = new File("src/test/resources/blockchain-query");
-        String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
-        Statement stat = conn.createStatement();
-        //String quer = "Create Function TestFunction as '/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/example_cc.go'  with version '1.0' with args a,10,b,10";
-        //ResultSet rs = stat.executeQuery(quer);
-
-    }
 
     public void testCreateFunction() throws ClassNotFoundException, SQLException{
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
