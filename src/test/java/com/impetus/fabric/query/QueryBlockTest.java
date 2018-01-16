@@ -1,30 +1,35 @@
 package com.impetus.fabric.query;
 
-import com.impetus.fabric.model.Config;
-import com.impetus.fabric.model.HyperUser;
-import com.impetus.fabric.model.Org;
-import com.impetus.fabric.model.Store;
-import com.impetus.fabric.query.QueryBlock;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollection;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
 import junit.framework.TestCase;
-import org.hyperledger.fabric.sdk.*;
+
+import org.hyperledger.fabric.sdk.Channel;
+import org.hyperledger.fabric.sdk.HFClient;
+import org.hyperledger.fabric.sdk.InstallProposalRequest;
+import org.hyperledger.fabric.sdk.InstantiateProposalRequest;
+import org.hyperledger.fabric.sdk.Peer;
+import org.hyperledger.fabric.sdk.SDKUtils;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-
-import java.io.File;
-import java.sql.*;
-import java.util.*;
-
-import static org.mockito.Mockito.*;
-import static org.powermock.configuration.ConfigurationType.PowerMock;
-
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.impetus.fabric.model.HyperUser;
+import com.impetus.fabric.model.Store;
 
 
 
