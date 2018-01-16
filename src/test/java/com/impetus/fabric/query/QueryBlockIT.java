@@ -14,7 +14,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath);
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from block"); // This is dummy query
         assert(rs != null);
@@ -25,7 +25,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath);
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
         //String quer = "Create Function TestFunction as '/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/example_cc.go'  with version '1.0' with args a,10,b,10";
         //ResultSet rs = stat.executeQuery(quer);
@@ -36,7 +36,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath);
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
         String createFuncQuery = "CREATE FUNCTION chncodefunc AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
                 + " WITH ARGS a, 500, b, 200";
@@ -47,7 +47,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath);
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
         String createFuncQuery = "CREATE FUNCTION chncodefunc AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
                 + " WITH ARGS a, 500, b, 200";
@@ -62,7 +62,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath);
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
 
         String createFuncQuery = "CREATE FUNCTION chncodefunc AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"

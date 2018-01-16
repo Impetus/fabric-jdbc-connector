@@ -37,19 +37,18 @@ public class QueryBlockTest extends TestCase {
     public void testEnrollAndRegisterUser() throws ClassNotFoundException, SQLException, java.lang.Exception {
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath);
+        QueryBlock qb = new QueryBlock(configPath,"mychannel");
 
         HyperUser mockuser = mock(HyperUser.class);
         when(mockuser.isEnrolled()).thenReturn(true);
         when(mockuser.isRegistered()).thenReturn(true);
 
         Store mockStore = mock(Store.class);
-        when(mockStore.getMember("admin","peerOrg1")).thenReturn(mockuser);
+        when(mockStore.getMember(anyString(),anyString())).thenReturn(mockuser);
         PowerMockito.whenNew(Store.class).withAnyArguments().thenReturn(mockStore);
 
-        when(mockStore.getMember("abcd1","peerOrg1")).thenReturn(mockuser);
 
-        String result = qb.enrollAndRegister("abcd1");
+        String result = qb.enrollAndRegister("UnitTestUser");
         assert(result.equals("User  Enrolled Successfuly"));
 
     }
@@ -58,11 +57,11 @@ public class QueryBlockTest extends TestCase {
     public void testLoadUserFromPersistence() throws ClassNotFoundException, SQLException{
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath);
+        QueryBlock qb = new QueryBlock(configPath,"mychannel");
 
         qb.checkConfig();
 
-        String result = qb.loadUserFromPersistence("dummyUser1");
+        String result = qb.loadUserFromPersistence("dummyUser");
         assert(result.equals("Successfully loaded member from persistence"));
     }
 
@@ -82,11 +81,11 @@ public class QueryBlockTest extends TestCase {
 
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath);
+        QueryBlock qb = new QueryBlock(configPath,"mychannel");
         qb.enrollAndRegister("admin");
 
         Channel mockChannel = mock(Channel.class);
-        when(mockClient.newChannel("mychannel")).thenReturn(mockChannel);
+        when(mockClient.newChannel(anyString())).thenReturn(mockChannel);
 
         qb.reconstructChannel();
 
@@ -103,7 +102,7 @@ public class QueryBlockTest extends TestCase {
         when(HFClient.createNewInstance()).thenReturn(mockClient);
 
         Channel mockChannel = mock(Channel.class);
-        when(mockClient.newChannel("mychannel")).thenReturn(mockChannel);
+        when(mockClient.newChannel(anyString())).thenReturn(mockChannel);
 
         InstallProposalRequest mockInstallProposalRequest = mock(InstallProposalRequest.class);
         when(mockClient.newInstallProposalRequest()).thenReturn(mockInstallProposalRequest);
@@ -111,7 +110,7 @@ public class QueryBlockTest extends TestCase {
 
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath);
+        QueryBlock qb = new QueryBlock(configPath,"mychannel");
         String chaincodeName ="chncodefunc";
         String version = "1.0";
         String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
@@ -132,7 +131,7 @@ public class QueryBlockTest extends TestCase {
         when(HFClient.createNewInstance()).thenReturn(mockClient);
 
         Channel mockChannel = mock(Channel.class);
-        when(mockClient.newChannel("mychannel")).thenReturn(mockChannel);
+        when(mockClient.newChannel(anyString())).thenReturn(mockChannel);
 
         InstantiateProposalRequest mockInstantiateProposalRequest = mock(InstantiateProposalRequest.class);
         when(mockClient.newInstantiationProposalRequest()).thenReturn(mockInstantiateProposalRequest);
@@ -140,7 +139,7 @@ public class QueryBlockTest extends TestCase {
 
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath);
+        QueryBlock qb = new QueryBlock(configPath,"mychannel");
         //QueryBlock qb = mock(QueryBlock.class);
         String chaincodeName ="chncodefunc";
         String version = "1.0";
