@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.Comparator;
 import com.impetus.blkch.sql.query.FilterItem;
@@ -80,7 +81,7 @@ public class GroupedDataFrame {
                     if (columns.contains(colName)) {
                         colIndex = columns.indexOf(colName);
                         if (!groupIndices.contains(colIndex)) {
-                            throw new RuntimeException("Select column " + colName + " should exist in group by clause");
+                            throw new BlkchnException("Select column " + colName + " should exist in group by clause");
                         }
                         if (!columnsInitialized) {
                             returnCols.add(colName);
@@ -89,13 +90,13 @@ public class GroupedDataFrame {
                         String actualCol = aliasMapping.get(colName);
                         colIndex = columns.indexOf(actualCol);
                         if (!groupIndices.contains(colIndex)) {
-                            throw new RuntimeException("Select column " + colName + " should exist in group by clause");
+                            throw new BlkchnException("Select column " + colName + " should exist in group by clause");
                         }
                         if (!columnsInitialized) {
                             returnCols.add(actualCol);
                         }
                     } else {
-                        throw new RuntimeException("Column " + colName + " doesn't exist in table");
+                        throw new BlkchnException("Column " + colName + " doesn't exist in table");
                     }
                     returnRec.add(entry.getValue().get(0).get(colIndex));
                 } else if (col.hasChildType(FunctionNode.class)) {
@@ -148,7 +149,7 @@ public class GroupedDataFrame {
             invalidFilterCol = true;
         }
         if(invalidFilterCol || (groupIdx == -1)) {
-            throw new RuntimeException("Column " + column + " must appear in GROUP BY clause");
+            throw new BlkchnException("Column " + column + " must appear in GROUP BY clause");
         }
         final int groupIndex = groupIdx;
         Map<List<Object>, List<List<Object>>> filterData = groupData.entrySet().stream().filter(entry -> {
@@ -195,7 +196,7 @@ public class GroupedDataFrame {
     
     private Map<List<Object>, List<List<Object>>> executeMultipleHavingClause(LogicalOperation operation) {
         if (operation.getChildNodes().size() != 2) {
-            throw new RuntimeException("Logical operation should have two boolean expressions");
+            throw new BlkchnException("Logical operation should have two boolean expressions");
         }
         Map<List<Object>, List<List<Object>>> firstOut, secondOut, returnMap = new HashMap<>();
         if (operation.getChildNode(0) instanceof LogicalOperation) {
@@ -239,7 +240,7 @@ public class GroupedDataFrame {
                 String actualCol = aliasMapping.get(colName);
                 colIndex = columns.indexOf(actualCol);
             } else {
-                throw new RuntimeException("Column " + colName + " doesn't exist in table");
+                throw new BlkchnException("Column " + colName + " doesn't exist in table");
             }
             for (List<Object> record : data) {
                 columnData.add(record.get(colIndex));
@@ -251,7 +252,7 @@ public class GroupedDataFrame {
             case "sum":
                 return AggregationFunctions.sum(columnData);
             default:
-                throw new RuntimeException("Unidentified function: " + func);
+                throw new BlkchnException("Unidentified function: " + func);
         }
     }
 
