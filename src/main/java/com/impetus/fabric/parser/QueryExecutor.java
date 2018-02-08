@@ -16,8 +16,10 @@ import org.hyperledger.fabric.sdk.exception.ProposalException;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.impetus.blkch.BlkchnException;
+import com.impetus.blkch.sql.parser.AbstractQueryExecutor;
 import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.parser.PhysicalPlan;
+import com.impetus.blkch.sql.parser.PhysicalPlan.Color;
 import com.impetus.blkch.sql.parser.TreeNode;
 import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.Comparator;
@@ -34,7 +36,7 @@ import com.impetus.blkch.util.Range;
 import com.impetus.blkch.util.RangeOperations;
 import com.impetus.fabric.query.QueryBlock;
 
-public class QueryExecutor {
+public class QueryExecutor extends AbstractQueryExecutor {
 
     private LogicalPlan logicalPlan;
 
@@ -68,6 +70,7 @@ public class QueryExecutor {
                 TreeNode directAPIOptimizedTree = executeDirectAPIs(tableName, physicalPlan.getWhereClause()
                         .getChildType(LogicalOperation.class, 0));
                 TreeNode optimizedTree = optimize(directAPIOptimizedTree);
+                DataNode<?> finalData = execute(optimizedTree);
             } else {
                 // TODO
             }
@@ -142,9 +145,48 @@ public class QueryExecutor {
                     table, column));
         }
     }
-    
-    private DataNode<?> executeRangeNode(RangeNode<?> rangeNode) {
-        return null;
+
+    @SuppressWarnings("unchecked")
+    private <T extends Number & Comparable<T>> DataNode<T> executeRangeNode(RangeNode<T> rangeNode) {
+        RangeOperations<T> rangeOps = (RangeOperations<T>) physicalPlan.getRangeOperations(rangeNode.getTable(),
+                rangeNode.getColumn());
+        String rangeCol = rangeNode.getColumn();
+        String rangeTable = rangeNode.getTable();
+        Channel channel = queryBlock.reconstructChannel();
+        Long height;
+        try {
+            height = channel.queryBlockchainInfo().getHeight();
+        } catch (ProposalException | InvalidArgumentException e) {
+            throw new BlkchnException("Error getting height of ledger", e);
+        }
+        List<DataNode<T>> dataNodes = rangeNode.getRangeList().getRanges().stream().map(range -> {
+            List<T> keys = new ArrayList<>();
+            T current = range.getMin() == rangeOps.getMinValue() ? (T) new Long(0l) : range.getMin();
+            T max = range.getMax() == rangeOps.getMaxValue() ? (T) height : range.getMax();
+            do {
+                if ("block".equals(rangeTable) && "blockNo".equals(rangeCol)) {
+                    try {
+                        if (dataMap.get(current.toString()) != null) {
+                            keys.add(current);
+                        } else {
+                            BlockInfo blockInfo = channel.queryBlockByNumber(Long.parseLong(current.toString()));
+                            dataMap.put(Long.toString(blockInfo.getBlockNumber()), blockInfo);
+                            keys.add(current);
+                        }
+                    } catch (Exception e) {
+                        throw new BlkchnException("Error query block by number " + current, e);
+                    }
+                }
+            } while (max.compareTo(rangeOps.add(current, 1)) < 0);
+            return new DataNode<>(rangeTable, keys);
+        }).collect(Collectors.toList());
+        DataNode<T> finalDataNode = dataNodes.get(0);
+        if (dataNodes.size() > 1) {
+            for (int i = 1; i < dataNodes.size() - 1; i++) {
+                finalDataNode = mergeDataNodes(finalDataNode, dataNodes.get(i), Operator.OR);
+            }
+        }
+        return finalDataNode;
     }
 
     private <T> TreeNode optimize(TreeNode node) {
@@ -209,12 +251,12 @@ public class QueryExecutor {
                 newOper.addChildNode(right);
                 return newOper;
             }
-            } else {
-                LogicalOperation newOper = new LogicalOperation(Operator.AND);
-                newOper.addChildNode(left);
-                newOper.addChildNode(right);
-                return newOper;
-            }
+        } else {
+            LogicalOperation newOper = new LogicalOperation(Operator.AND);
+            newOper.addChildNode(left);
+            newOper.addChildNode(right);
+            return newOper;
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -272,7 +314,7 @@ public class QueryExecutor {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Number & Comparable<T>> TreeNode combineRangeAndDataNodes(RangeNode<T> rangeNode,
+    private <T extends Number & Comparable<T>> RangeNode<T> combineRangeAndDataNodes(RangeNode<T> rangeNode,
             DataNode<?> dataNode, LogicalOperation oper) {
         String tableName = dataNode.getTable();
         List<String> keys = dataNode.getKeys().stream().map(x -> x.toString()).collect(Collectors.toList());
@@ -311,7 +353,7 @@ public class QueryExecutor {
         return emptyRangeNode;
     }
 
-    private <T> TreeNode combineFilterItemAndDataNodes(FilterItem filterItem, DataNode<T> dataNode) {
+    private <T> DataNode<T> combineFilterItemAndDataNodes(FilterItem filterItem, DataNode<T> dataNode) {
         String filterColName = filterItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0)
                 .getValue();
         String filterValue = filterItem.getChildType(IdentifierNode.class, 0).getValue();
@@ -401,28 +443,69 @@ public class QueryExecutor {
         }
         return new DataNode<>(first.getTable(), newKeys);
     }
-    
-    private TreeNode execute(TreeNode node, TreeNode lastGreen) {
-        if(node instanceof LogicalOperation) {
+
+    @SuppressWarnings("unchecked")
+    private <T> DataNode<T> execute(TreeNode node) {
+        if (node instanceof LogicalOperation) {
             LogicalOperation oper = (LogicalOperation) node;
-            if(oper.isAnd() && (oper.getChildNode(0) instanceof DataNode<?> || oper.getChildNode(0) instanceof RangeNode<?> ||
-                    oper.getChildNode(1) instanceof DataNode<?> || oper.getChildNode(1) instanceof RangeNode<?>)) {
-                lastGreen = oper;
+            if (physicalPlan.validateNode(oper.getChildNode(0)) == Color.GREEN) {
+                DataNode<T> first = execute(oper.getChildNode(0));
+                if (physicalPlan.validateNode(oper.getChildNode(1)) == Color.GREEN && oper.isOr()) {
+                    DataNode<T> second = execute(oper.getChildNode(1));
+                    return mergeDataNodes(first, second, Operator.OR);
+                } else {
+                    return filterWithValue(oper.getChildNode(1), first);
+                }
+            } else {
+                DataNode<T> second = execute(oper.getChildNode(1));
+                return filterWithValue(oper.getChildNode(0), second);
             }
-            TreeNode firstResult = execute(oper.getChildNode(0), lastGreen);
-            TreeNode secondResult = execute(oper.getChildNode(1), lastGreen);
-        } else if(node instanceof FilterItem) {
-            
-        } else if(node instanceof RangeNode<?>) {
-            
-        } else if(node instanceof DataNode<?>) {
-            
+        } else if (node instanceof DataNode<?>) {
+            return (DataNode<T>) node;
+        } else if (node instanceof RangeNode<?>) {
+            return (DataNode<T>) executeRangeNode((RangeNode<?>) node);
         }
-        return null;
+        throw new BlkchnException("can not execute for node: " + node);
     }
 
-    private void executeWithDataNode(TreeNode node, DataNode<?> dataNode) {
-        
+    @SuppressWarnings("unchecked")
+    private <T> DataNode<T> filterWithValue(TreeNode node, DataNode<T> dataNode) {
+        if (node instanceof LogicalOperation) {
+            LogicalOperation oper = (LogicalOperation) node;
+            DataNode<T> first = filterWithValue(oper.getChildNode(0), dataNode);
+            DataNode<T> second = filterWithValue(oper.getChildNode(1), dataNode);
+            if(oper.isAnd()) {
+                return mergeDataNodes(first, second, Operator.AND);
+            } else {
+                return mergeDataNodes(first, second, Operator.OR);
+            }
+        } else if (node instanceof DataNode<?>) {
+            return mergeDataNodes(dataNode, (DataNode<T>) node, Operator.AND);
+        } else if (node instanceof RangeNode<?>) {
+            return filterRangeNodeWithValue((RangeNode<?>) node, dataNode);
+        } else {
+            return combineFilterItemAndDataNodes((FilterItem) node, dataNode);
+        }
+    }
+
+    private <T> DataNode<T> filterRangeNodeWithValue(RangeNode<?> rangeNode, DataNode<T> dataNode) {
+        List<T> filteredKeys = dataNode.getKeys().stream().filter(
+            key -> {
+                if ("block".equals(dataNode.getTable()) && "blockNo".equals(rangeNode.getColumn())) {
+                    boolean include = false;
+                    Long longKey = (Long) key;
+                    for(Range<?> range : rangeNode.getRangeList().getRanges()) {
+                        if(((Long) range.getMin()) <= longKey && ((Long) range.getMax()) >= longKey) {
+                            include = true;
+                            break;
+                        }
+                    }
+                    return include;
+                }
+                return false;
+            }
+        ).collect(Collectors.toList());
+        return new DataNode<>(dataNode.getTable(), filteredKeys);
     }
 
 }
