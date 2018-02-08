@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.FunctionNode;
 import com.impetus.blkch.sql.query.IdentifierNode;
@@ -94,7 +95,7 @@ public class DataFrame {
                             returnCols.add(colName);
                         }
                     } else {
-                        throw new RuntimeException("Column " + colName + " doesn't exist in table");
+                        throw new BlkchnException("Column " + colName + " doesn't exist in table");
                     }
                     returnRec.add(record.get(colIndex));
                 } else if (col.hasChildType(FunctionNode.class)) {
@@ -126,7 +127,7 @@ public class DataFrame {
                 String actualCol = aliasMapping.get(col);
                 order.put(columns.indexOf(actualCol), direction);
             } else {
-                throw new RuntimeException("Column " + col + " doesn't exist in table");
+                throw new BlkchnException("Column " + col + " doesn't exist in table");
             }
         }
         List<List<Object>> sortData = data.stream()
@@ -170,10 +171,10 @@ public class DataFrame {
         try {
             limit = Integer.parseInt(limitValue);
         } catch (NumberFormatException e) {
-            throw new RuntimeException(e);
+            throw new BlkchnException(e);
         }
         if (limit < 0) {
-            throw new RuntimeException("limit value should not be less than zero");
+            throw new BlkchnException("limit value should not be less than zero");
         }
         List<List<Object>> limitedData = data.stream().limit(limit).collect(Collectors.toList());
         return new DataFrame(limitedData, columns, aliasMapping);
@@ -188,7 +189,7 @@ public class DataFrame {
                 String actualCol = aliasMapping.get(colName);
                 groupIndices.add(columns.indexOf(actualCol));
             } else {
-                throw new RuntimeException("Column " + colName + " doesn't exist in table");
+                throw new BlkchnException("Column " + colName + " doesn't exist in table");
             }
         }
         return new GroupedDataFrame(groupIndices, data, columns, aliasMapping);
@@ -217,7 +218,7 @@ public class DataFrame {
                 String actualCol = aliasMapping.get(colName);
                 colIndex = columns.indexOf(actualCol);
             } else {
-                throw new RuntimeException("Column " + colName + " doesn't exist in table");
+                throw new BlkchnException("Column " + colName + " doesn't exist in table");
             }
             for (List<Object> record : data) {
                 columnData.add(record.get(colIndex));
@@ -229,7 +230,7 @@ public class DataFrame {
             case "sum":
                 return AggregationFunctions.sum(columnData);
             default:
-                throw new RuntimeException("Unidentified function: " + func);
+                throw new BlkchnException("Unidentified function: " + func);
         }
     }
 

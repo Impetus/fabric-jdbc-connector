@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.impetus.blkch.BlkchnException;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.hyperledger.fabric.sdk.BlockInfo;
@@ -71,7 +72,7 @@ public class APIConverter {
                 String alias = selItem.getChildType(IdentifierNode.class, 0).getValue();
                 String colName = selItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
                 if (aliasMapping.containsKey(alias)) {
-                    throw new RuntimeException("Alias " + alias + " is ambiguous");
+                    throw new BlkchnException("Alias " + alias + " is ambiguous");
                 } else {
                     aliasMapping.put(alias, colName);
                 }
@@ -85,7 +86,7 @@ public class APIConverter {
         try {
             dataframe = blockToDataFrame(blockInfos);
         } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
+            throw new BlkchnException(e);
         }
         List<OrderItem> orderItems = null;
         if (logicalPlan.getQuery().hasChildType(OrderByClause.class)) {
@@ -152,11 +153,11 @@ public class APIConverter {
                         blockInfos.add(channel.queryBlockByNumber(i));
                     }
                 } catch (ProposalException | InvalidArgumentException e) {
-                    throw new RuntimeException(e);
+                    throw new BlkchnException(e);
                 }
             }
         } else {
-            throw new RuntimeException("Unidentified table " + tableName);
+            throw new BlkchnException("Unidentified table " + tableName);
         }
         return blockInfos;
     }
@@ -194,7 +195,7 @@ public class APIConverter {
                     }
                 }
                 if (!colIdentified) {
-                    throw new RuntimeException("Column " + colName + " is not filterable column");
+                    throw new BlkchnException("Column " + colName + " is not filterable column");
                 }
             }
         } else {
@@ -210,19 +211,19 @@ public class APIConverter {
             try {
                 blockInfo = channel.queryBlockByNumber(Long.parseLong(value));
             } catch (NumberFormatException | InvalidArgumentException | ProposalException e) {
-                throw new RuntimeException(e);
+                throw new BlkchnException(e);
             }
         } else if ("previousHash".equalsIgnoreCase(filterColumn)) {
             try {
                 blockInfo = channel.queryBlockByHash(Hex.decodeHex(value.replace("'", "").toCharArray()));
             } catch (InvalidArgumentException | ProposalException | DecoderException e) {
-                throw new RuntimeException(e);
+                throw new BlkchnException(e);
             }
         } else {
             try {
                 blockInfo = channel.queryBlockByTransactionID(value.replace("'", ""));
             } catch (InvalidArgumentException | ProposalException e) {
-                throw new RuntimeException(e);
+                throw new BlkchnException(e);
             }
         }
 
@@ -231,7 +232,7 @@ public class APIConverter {
 
     private List<BlockInfo> executeMultipleWhereClause(String tableName, LogicalOperation operation) {
         if (operation.getChildNodes().size() != 2) {
-            throw new RuntimeException("Logical operation should have two boolean expressions");
+            throw new BlkchnException("Logical operation should have two boolean expressions");
         }
         List<BlockInfo> firstBlock, secondBlock;
         if (operation.getChildNode(0) instanceof LogicalOperation) {

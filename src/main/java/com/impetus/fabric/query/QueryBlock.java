@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import com.impetus.blkch.BlkchnException;
 import org.hyperledger.fabric.sdk.BlockEvent;
 import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.Channel;
@@ -122,7 +123,7 @@ public class QueryBlock {
                 client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
                 counter++;
             } catch (CryptoException | InvalidArgumentException e) {
-                logger.error("QueryBlock | checkConfig | " + e.getMessage());
+                logger.error("QueryBlock | checkConfig | " + e);
             }
         }
 
@@ -183,7 +184,9 @@ public class QueryBlock {
                                         sampleOrgDomainName)).toFile());
                 sampleOrg.setPeerAdmin(peerOrgAdmin);
             } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException | IOException e) {
-                logger.error("QueryBlock | loadUserFromPersistence | " + e.getMessage());
+                String errMsg = "QueryBlock | loadUserFromPersistence | " + e;
+                logger.error(errMsg);
+                throw new BlkchnException(errMsg);
             }
 
         }
@@ -256,9 +259,9 @@ public class QueryBlock {
             }
 
         } catch (Exception e) {
-            logger.error("QueryBlock | enrollAndRegister | " + e.getMessage());
-            return "Failed to enroll user";
-
+            String errMsg = "QueryBlock | enrollAndRegister | " + e;
+            logger.error(errMsg);
+            throw new BlkchnException(errMsg);
         }
         return "Something went wrong";
     }
@@ -302,8 +305,9 @@ public class QueryBlock {
             newChannel.initialize();
             return newChannel;
         } catch (Exception e) {
-            logger.error("QueryBlock | reconstructChannel " + e.getMessage());
-            return null;
+            String errMsg = "QueryBlock | reconstructChannel " + e;
+            logger.error(errMsg);
+            throw new BlkchnException(errMsg);
         }
 
     }
@@ -338,14 +342,16 @@ public class QueryBlock {
                     numInstallProposal, successful.size(), failed.size()));
             if (failed.size() > 0) {
                 ProposalResponse first = failed.iterator().next();
-                return "Not enough endorsers for install :" + successful.size() + ".  " + first.getMessage();
+                String errMsg = "Not enough endorsers for install :" + successful.size() + ".  " + first.getMessage();
+                throw new BlkchnException(errMsg);
             }
 
             return "Chaincode installed successfully";
         } catch (Exception e) {
-            logger.error("QueryBlock | installChaincode | " + e.getMessage());
+            String errMsg = "QueryBlock | installChaincode | " + e;
+            logger.error(errMsg);
             e.printStackTrace();
-            return "Chaincode installation failed";
+            throw new BlkchnException("Chaincode installation failed"+" "+errMsg);
         }
     }
 
@@ -387,9 +393,10 @@ public class QueryBlock {
             if (failed.size() > 0) {
                 ProposalResponse first = failed.iterator().next();
 
-                return "Chaincode instantiation failed , reason " + "Not enough endorsers for instantiate :"
+                String errMsg = "Chaincode instantiation failed , reason " + "Not enough endorsers for instantiate :"
                         + successful.size() + "endorser failed with " + first.getMessage() + ". Was verified:"
                         + first.isVerified();
+                throw new BlkchnException(errMsg);
             }
 
             logger.info("Sending instantiateTransaction to orderer with a and b set to 100 and %s respectively",
@@ -410,20 +417,22 @@ public class QueryBlock {
                                             .getTransactionEvent();
                                     if (te != null) {
                                         logger.info("Transaction with txid %s failed. %s", te.getTransactionID(),
-                                                e.getMessage());
+                                                e);
                                     }
                                 }
-                                logger.info(" failed with %s exception %s", e.getClass().getName(), e.getMessage());
-                                return null;
-                            }).get(conf.getTransactionWaitTime(), TimeUnit.SECONDS);
+                                String errMsg = String.format(" failed with %s exception %s", e.getClass().getName(), e);
+                                logger.info(errMsg);
+                                //return null;
+                                throw new BlkchnException(errMsg);
+                            }).get(conf.getTransactionWaitTime(), TimeUnit.MILLISECONDS);
 
             return "Chaincode instantiated Successfully";
 
         } catch (Exception e) {
 
-            logger.error("QueryBlock | instantiateChaincode |" + e.getMessage());
-            return "Chaincode instantiation failed , reason " + e.getMessage();
-
+            String errMsg = "QueryBlock | instantiateChaincode |" + e;
+            logger.error(errMsg);
+            throw new BlkchnException("Chaincode instantiation failed , reason " + errMsg);
         }
 
     }
@@ -475,9 +484,11 @@ public class QueryBlock {
                     + successful.size() + " . Failed: " + failed.size());
             if (failed.size() > 0) {
                 ProposalResponse firstTransactionProposalResponse = failed.iterator().next();
-                logger.info("Not enough endorsers for invoke:" + failed.size() + " endorser error: "
+                String errMsg = "Not enough endorsers for invoke:" + failed.size() + " endorser error: "
                         + firstTransactionProposalResponse.getMessage() + ". Was verified: "
-                        + firstTransactionProposalResponse.isVerified());
+                        + firstTransactionProposalResponse.isVerified();
+                logger.info(errMsg);
+                throw new BlkchnException(errMsg);
             }
             logger.info("Successfully received transaction proposal responses.");
             ProposalResponse resp = responses.iterator().next();
@@ -496,17 +507,21 @@ public class QueryBlock {
                         if (e instanceof TransactionEventException) {
                             BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
                             if (te != null) {
-                                logger.info("Transaction with txid " + te.getTransactionID() + " failed. " + e.getMessage());
+                                String errMsg = "Transaction with txid " + te.getTransactionID() + " failed. " + e;
+                                logger.info(errMsg);
+
                         }
                     }
-                    logger.info("failed with " + e.getClass().getName() + " exception " + e.getMessage());
-                    return "Error";
-                }   ).get(conf.getTransactionWaitTime(), TimeUnit.SECONDS);
+                    String errMsg = "failed with " + e.getClass().getName() + " exception " + e;
+                    logger.info(errMsg);
+                    throw new BlkchnException(errMsg);
+                }   ).get(conf.getTransactionWaitTime(), TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             logger.info("Caught an exception while invoking chaincode");
-            logger.error("QueryBlock | invokeChaincode | " + e.getMessage());
+            String errMsg = "QueryBlock | invokeChaincode | " + e;
+            logger.error(errMsg);
             e.printStackTrace();
-            return "Caught an exception while invoking chaincode";
+            throw new BlkchnException("Caught an exception while invoking chaincode"+" "+ errMsg);
 
         }
         return "Transaction invoked successfully ";
