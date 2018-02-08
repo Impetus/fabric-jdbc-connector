@@ -48,6 +48,7 @@ import com.impetus.blkch.sql.query.Table;
 import com.impetus.blkch.sql.query.WhereClause;
 import com.impetus.fabric.query.QueryBlock;
 
+@Deprecated
 public class APIConverter {
 
     private LogicalPlan logicalPlan;
