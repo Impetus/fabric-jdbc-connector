@@ -143,7 +143,6 @@ public class QueryBlockTest extends TestCase {
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         QueryBlock qb = new QueryBlock(configPath,"mychannel");
-        //QueryBlock qb = mock(QueryBlock.class);
         String chaincodeName ="chncodefunc";
         String version = "1.0";
         String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
@@ -158,16 +157,12 @@ public class QueryBlockTest extends TestCase {
             String result = qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"});
         }
         catch(BlkchnException blkEx){
-            //Do Nothing
-            if(blkEx.getMessage().contains("java.util.concurrent.TimeoutException")) {
+            //Do Nothing for Java Concurrent Error
+            if(!blkEx.getMessage().contains("java.util.concurrent.TimeoutException")) {
 
-            }
-            else{
                 assert(false);
             }
         }
-
-        //assert(result.equals("Chaincode instantiated Successfully"));
 
         assert(true);
     }
@@ -190,10 +185,15 @@ public class QueryBlockTest extends TestCase {
         TransactionProposalRequest mockTransactionProposalRequest = mock(TransactionProposalRequest.class);
         when(mockClient.newTransactionProposalRequest()).thenReturn(mockTransactionProposalRequest);
 
-        Collection<ProposalResponse> mockProposalResponses = new ArrayList<ProposalResponse>();
-        mockProposalResponses.add(mock(ProposalResponse.class));
-        mockProposalResponses.add(mock(ProposalResponse.class));
-        when(mockChannel.sendTransactionProposal(any(TransactionProposalRequest.class),anyCollectionOf(Peer.class))).thenReturn(mockProposalResponses);
+        Collection<ProposalResponse> mockProposalResponsesList = new ArrayList<ProposalResponse>();
+        ProposalResponse mockProposalResponses = mock(ProposalResponse.class);
+        when(mockProposalResponses.getStatus()).thenReturn(ProposalResponse.Status.SUCCESS);
+        Peer mkpeer = mock(Peer.class);
+        when(mockProposalResponses.getPeer()).thenReturn(mkpeer);
+        mockProposalResponsesList.add(mockProposalResponses);
+        mockProposalResponsesList.add(mockProposalResponses);
+
+        when(mockChannel.sendTransactionProposal(any(TransactionProposalRequest.class),anyCollectionOf(Peer.class))).thenReturn(mockProposalResponsesList);
 
 
         PowerMockito.mockStatic(SDKUtils.class);
@@ -201,12 +201,11 @@ public class QueryBlockTest extends TestCase {
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         QueryBlock qb = new QueryBlock(configPath,"mychannel");
-        //QueryBlock qb = mock(QueryBlock.class);
+
         String chaincodeName ="chncodefunc";
         String version = "1.0";
         String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
         String chaincodePath = "hyperledger/fabric/examples/chaincode/go/chaincode_example02";
-        //when(qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"})).thenCallRealMethod();
 
         when(mockSDKUtils.getProposalConsistencySets(anyCollection())).thenReturn(new ArrayList());
 
@@ -218,10 +217,8 @@ public class QueryBlockTest extends TestCase {
             String result = qb.invokeChaincode(chaincodeName, "testFunction", new String[]{"a", "b", "5", "10"});
 
         }catch(BlkchnException blkEx){
-            //Do Nothing
-            if(blkEx.getMessage().contains("java.util.concurrent.TimeoutException")) {
-            }
-            else{
+            //Do Nothing for Java concurrent Error
+            if(!(blkEx.getMessage().contains("java.util.concurrent.TimeoutException"))) {
                 assert(false);
             }
         }

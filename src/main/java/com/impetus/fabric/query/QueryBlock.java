@@ -184,7 +184,9 @@ public class QueryBlock {
                                         sampleOrgDomainName)).toFile());
                 sampleOrg.setPeerAdmin(peerOrgAdmin);
             } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException | IOException e) {
-                logger.error("QueryBlock | loadUserFromPersistence | " + e);
+                String errMsg = "QueryBlock | loadUserFromPersistence | " + e;
+                logger.error(errMsg);
+                throw new BlkchnException(errMsg);
             }
 
         }
@@ -303,8 +305,9 @@ public class QueryBlock {
             newChannel.initialize();
             return newChannel;
         } catch (Exception e) {
-            logger.error("QueryBlock | reconstructChannel " + e);
-            return null;
+            String errMsg = "QueryBlock | reconstructChannel " + e;
+            logger.error(errMsg);
+            throw new BlkchnException(errMsg);
         }
 
     }
@@ -481,9 +484,11 @@ public class QueryBlock {
                     + successful.size() + " . Failed: " + failed.size());
             if (failed.size() > 0) {
                 ProposalResponse firstTransactionProposalResponse = failed.iterator().next();
-                logger.info("Not enough endorsers for invoke:" + failed.size() + " endorser error: "
+                String errMsg = "Not enough endorsers for invoke:" + failed.size() + " endorser error: "
                         + firstTransactionProposalResponse.getMessage() + ". Was verified: "
-                        + firstTransactionProposalResponse.isVerified());
+                        + firstTransactionProposalResponse.isVerified();
+                logger.info(errMsg);
+                throw new BlkchnException(errMsg);
             }
             logger.info("Successfully received transaction proposal responses.");
             ProposalResponse resp = responses.iterator().next();
