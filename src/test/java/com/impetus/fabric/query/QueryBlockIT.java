@@ -8,8 +8,10 @@ import org.junit.experimental.categories.Category;
 
 import com.impetus.test.catagory.IntegrationTest;
 
+import javax.print.attribute.standard.DateTimeAtProcessing;
 import java.io.File;
 import java.sql.*;
+import java.util.Date;
 
 @Category(IntegrationTest.class)
 public class QueryBlockIT extends TestCase {
@@ -22,59 +24,56 @@ public class QueryBlockIT extends TestCase {
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from block"); // This is dummy query
-        assert(rs != null);
+        assert(rs.next());
     }
 
-    @Test
-    public void testFunctionCall() throws ClassNotFoundException, SQLException{
-        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        File configFolder = new File("src/test/resources/blockchain-query");
-        String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
-        Statement stat = conn.createStatement();
-        //String quer = "Create Function TestFunction as '/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/example_cc.go'  with version '1.0' with args a,10,b,10";
-        //ResultSet rs = stat.executeQuery(quer);
 
-    }
-
+    // No need to Assert, test passed if didnt throw exception
     public void testCreateFunction() throws ClassNotFoundException, SQLException{
+        long currentTimeStamp = System.currentTimeMillis();
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
-        String createFuncQuery = "CREATE FUNCTION chncodefunc AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
+        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
                 + " WITH ARGS a, 500, b, 200";
-        System.out.println(stat.execute(createFuncQuery));
+
+        stat.execute(createFuncQuery);
     }
 
+    // No need to Assert, test passed if didnt throw exception
     public void testCallFunction() throws ClassNotFoundException, SQLException{
+        long currentTimeStamp = System.currentTimeMillis();
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
-        String createFuncQuery = "CREATE FUNCTION chncodefunc AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
+        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
                 + " WITH ARGS a, 500, b, 200";
         System.out.println(stat.execute(createFuncQuery));
 
-        String callQuery = "CALL chncodefunc(invoke, a, b, 20)";
-        System.out.println(stat.execute(callQuery));
+        String callQuery = "CALL chncodefunc"+currentTimeStamp+"(invoke, a, b, 20)";
+        stat.execute(callQuery);
+
 
     }
 
+    // No need to Assert, test passed if didnt throw exception
     public void testInsertFunction() throws ClassNotFoundException, SQLException{
+        long currentTimeStamp = System.currentTimeMillis();
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
 
-        String createFuncQuery = "CREATE FUNCTION chncodefunc AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
+        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
                 + " WITH ARGS a, 500, b, 200";
-        System.out.println(stat.execute(createFuncQuery));
-        String insertQuery = "INSERT INTO chncodefunc VALUES(invoke, a, b, 20)";
-        System.out.println(stat.execute(insertQuery));
+        stat.execute(createFuncQuery);
+        String insertQuery = "INSERT INTO chncodefunc"+currentTimeStamp+" VALUES(invoke, a, b, 20)";
+        stat.execute(insertQuery);
     }
 
 
