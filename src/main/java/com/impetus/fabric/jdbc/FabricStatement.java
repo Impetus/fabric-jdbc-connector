@@ -33,6 +33,7 @@ import com.impetus.fabric.parser.APIConverter;
 import com.impetus.fabric.parser.DataFrame;
 import com.impetus.fabric.parser.FunctionExecutor;
 import com.impetus.fabric.parser.InsertExecutor;
+import com.impetus.fabric.parser.QueryExecutor;
 import com.impetus.fabric.query.QueryBlock;
 
 public class FabricStatement implements BlkchnStatement {
@@ -137,7 +138,7 @@ public class FabricStatement implements BlkchnStatement {
         LogicalPlan logicalPlan = getLogicalPlan(query);
         QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath(), this.connection.getChannel());
         queryBlock.enrollAndRegister(this.connection.getUser());
-        DataFrame dataframe = new APIConverter(logicalPlan, queryBlock).executeQuery();
+        DataFrame dataframe = new QueryExecutor(logicalPlan, queryBlock).executeQuery();
         ResultSet rs = new FabricResultSet(this, dataframe);
         return rs;
     }
