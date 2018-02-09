@@ -179,7 +179,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
         List<DataNode<T>> dataNodes = rangeNode.getRangeList().getRanges().stream().map(range -> {
             List<T> keys = new ArrayList<>();
             T current = range.getMin().equals(rangeOps.getMinValue()) ? (T) new Long(0l) : range.getMin();
-            T max = range.getMax().equals(rangeOps.getMaxValue()) ? (T) height : range.getMax();
+            T max = range.getMax().equals(rangeOps.getMaxValue()) ? (T) (new Long(height -1)) : range.getMax();
             do {
                 if ("block".equals(rangeTable) && "blockNo".equals(rangeCol)) {
                     try {
@@ -226,7 +226,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     }
                     T blockNo = (T) new Long(blockInfo.getBlockNumber());
                     RangeNode<T> node = new RangeNode<>(rangeNode.getTable(), rangeCol);
-                    rangeNode.getRangeList().addRange(new Range<T>(blockNo, blockNo));
+                    node.getRangeList().addRange(new Range<T>(blockNo, blockNo));
                     return node;
                 }).collect(Collectors.toList());
                 RangeNode<T> dataRangeNodes = dataRanges.get(0);
@@ -307,6 +307,9 @@ public class QueryExecutor extends AbstractQueryExecutor {
     }
 
     protected DataFrame createDataFrame(DataNode<?> dataNode) {
+        if(dataNode.getKeys().isEmpty()) {
+            return new DataFrame(new ArrayList<>(), new ArrayList<>(), physicalPlan.getColumnAliasMapping());
+        }
         if (dataMap.get(dataNode.getKeys().get(0).toString()) instanceof BlockInfo) {
             String[] columns = { "previousHash", "blockDataHash", "transActionsMetaData", "transactionCount",
                     "blockNo", "channelId" };
