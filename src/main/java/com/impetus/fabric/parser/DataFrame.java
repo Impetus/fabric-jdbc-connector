@@ -17,6 +17,7 @@ package com.impetus.fabric.parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -41,6 +42,8 @@ public class DataFrame {
     private Map<String, String> aliasMapping;
 
     private List<List<Object>> data;
+    
+    private List<Object> rawData = new ArrayList<>();
 
     DataFrame(List<List<Object>> data, String[] columns, Map<String, String> aliasMapping) {
         this(data, Arrays.asList(columns), aliasMapping);
@@ -62,6 +65,18 @@ public class DataFrame {
 
     public List<List<Object>> getData() {
         return data;
+    }
+    
+    public void setRawData(Collection<Object> rawData) {
+        this.rawData.addAll(rawData);
+    }
+    
+    public void addRawData(Object data) {
+        this.rawData.add(data);
+    }
+    
+    public List<Object> getRawData() {
+        return rawData;
     }
 
     public DataFrame select(List<SelectItem> cols) {

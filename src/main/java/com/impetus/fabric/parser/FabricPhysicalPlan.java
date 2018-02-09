@@ -23,9 +23,10 @@ public class FabricPhysicalPlan extends PhysicalPlan {
     
     static {
         rangeColMap.put("block", Arrays.asList("blockNo"));
-        rangeColMap.put("block", Arrays.asList("previousHash", "transactionId"));
+        queryColMap.put("block", Arrays.asList("previousHash"));
         
         rangeOpMap.put(new Tuple2<>("block", "blockNo"), new LongRangeOperations());
+        
     }
 
     public FabricPhysicalPlan(LogicalPlan logicalPlan) {

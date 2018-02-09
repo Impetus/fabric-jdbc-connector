@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.DecoderException;
@@ -18,17 +17,19 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.sql.parser.AbstractQueryExecutor;
 import com.impetus.blkch.sql.parser.LogicalPlan;
-import com.impetus.blkch.sql.parser.PhysicalPlan;
-import com.impetus.blkch.sql.parser.PhysicalPlan.Color;
 import com.impetus.blkch.sql.parser.TreeNode;
 import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.Comparator;
 import com.impetus.blkch.sql.query.DataNode;
 import com.impetus.blkch.sql.query.DirectAPINode;
-import com.impetus.blkch.sql.query.FilterItem;
 import com.impetus.blkch.sql.query.FromItem;
+import com.impetus.blkch.sql.query.GroupByClause;
+import com.impetus.blkch.sql.query.HavingClause;
 import com.impetus.blkch.sql.query.IdentifierNode;
+import com.impetus.blkch.sql.query.LimitClause;
 import com.impetus.blkch.sql.query.LogicalOperation;
+import com.impetus.blkch.sql.query.OrderByClause;
+import com.impetus.blkch.sql.query.OrderItem;
 import com.impetus.blkch.sql.query.LogicalOperation.Operator;
 import com.impetus.blkch.sql.query.RangeNode;
 import com.impetus.blkch.sql.query.Table;
@@ -38,15 +39,7 @@ import com.impetus.fabric.query.QueryBlock;
 
 public class QueryExecutor extends AbstractQueryExecutor {
 
-    private LogicalPlan logicalPlan;
-
     private QueryBlock queryBlock;
-
-    private PhysicalPlan physicalPlan;
-
-    private Map<String, Object> dataMap = new HashMap<>();
-
-    private Map<String, Map<String, Object>> auxillaryDataMap = new HashMap<>();
 
     public QueryExecutor(LogicalPlan logicalPlan, QueryBlock queryBlock) {
         this.logicalPlan = logicalPlan;
@@ -54,64 +47,88 @@ public class QueryExecutor extends AbstractQueryExecutor {
         this.physicalPlan = new FabricPhysicalPlan(logicalPlan);
     }
 
-    public void executeQuery() {
+    public DataFrame executeQuery() {
+        physicalPlan.getWhereClause().traverse();
         if (!physicalPlan.validateLogicalPlan()) {
             throw new BlkchnException("This query can't be executed");
         }
-        // TODO Auto-generated method stub
-
+        DataFrame dataframe = getFromTable();
+        List<OrderItem> orderItems = null;
+        if (logicalPlan.getQuery().hasChildType(OrderByClause.class)) {
+            OrderByClause orderByClause = logicalPlan.getQuery().getChildType(OrderByClause.class, 0);
+            orderItems = orderByClause.getChildType(OrderItem.class);
+        }
+        LimitClause limitClause = null;
+        if (logicalPlan.getQuery().hasChildType(LimitClause.class)) {
+            limitClause = logicalPlan.getQuery().getChildType(LimitClause.class, 0);
+        }
+        if (logicalPlan.getQuery().hasChildType(GroupByClause.class)) {
+            GroupByClause groupByClause = logicalPlan.getQuery().getChildType(GroupByClause.class, 0);
+            List<Column> groupColumns = groupByClause.getChildType(Column.class);
+            List<String> groupByCols = groupColumns.stream()
+                    .map(col -> col.getChildType(IdentifierNode.class, 0).getValue()).collect(Collectors.toList());
+            GroupedDataFrame groupedDF = dataframe.group(groupByCols);
+            DataFrame afterSelect;
+            if(logicalPlan.getQuery().hasChildType(HavingClause.class)) {
+                afterSelect = groupedDF.having(logicalPlan.getQuery().getChildType(HavingClause.class, 0)).select(physicalPlan.getSelectItems());
+            } else {
+                afterSelect = groupedDF.select(physicalPlan.getSelectItems());
+            }
+            DataFrame afterOrder;
+            if (orderItems != null) {
+                afterOrder = afterSelect.order(orderItems);
+            } else {
+                afterOrder = afterSelect;
+            }
+            if (limitClause == null) {
+                return afterOrder;
+            } else {
+                return afterOrder.limit(limitClause);
+            }
+        }
+        DataFrame preSelect;
+        if (orderItems != null) {
+            preSelect = dataframe.order(orderItems);
+        } else {
+            preSelect = dataframe;
+        }
+        DataFrame afterOrder;
+        if (limitClause == null) {
+            afterOrder = preSelect;
+        } else {
+            afterOrder = preSelect.limit(limitClause);
+        }
+        return afterOrder.select(physicalPlan.getSelectItems());
     }
 
-    private void getFromTable() {
+    private DataFrame getFromTable() {
         Table table = logicalPlan.getQuery().getChildType(FromItem.class, 0).getChildType(Table.class, 0);
         String tableName = table.getChildType(IdentifierNode.class, 0).getValue();
         if (physicalPlan.getWhereClause() != null) {
+            DataNode<?> finalData;
             if (physicalPlan.getWhereClause().hasChildType(LogicalOperation.class)) {
                 TreeNode directAPIOptimizedTree = executeDirectAPIs(tableName, physicalPlan.getWhereClause()
                         .getChildType(LogicalOperation.class, 0));
                 TreeNode optimizedTree = optimize(directAPIOptimizedTree);
-                DataNode<?> finalData = execute(optimizedTree);
+                 finalData = execute(optimizedTree);
+            } else if (physicalPlan.getWhereClause().hasChildType(DirectAPINode.class)) {
+                DirectAPINode node = physicalPlan.getWhereClause().getChildType(DirectAPINode.class, 0);
+                finalData = getDataNode(node.getTable(), node.getColumn(), node.getValue());
             } else {
-                // TODO
+                RangeNode<?> rangeNode = physicalPlan.getWhereClause().getChildType(RangeNode.class, 0);
+                System.out.println("-- Executing Range Node");
+                finalData = executeRangeNode(rangeNode);
+                System.out.println("DataNode: ");
+                finalData.traverse();
             }
+            return createDataFrame(finalData);
         } else {
-            throw new BlkchnException(
-                    "Can't query on hyperledger fabric network without where clause. Data will be huge");
+            throw new BlkchnException("Can't query without where clause. Data will be huge");
         }
 
     }
 
-    private TreeNode executeDirectAPIs(String table, TreeNode node) {
-        if (node instanceof LogicalOperation) {
-            LogicalOperation oper = (LogicalOperation) node;
-            TreeNode first = oper.getChildNode(0);
-            TreeNode second = oper.getChildNode(1);
-            LogicalOperation returnOp = new LogicalOperation(oper.isAnd() ? Operator.AND : Operator.OR);
-            returnOp.addChildNode(first);
-            returnOp.addChildNode(second);
-            return returnOp;
-        } else if (node instanceof DirectAPINode) {
-            DirectAPINode directAPI = (DirectAPINode) node;
-            String column = directAPI.getColumn();
-            String value = directAPI.getValue();
-            return getDataNode(table, column, value);
-        } else if (node instanceof RangeNode<?>) {
-            RangeNode<?> rangeNode = (RangeNode<?>) node;
-            if (rangeNode.getRangeList().getRanges().size() == 1
-                    && rangeNode.getRangeList().getRanges().get(0).getMin() == rangeNode.getRangeList().getRanges()
-                            .get(0).getMax()) {
-                String column = rangeNode.getColumn();
-                String value = rangeNode.getRangeList().getRanges().get(0).getMin().toString();
-                return getDataNode(table, column, value);
-            }
-            return node;
-
-        } else {
-            return node;
-        }
-    }
-
-    private DataNode<?> getDataNode(String table, String column, String value) {
+    protected DataNode<?> getDataNode(String table, String column, String value) {
         if (dataMap.containsKey(value)) {
             return new DataNode<>(table, Arrays.asList(value));
         }
@@ -147,7 +164,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Number & Comparable<T>> DataNode<T> executeRangeNode(RangeNode<T> rangeNode) {
+    protected <T extends Number & Comparable<T>> DataNode<T> executeRangeNode(RangeNode<T> rangeNode) {
         RangeOperations<T> rangeOps = (RangeOperations<T>) physicalPlan.getRangeOperations(rangeNode.getTable(),
                 rangeNode.getColumn());
         String rangeCol = rangeNode.getColumn();
@@ -161,8 +178,8 @@ public class QueryExecutor extends AbstractQueryExecutor {
         }
         List<DataNode<T>> dataNodes = rangeNode.getRangeList().getRanges().stream().map(range -> {
             List<T> keys = new ArrayList<>();
-            T current = range.getMin() == rangeOps.getMinValue() ? (T) new Long(0l) : range.getMin();
-            T max = range.getMax() == rangeOps.getMaxValue() ? (T) height : range.getMax();
+            T current = range.getMin().equals(rangeOps.getMinValue()) ? (T) new Long(0l) : range.getMin();
+            T max = range.getMax().equals(rangeOps.getMaxValue()) ? (T) height : range.getMax();
             do {
                 if ("block".equals(rangeTable) && "blockNo".equals(rangeCol)) {
                     try {
@@ -177,7 +194,8 @@ public class QueryExecutor extends AbstractQueryExecutor {
                         throw new BlkchnException("Error query block by number " + current, e);
                     }
                 }
-            } while (max.compareTo(rangeOps.add(current, 1)) < 0);
+                current = rangeOps.add(current, 1);
+            } while (max.compareTo(current) >= 0);
             return new DataNode<>(rangeTable, keys);
         }).collect(Collectors.toList());
         DataNode<T> finalDataNode = dataNodes.get(0);
@@ -189,132 +207,8 @@ public class QueryExecutor extends AbstractQueryExecutor {
         return finalDataNode;
     }
 
-    private <T> TreeNode optimize(TreeNode node) {
-        if (!(node instanceof LogicalOperation)) {
-            return node;
-        }
-        LogicalOperation oper = (LogicalOperation) node;
-        TreeNode left = optimize(oper.getChildNode(0));
-        TreeNode right = optimize(oper.getChildNode(1));
-        if (oper.isOr()) {
-            return optimizeOr(left, right);
-        } else {
-            return optimizeAnd(left, right);
-        }
-    }
-
     @SuppressWarnings("unchecked")
-    private <T> TreeNode optimizeAnd(TreeNode left, TreeNode right) {
-        if (left instanceof DataNode<?>) {
-            DataNode<T> dataNode = (DataNode<T>) left;
-            if (right instanceof LogicalOperation) {
-                LogicalOperation newOper = new LogicalOperation(Operator.AND);
-                newOper.addChildNode(left);
-                newOper.addChildNode(right);
-                return newOper;
-            } else if (right instanceof RangeNode<?>) {
-                RangeNode<?> rangeNode = (RangeNode<?>) right;
-                return combineRangeAndDataNodes(rangeNode, dataNode, new LogicalOperation(Operator.AND));
-            } else if (right instanceof FilterItem) {
-                FilterItem filterItem = (FilterItem) right;
-                return combineFilterItemAndDataNodes(filterItem, dataNode);
-            } else {
-                // check for table name if joins are implemented
-                DataNode<T> rightDataNode = (DataNode<T>) right;
-                return mergeDataNodes(dataNode, rightDataNode, Operator.AND);
-            }
-        } else if (right instanceof DataNode<?>) {
-            DataNode<T> dataNode = (DataNode<T>) right;
-            if (left instanceof LogicalOperation) {
-                LogicalOperation newOper = new LogicalOperation(Operator.AND);
-                newOper.addChildNode(left);
-                newOper.addChildNode(right);
-                return newOper;
-            } else if (left instanceof RangeNode<?>) {
-                RangeNode<?> rangeNode = (RangeNode<?>) left;
-                return combineRangeAndDataNodes(rangeNode, dataNode, new LogicalOperation(Operator.AND));
-            } else {
-                FilterItem filterItem = (FilterItem) left;
-                return combineFilterItemAndDataNodes(filterItem, dataNode);
-            }
-        } else if (left instanceof RangeNode<?> && right instanceof RangeNode<?>) {
-            RangeNode<?> leftRangeNode = (RangeNode<?>) left;
-            RangeNode<?> rightRangeNode = (RangeNode<?>) right;
-            if (leftRangeNode.getColumn().equals(rightRangeNode.getColumn())
-                    && leftRangeNode.getTable().equals(rightRangeNode.getTable())) {
-                RangeOperations<?> rangeOps = physicalPlan.getRangeOperations(leftRangeNode.getTable(),
-                        leftRangeNode.getColumn());
-                return rangeOps.processRangeNodes(leftRangeNode, rightRangeNode, new LogicalOperation(Operator.AND));
-            } else {
-                LogicalOperation newOper = new LogicalOperation(Operator.AND);
-                newOper.addChildNode(left);
-                newOper.addChildNode(right);
-                return newOper;
-            }
-        } else {
-            LogicalOperation newOper = new LogicalOperation(Operator.AND);
-            newOper.addChildNode(left);
-            newOper.addChildNode(right);
-            return newOper;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> TreeNode optimizeOr(TreeNode left, TreeNode right) {
-        if (left instanceof DataNode<?>) {
-            DataNode<T> dataNode = (DataNode<T>) left;
-            if (right instanceof LogicalOperation || right instanceof FilterItem) {
-                LogicalOperation newOper = new LogicalOperation(Operator.OR);
-                newOper.addChildNode(left);
-                newOper.addChildNode(right);
-                return newOper;
-            } else if (right instanceof RangeNode<?>) {
-                RangeNode<?> rangeNode = (RangeNode<?>) right;
-                return combineRangeAndDataNodes(rangeNode, dataNode, new LogicalOperation(Operator.OR));
-            } else {
-                // check for table name if joins are implemented
-                DataNode<T> rightDataNode = (DataNode<T>) right;
-                return mergeDataNodes(dataNode, rightDataNode, Operator.OR);
-            }
-        } else if (right instanceof DataNode<?>) {
-            DataNode<T> dataNode = (DataNode<T>) right;
-            if (left instanceof LogicalOperation || left instanceof FilterItem) {
-                LogicalOperation newOper = new LogicalOperation(Operator.OR);
-                newOper.addChildNode(left);
-                newOper.addChildNode(right);
-                return newOper;
-            } else if (left instanceof RangeNode<?>) {
-                RangeNode<?> rangeNode = (RangeNode<?>) left;
-                return combineRangeAndDataNodes(rangeNode, dataNode, new LogicalOperation(Operator.OR));
-            } else {
-                // check for table name if joins are implemented
-                DataNode<T> leftDataNode = (DataNode<T>) left;
-                return mergeDataNodes(leftDataNode, dataNode, Operator.OR);
-            }
-        } else if (left instanceof RangeNode<?> && right instanceof RangeNode<?>) {
-            RangeNode<?> leftRangeNode = (RangeNode<?>) left;
-            RangeNode<?> rightRangeNode = (RangeNode<?>) right;
-            if (leftRangeNode.getColumn().equals(rightRangeNode.getColumn())
-                    && leftRangeNode.getTable().equals(rightRangeNode.getTable())) {
-                RangeOperations<?> rangeOps = physicalPlan.getRangeOperations(leftRangeNode.getTable(),
-                        leftRangeNode.getColumn());
-                return rangeOps.processRangeNodes(leftRangeNode, rightRangeNode, new LogicalOperation(Operator.OR));
-            } else {
-                LogicalOperation newOper = new LogicalOperation(Operator.OR);
-                newOper.addChildNode(left);
-                newOper.addChildNode(right);
-                return newOper;
-            }
-        } else {
-            LogicalOperation newOper = new LogicalOperation(Operator.OR);
-            newOper.addChildNode(left);
-            newOper.addChildNode(right);
-            return newOper;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends Number & Comparable<T>> RangeNode<T> combineRangeAndDataNodes(RangeNode<T> rangeNode,
+    protected <T extends Number & Comparable<T>> RangeNode<T> combineRangeAndDataNodes(RangeNode<T> rangeNode,
             DataNode<?> dataNode, LogicalOperation oper) {
         String tableName = dataNode.getTable();
         List<String> keys = dataNode.getKeys().stream().map(x -> x.toString()).collect(Collectors.toList());
@@ -353,19 +247,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
         return emptyRangeNode;
     }
 
-    private <T> DataNode<T> combineFilterItemAndDataNodes(FilterItem filterItem, DataNode<T> dataNode) {
-        String filterColName = filterItem.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0)
-                .getValue();
-        String filterValue = filterItem.getChildType(IdentifierNode.class, 0).getValue();
-        Comparator comparator = filterItem.getChildType(Comparator.class, 0);
-        List<T> filterKeys = dataNode.getKeys().stream().filter(key -> {
-            Object obj = dataMap.get(key.toString());
-            return filterField(filterColName, obj, filterValue, comparator);
-        }).collect(Collectors.toList());
-        return new DataNode<>(dataNode.getTable(), filterKeys);
-    }
-
-    private boolean filterField(String fieldName, Object obj, String value, Comparator comparator) {
+    protected boolean filterField(String fieldName, Object obj, String value, Comparator comparator) {
         boolean retValue = false;
         if (obj instanceof BlockInfo) {
             BlockInfo blockInfo = (BlockInfo) obj;
@@ -406,106 +288,49 @@ public class QueryExecutor extends AbstractQueryExecutor {
         return retValue;
     }
 
-    private boolean compareNumbers(Number first, Number second, Comparator comparator) {
-        if (comparator.isEQ()) {
-            return first.doubleValue() == second.doubleValue();
-        } else if (comparator.isGT()) {
-            return first.doubleValue() > second.doubleValue();
-        } else if (comparator.isGTE()) {
-            return first.doubleValue() >= second.doubleValue();
-        } else if (comparator.isLT()) {
-            return first.doubleValue() < second.doubleValue();
-        } else if (comparator.isLTE()) {
-            return first.doubleValue() <= second.doubleValue();
-        } else {
-            return first.doubleValue() != second.doubleValue();
-        }
-    }
-
-    private <T> DataNode<T> mergeDataNodes(DataNode<T> first, DataNode<T> second, Operator op) {
-        List<T> newKeys = new ArrayList<>();
-        if (op == Operator.AND) {
-            for (T firstKey : first.getKeys()) {
-                for (T secondKey : second.getKeys()) {
-                    if (firstKey.equals(secondKey)) {
-                        newKeys.add(secondKey);
+    protected <T> DataNode<T> filterRangeNodeWithValue(RangeNode<?> rangeNode, DataNode<T> dataNode) {
+        List<T> filteredKeys = dataNode.getKeys().stream().filter(key -> {
+            if ("block".equals(dataNode.getTable()) && "blockNo".equals(rangeNode.getColumn())) {
+                boolean include = false;
+                Long longKey = (Long) key;
+                for (Range<?> range : rangeNode.getRangeList().getRanges()) {
+                    if (((Long) range.getMin()) <= longKey && ((Long) range.getMax()) >= longKey) {
+                        include = true;
                         break;
                     }
                 }
+                return include;
             }
-        } else {
-            newKeys.addAll(first.getKeys());
-            for (T key : second.getKeys()) {
-                if (!newKeys.contains(key)) {
-                    newKeys.add(key);
-                }
-            }
-        }
-        return new DataNode<>(first.getTable(), newKeys);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> DataNode<T> execute(TreeNode node) {
-        if (node instanceof LogicalOperation) {
-            LogicalOperation oper = (LogicalOperation) node;
-            if (physicalPlan.validateNode(oper.getChildNode(0)) == Color.GREEN) {
-                DataNode<T> first = execute(oper.getChildNode(0));
-                if (physicalPlan.validateNode(oper.getChildNode(1)) == Color.GREEN && oper.isOr()) {
-                    DataNode<T> second = execute(oper.getChildNode(1));
-                    return mergeDataNodes(first, second, Operator.OR);
-                } else {
-                    return filterWithValue(oper.getChildNode(1), first);
-                }
-            } else {
-                DataNode<T> second = execute(oper.getChildNode(1));
-                return filterWithValue(oper.getChildNode(0), second);
-            }
-        } else if (node instanceof DataNode<?>) {
-            return (DataNode<T>) node;
-        } else if (node instanceof RangeNode<?>) {
-            return (DataNode<T>) executeRangeNode((RangeNode<?>) node);
-        }
-        throw new BlkchnException("can not execute for node: " + node);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> DataNode<T> filterWithValue(TreeNode node, DataNode<T> dataNode) {
-        if (node instanceof LogicalOperation) {
-            LogicalOperation oper = (LogicalOperation) node;
-            DataNode<T> first = filterWithValue(oper.getChildNode(0), dataNode);
-            DataNode<T> second = filterWithValue(oper.getChildNode(1), dataNode);
-            if(oper.isAnd()) {
-                return mergeDataNodes(first, second, Operator.AND);
-            } else {
-                return mergeDataNodes(first, second, Operator.OR);
-            }
-        } else if (node instanceof DataNode<?>) {
-            return mergeDataNodes(dataNode, (DataNode<T>) node, Operator.AND);
-        } else if (node instanceof RangeNode<?>) {
-            return filterRangeNodeWithValue((RangeNode<?>) node, dataNode);
-        } else {
-            return combineFilterItemAndDataNodes((FilterItem) node, dataNode);
-        }
-    }
-
-    private <T> DataNode<T> filterRangeNodeWithValue(RangeNode<?> rangeNode, DataNode<T> dataNode) {
-        List<T> filteredKeys = dataNode.getKeys().stream().filter(
-            key -> {
-                if ("block".equals(dataNode.getTable()) && "blockNo".equals(rangeNode.getColumn())) {
-                    boolean include = false;
-                    Long longKey = (Long) key;
-                    for(Range<?> range : rangeNode.getRangeList().getRanges()) {
-                        if(((Long) range.getMin()) <= longKey && ((Long) range.getMax()) >= longKey) {
-                            include = true;
-                            break;
-                        }
-                    }
-                    return include;
-                }
-                return false;
-            }
-        ).collect(Collectors.toList());
+            return false;
+        }).collect(Collectors.toList());
         return new DataNode<>(dataNode.getTable(), filteredKeys);
+    }
+
+    protected DataFrame createDataFrame(DataNode<?> dataNode) {
+        if (dataMap.get(dataNode.getKeys().get(0).toString()) instanceof BlockInfo) {
+            String[] columns = { "previousHash", "blockDataHash", "transActionsMetaData", "transactionCount",
+                    "blockNo", "channelId" };
+            List<List<Object>> data = new ArrayList<>();
+            for (Object obj : dataMap.values()) {
+                BlockInfo blockInfo = (BlockInfo) obj;
+                String previousHash = Hex.encodeHexString(blockInfo.getPreviousHash());
+                String dataHash = Hex.encodeHexString(blockInfo.getDataHash());
+                String transActionsMetaData = Hex.encodeHexString(blockInfo.getTransActionsMetaData());
+                int transactionCount = blockInfo.getEnvelopeCount();
+                long blockNum = blockInfo.getBlockNumber();
+                String channelId;
+                try {
+                    channelId = blockInfo.getChannelId();
+                } catch (InvalidProtocolBufferException e) {
+                    throw new BlkchnException("Unable to get channel id from block info", e);
+                }
+                data.add(Arrays.asList(previousHash, dataHash, transActionsMetaData, transactionCount, blockNum, channelId));
+            }
+            DataFrame df = new DataFrame(data, columns, physicalPlan.getColumnAliasMapping());
+            df.setRawData(dataMap.values());
+            return df;
+        }
+        throw new BlkchnException("Cannot create dataframe from unknown object type");
     }
 
 }
