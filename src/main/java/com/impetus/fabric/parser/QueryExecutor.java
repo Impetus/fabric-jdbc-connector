@@ -53,6 +53,9 @@ public class QueryExecutor extends AbstractQueryExecutor {
             throw new BlkchnException("This query can't be executed");
         }
         DataFrame dataframe = getFromTable();
+        if(dataframe.isEmpty()) {
+            return dataframe;
+        }
         List<OrderItem> orderItems = null;
         if (logicalPlan.getQuery().hasChildType(OrderByClause.class)) {
             OrderByClause orderByClause = logicalPlan.getQuery().getChildType(OrderByClause.class, 0);
@@ -165,6 +168,9 @@ public class QueryExecutor extends AbstractQueryExecutor {
 
     @SuppressWarnings("unchecked")
     protected <T extends Number & Comparable<T>> DataNode<T> executeRangeNode(RangeNode<T> rangeNode) {
+        if(rangeNode.getRangeList().getRanges().isEmpty()) {
+            return new DataNode<>(rangeNode.getTable(), new ArrayList<>());
+        }
         RangeOperations<T> rangeOps = (RangeOperations<T>) physicalPlan.getRangeOperations(rangeNode.getTable(),
                 rangeNode.getColumn());
         String rangeCol = rangeNode.getColumn();
@@ -200,7 +206,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
         }).collect(Collectors.toList());
         DataNode<T> finalDataNode = dataNodes.get(0);
         if (dataNodes.size() > 1) {
-            for (int i = 1; i < dataNodes.size() - 1; i++) {
+            for (int i = 1; i < dataNodes.size(); i++) {
                 finalDataNode = mergeDataNodes(finalDataNode, dataNodes.get(i), Operator.OR);
             }
         }
@@ -257,7 +263,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
                         throw new BlkchnException(String.format(
                                 "String values in %s field can only be compared for equivalence", fieldName));
                     }
-                    retValue = Hex.encodeHexString(blockInfo.getDataHash()).equals(value);
+                    retValue = Hex.encodeHexString(blockInfo.getDataHash()).equals(value.replaceAll("'", ""));
                     break;
 
                 case "transActionsMetaData":
@@ -265,7 +271,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
                         throw new BlkchnException(String.format(
                                 "String values in %s field can only be compared for equivalence", fieldName));
                     }
-                    retValue = Hex.encodeHexString(blockInfo.getTransActionsMetaData()).equals(value);
+                    retValue = Hex.encodeHexString(blockInfo.getTransActionsMetaData()).equals(value.replaceAll("'", ""));
                     break;
 
                 case "transactionCount":
@@ -275,7 +281,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
 
                 case "channelId":
                     try {
-                        retValue = blockInfo.getChannelId().equals(value);
+                        retValue = blockInfo.getChannelId().equals(value.replaceAll("'", ""));
                     } catch (InvalidProtocolBufferException e) {
                         throw new BlkchnException("Error fetching channel id", e);
                     }
@@ -314,8 +320,8 @@ public class QueryExecutor extends AbstractQueryExecutor {
             String[] columns = { "previousHash", "blockDataHash", "transActionsMetaData", "transactionCount",
                     "blockNo", "channelId" };
             List<List<Object>> data = new ArrayList<>();
-            for (Object obj : dataMap.values()) {
-                BlockInfo blockInfo = (BlockInfo) obj;
+            for (Object key : dataNode.getKeys()) {
+                BlockInfo blockInfo = (BlockInfo) dataMap.get(key.toString());
                 String previousHash = Hex.encodeHexString(blockInfo.getPreviousHash());
                 String dataHash = Hex.encodeHexString(blockInfo.getDataHash());
                 String transActionsMetaData = Hex.encodeHexString(blockInfo.getTransActionsMetaData());

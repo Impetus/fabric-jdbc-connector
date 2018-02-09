@@ -208,6 +208,10 @@ public class DataFrame {
         }
         return new GroupedDataFrame(groupIndices, data, columns, aliasMapping);
     }
+    
+    public boolean isEmpty() {
+        return this.data.isEmpty();
+    }
 
     public void show() {
         columns.stream().forEach(col -> System.out.print(col + " "));
