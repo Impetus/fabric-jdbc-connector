@@ -259,19 +259,27 @@ public class QueryExecutor extends AbstractQueryExecutor {
             BlockInfo blockInfo = (BlockInfo) obj;
             switch (fieldName) {
                 case "blockDataHash":
-                    if (!comparator.isEQ()) {
+                    if (!comparator.isEQ() && !comparator.isNEQ()) {
                         throw new BlkchnException(String.format(
-                                "String values in %s field can only be compared for equivalence", fieldName));
+                                "String values in %s field can only be compared for equivalence and non-equivalence", fieldName));
                     }
-                    retValue = Hex.encodeHexString(blockInfo.getDataHash()).equals(value.replaceAll("'", ""));
+                    if(comparator.isEQ()) {
+                        retValue = Hex.encodeHexString(blockInfo.getDataHash()).equals(value.replaceAll("'", ""));
+                    } else {
+                        retValue = !Hex.encodeHexString(blockInfo.getDataHash()).equals(value.replaceAll("'", ""));
+                    }
                     break;
 
                 case "transActionsMetaData":
-                    if (!comparator.isEQ()) {
+                    if (!comparator.isEQ() && !comparator.isNEQ()) {
                         throw new BlkchnException(String.format(
-                                "String values in %s field can only be compared for equivalence", fieldName));
+                                "String values in %s field can only be compared for equivalence and non-equivalence", fieldName));
                     }
-                    retValue = Hex.encodeHexString(blockInfo.getTransActionsMetaData()).equals(value.replaceAll("'", ""));
+                    if(comparator.isEQ()) {
+                        retValue = Hex.encodeHexString(blockInfo.getTransActionsMetaData()).equals(value.replaceAll("'", ""));
+                    } else {
+                        retValue = !Hex.encodeHexString(blockInfo.getTransActionsMetaData()).equals(value.replaceAll("'", ""));
+                    }
                     break;
 
                 case "transactionCount":
@@ -281,7 +289,15 @@ public class QueryExecutor extends AbstractQueryExecutor {
 
                 case "channelId":
                     try {
-                        retValue = blockInfo.getChannelId().equals(value.replaceAll("'", ""));
+                        if (!comparator.isEQ() && !comparator.isNEQ()) {
+                            throw new BlkchnException(String.format(
+                                    "String values in %s field can only be compared for equivalence and non-equivalence", fieldName));
+                        }
+                        if(comparator.isEQ()) {
+                            retValue = blockInfo.getChannelId().equals(value.replaceAll("'", ""));
+                        } else {
+                            retValue = !blockInfo.getChannelId().equals(value.replaceAll("'", ""));
+                        }
                     } catch (InvalidProtocolBufferException e) {
                         throw new BlkchnException("Error fetching channel id", e);
                     }
