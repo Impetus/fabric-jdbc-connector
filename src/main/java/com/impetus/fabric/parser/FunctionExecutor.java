@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.sql.function.Args;
 import com.impetus.blkch.sql.function.ClassName;
 import com.impetus.blkch.sql.function.Parameters;
@@ -30,7 +31,7 @@ public class FunctionExecutor {
         String chaincodeName = createFunc.getChildType(IdentifierNode.class, 0).getValue();
         String chaincodePath = createFunc.getChildType(ClassName.class, 0).getName().replaceAll("'", "");
         if(!createFunc.hasChildType(Version.class)) {
-            throw new RuntimeException("Version is missing");
+            throw new BlkchnException("Version is missing");
         }
         String version = createFunc.getChildType(Version.class, 0).getVersion().replaceAll("'", "");
         List<String> args = new ArrayList<>();
@@ -49,12 +50,12 @@ public class FunctionExecutor {
         String chaincodeName = callFunc.getChildType(IdentifierNode.class, 0).getValue();
         List<String> args = new ArrayList<>();
         if(!callFunc.hasChildType(Parameters.class)) {
-            throw new RuntimeException("Invalid number of parameters");
+            throw new BlkchnException("Invalid number of parameters");
         }
         Parameters params = callFunc.getChildType(Parameters.class, 0);
         List<IdentifierNode> idents = params.getChildType(IdentifierNode.class);
         if(idents.size() == 0) {
-            throw new RuntimeException("Invalid number of parameters");
+            throw new BlkchnException("Invalid number of parameters");
         }
         for(IdentifierNode ident : idents) {
             args.add(ident.getValue());
