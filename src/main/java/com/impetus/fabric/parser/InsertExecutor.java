@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.sql.insert.ColumnValue;
 import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.parser.TreeNode;
@@ -28,7 +29,7 @@ public class InsertExecutor {
         List<String> args = new ArrayList<>();
         List<IdentifierNode> idents = insert.getChildType(ColumnValue.class, 0).getChildType(IdentifierNode.class);
         if(idents.size() == 0) {
-            throw new RuntimeException("Invalid number of parameters");
+            throw new BlkchnException("Invalid number of parameters");
         }
         for(IdentifierNode ident : idents) {
             args.add(ident.getValue());
