@@ -1,6 +1,8 @@
 package com.impetus.fabric.parser;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +47,7 @@ public class FunctionExecutor {
         queryBlock.instantiateChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}));
     }
     
-    public void executeCall() {
+    public DataFrame executeCall() {
         TreeNode callFunc = logicalPlan.getCallFunction();
         String chaincodeName = callFunc.getChildType(IdentifierNode.class, 0).getValue();
         List<String> args = new ArrayList<>();
@@ -60,6 +62,14 @@ public class FunctionExecutor {
         for(IdentifierNode ident : idents) {
             args.add(ident.getValue());
         }
-        queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
+        String result = queryBlock.queryChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
+        AssetSchema assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), chaincodeName, args.get(0));
+        DataFrame df = assetSchema.createDataFrame(result);
+        df.show();
+        return df;
+        /*List<List<Object>> data = new ArrayList<>();
+        data.add(Arrays.asList(result));
+        return new DataFrame(data, Arrays.asList("data"), new HashMap<>());*/
+        
     }
 }
