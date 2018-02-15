@@ -63,7 +63,7 @@ public class FabricResultSet extends AbstractResultSet {
                 return i + 1;
             }
         }
-        throw new SQLException(String.format("Result set data doesn't contain column %s", column));
+        throw new SQLException(String.format("Result set data doesn't contain column '%s'", column));
     }
 
     public BigDecimal getBigDecimal(int index) throws SQLException {

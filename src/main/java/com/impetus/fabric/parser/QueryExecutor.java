@@ -40,7 +40,7 @@ import com.impetus.fabric.query.QueryBlock;
 public class QueryExecutor extends AbstractQueryExecutor {
 
     private QueryBlock queryBlock;
-
+    
     public QueryExecutor(LogicalPlan logicalPlan, QueryBlock queryBlock) {
         this.logicalPlan = logicalPlan;
         this.queryBlock = queryBlock;
