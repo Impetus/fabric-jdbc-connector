@@ -23,7 +23,7 @@ public class QueryBlockIT extends TestCase {
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from block"); // This is dummy query
+        ResultSet rs = stat.executeQuery("select * from block where blockNo=2"); // This is dummy query
         assert(rs.next());
     }
 
