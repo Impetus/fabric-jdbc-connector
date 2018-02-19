@@ -32,6 +32,7 @@ import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.parser.LogicalPlan.SQLType;
 import com.impetus.fabric.parser.APIConverter;
 import com.impetus.fabric.parser.DataFrame;
+import com.impetus.fabric.parser.FabricAssetCreator;
 import com.impetus.fabric.parser.FunctionExecutor;
 import com.impetus.fabric.parser.InsertExecutor;
 import com.impetus.fabric.parser.QueryExecutor;
@@ -112,6 +113,9 @@ public class FabricStatement implements BlkchnStatement {
                          
             case INSERT : new InsertExecutor(logicalPlan, queryBlock).executeInsert();
                           return false;
+                          
+            case CREATE_ASSET : new FabricAssetCreator(logicalPlan, queryBlock.getConf()).executeCreateAsset();
+                                return false;
             
             default: return false;
         }
