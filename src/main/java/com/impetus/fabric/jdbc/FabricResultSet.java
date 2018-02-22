@@ -23,10 +23,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.List;
 
 import com.impetus.blkch.jdbc.AbstractResultSet;
-import com.impetus.fabric.parser.DataFrame;
+import com.impetus.blkch.sql.DataFrame;
 
 public class FabricResultSet extends AbstractResultSet {
 
