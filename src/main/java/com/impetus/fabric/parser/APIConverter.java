@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.impetus.blkch.BlkchnException;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.hyperledger.fabric.sdk.BlockInfo;
@@ -32,6 +31,9 @@ import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.impetus.blkch.BlkchnException;
+import com.impetus.blkch.sql.DataFrame;
+import com.impetus.blkch.sql.GroupedDataFrame;
 import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.FilterItem;

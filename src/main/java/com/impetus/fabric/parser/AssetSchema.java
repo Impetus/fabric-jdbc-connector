@@ -21,6 +21,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.impetus.blkch.BlkchnException;
+import com.impetus.blkch.sql.DataFrame;
 import com.impetus.fabric.model.Config;
 
 public class AssetSchema {
