@@ -16,14 +16,14 @@
 		<sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		<sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
-		<skip.integration.tests>false</skip.integration.tests>
+		<skip.integration.tests>true</skip.integration.tests>
 	</properties>
 
 	<profiles>
 		<profile>
 			<id>integration-test</id>
 			<properties>
-				<skip.integration.tests>true</skip.integration.tests>
+				<skip.integration.tests>false</skip.integration.tests>
 			</properties>
 		</profile>
 	</profiles>
