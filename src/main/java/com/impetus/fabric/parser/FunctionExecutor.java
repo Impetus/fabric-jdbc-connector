@@ -63,13 +63,14 @@ public class FunctionExecutor {
         for(IdentifierNode ident : idents) {
             args.add(ident.getValue());
         }
-        String result = queryBlock.queryChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
         if(logicalPlan.getType().equals(SQLType.DELETE_FUNCTION)) {
+            queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
             return null;
+        } else {
+            String result = queryBlock.queryChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
+            AssetSchema assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), chaincodeName, args.get(0));
+            DataFrame df = assetSchema.createDataFrame(result);
+            return df;
         }
-        AssetSchema assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), chaincodeName, args.get(0));
-        DataFrame df = assetSchema.createDataFrame(result);
-        df.show();
-        return df;
     }
 }

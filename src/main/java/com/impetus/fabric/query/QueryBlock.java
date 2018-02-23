@@ -136,7 +136,7 @@ public class QueryBlock {
                 sampleOrg.setCAClient(HFCAClient.createNewInstance(sampleOrg.getCALocation(),
                         sampleOrg.getCAProperties()));
             } catch (MalformedURLException e) {
-                e.printStackTrace();
+                logger.error("QueryBlock | checkConfig | " + e);
             }
         }
 
@@ -354,7 +354,6 @@ public class QueryBlock {
         } catch (Exception e) {
             String errMsg = "QueryBlock | installChaincode | " + e;
             logger.error(errMsg);
-            e.printStackTrace();
             throw new BlkchnException("Chaincode installation failed" + " " + errMsg);
         }
     }
@@ -517,7 +516,6 @@ public class QueryBlock {
             logger.info("Caught an exception while invoking chaincode");
             String errMsg = "QueryBlock | invokeChaincode | " + e;
             logger.error(errMsg);
-            e.printStackTrace();
             throw new BlkchnException("Caught an exception while invoking chaincode" + " " + errMsg);
 
         }

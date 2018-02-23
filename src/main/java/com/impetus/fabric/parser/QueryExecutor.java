@@ -121,9 +121,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
                 finalData = getDataNode(node.getTable(), node.getColumn(), node.getValue());
             } else {
                 RangeNode<?> rangeNode = physicalPlan.getWhereClause().getChildType(RangeNode.class, 0);
-                System.out.println("-- Executing Range Node");
                 finalData = executeRangeNode(rangeNode);
-                System.out.println("DataNode: ");
                 finalData.traverse();
             }
             return createDataFrame(finalData);
