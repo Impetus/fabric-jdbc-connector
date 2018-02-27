@@ -27,6 +27,17 @@ public class QueryBlockIT extends TestCase {
         assert(rs.next());
     }
 
+    @Test
+    public void testFabricStatementWithOrderByAndGroupBy() throws ClassNotFoundException, SQLException {
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        File configFolder = new File("src/test/resources/blockchain-query");
+        String configPath = configFolder.getAbsolutePath();
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from block where blockNo >= 2 and blockNo <= 5 groupby('blockno') order by blockNo desc");
+        assert(rs.next());
+    }
+
 
     // No need to Assert, test passed if didnt throw exception
     public void testCreateFunction() throws ClassNotFoundException, SQLException{
@@ -76,7 +87,33 @@ public class QueryBlockIT extends TestCase {
         stat.execute(insertQuery);
     }
 
+    //TODO Check this unit test, it should not throw null point exception after fix.
+    //TODO This function should work even if there is no block number with id 200
+    @Test
+    public void testPhysicalQueryOptimization() throws ClassNotFoundException, SQLException {
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        File configFolder = new File("src/test/resources/blockchain-query");
+        String configPath = configFolder.getAbsolutePath();
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from block blk where blockNo = 200 And blockNo>=2 blockNo <=300"); // This is dummy query
+        assert(rs.next());
+    }
 
+
+    //TODO After fix this function range should include negate number as well.
+    @Test
+    public void testQueryWithExpectedEmptyReturn() throws ClassNotFoundException, SQLException {
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        File configFolder = new File("src/test/resources/blockchain-query");
+        String configPath = configFolder.getAbsolutePath();
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Swati Raj", "");
+        Statement stat = conn.createStatement();
+
+        ResultSet rs = stat.executeQuery("select * from block blk where blockNo >= -2 and blockNo <= 1"); // This is dummy query
+
+        assert(rs.next());
+    }
 
 
 }
