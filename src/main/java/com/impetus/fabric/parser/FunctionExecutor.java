@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.sql.DataFrame;
+import com.impetus.blkch.sql.asset.Asset;
 import com.impetus.blkch.sql.function.Args;
 import com.impetus.blkch.sql.function.ClassName;
 import com.impetus.blkch.sql.function.Parameters;
@@ -67,8 +68,14 @@ public class FunctionExecutor {
             queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
             return null;
         } else {
+            AssetSchema assetSchema;
+            if(!callFunc.hasChildType(Asset.class)) {
+                assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), null);
+            } else {
+                String assetName = callFunc.getChildType(Asset.class, 0).getChildType(IdentifierNode.class, 0).getValue();
+                assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), assetName);
+            }
             String result = queryBlock.queryChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
-            AssetSchema assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), chaincodeName, args.get(0));
             DataFrame df = assetSchema.createDataFrame(result);
             return df;
         }
