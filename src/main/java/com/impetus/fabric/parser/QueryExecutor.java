@@ -52,7 +52,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
     public DataFrame executeQuery() {
         physicalPlan.getWhereClause().traverse();
         if (!physicalPlan.validateLogicalPlan()) {
-            throw new BlkchnException("This query can't be executed");
+            throw new BlkchnException("This query can't be executed as it requires fetching huge amount of data");
         }
         DataFrame dataframe = getFromTable();
         if(dataframe.isEmpty()) {
@@ -190,6 +190,10 @@ public class QueryExecutor extends AbstractQueryExecutor {
             T max = range.getMax().equals(rangeOps.getMaxValue()) ? (T) (new Long(height -1)) : range.getMax();
             do {
                 if ("block".equals(rangeTable) && "blockNo".equals(rangeCol)) {
+                    if(Long.parseLong(current.toString()) >= height) {
+                        current = rangeOps.add(current, 1);
+                        continue;
+                    }
                     try {
                         if (dataMap.get(current.toString()) != null) {
                             keys.add(current);
