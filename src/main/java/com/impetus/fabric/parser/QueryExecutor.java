@@ -190,7 +190,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
             T max = range.getMax().equals(rangeOps.getMaxValue()) ? (T) (new Long(height -1)) : range.getMax();
             do {
                 if ("block".equals(rangeTable) && "blockNo".equals(rangeCol)) {
-                    if(Long.parseLong(current.toString()) >= height) {
+                    if(Long.parseLong(current.toString()) >= height || Long.parseLong(current.toString()) <= 0l) {
                         current = rangeOps.add(current, 1);
                         continue;
                     }
