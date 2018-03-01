@@ -22,6 +22,7 @@ import java.sql.SQLWarning;
 
 import org.antlr.v4.runtime.CommonTokenStream;
 
+import com.impetus.blkch.BlkchnErrorListener;
 import com.impetus.blkch.jdbc.BlkchnStatement;
 import com.impetus.blkch.sql.DataFrame;
 import com.impetus.blkch.sql.generated.BlkchnSqlLexer;
@@ -144,8 +145,12 @@ public class FabricStatement implements BlkchnStatement {
 
     private LogicalPlan getLogicalPlan(String query) {
         BlkchnSqlLexer lexer = new BlkchnSqlLexer(new CaseInsensitiveCharStream(query));
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(BlkchnErrorListener.INSTANCE);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         BlkchnSqlParser parser = new BlkchnSqlParser(tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(BlkchnErrorListener.INSTANCE);
         AbstractSyntaxTreeVisitor visitor = new BlockchainVisitor();
         return visitor.visitSingleStatement(parser.singleStatement());
     }
