@@ -308,6 +308,18 @@ public class QueryExecutor extends AbstractQueryExecutor {
                         throw new BlkchnException("Error fetching channel id", e);
                     }
                     break;
+                    
+                case "previousHash":
+                    if (!comparator.isEQ() && !comparator.isNEQ()) {
+                        throw new BlkchnException(String.format(
+                                "String values in %s field can only be compared for equivalence and non-equivalence", fieldName));
+                    }
+                    if(comparator.isEQ()) {
+                        retValue = Hex.encodeHexString(blockInfo.getPreviousHash()).equals(value.replaceAll("'", ""));
+                    } else {
+                        retValue = !Hex.encodeHexString(blockInfo.getPreviousHash()).equals(value.replaceAll("'", ""));
+                    }
+                    break;
 
                 default:
                     retValue = false;
