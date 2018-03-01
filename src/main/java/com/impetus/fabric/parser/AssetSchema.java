@@ -107,8 +107,13 @@ public class AssetSchema {
     }
     
     
-    public static AssetSchema getAssetSchema(Config config, String chaincodeName, String functionName) {
+    public static AssetSchema getAssetSchema(Config config, String asset) {
         AssetSchemaBuilder builder = new AssetSchemaBuilder();
+        if(asset == null) {
+            LinkedHashMap<String, String> columns = new LinkedHashMap<>();
+            columns.put("data", "string");
+            return builder.setColumnDetails(columns).setLineDelimiter("\n").setStorageType(StorageType.RAW).build();
+        }
         if(config.getDbProperties() == null) {
             LinkedHashMap<String, String> columns = new LinkedHashMap<>();
             columns.put("data", "string");
@@ -121,11 +126,11 @@ public class AssetSchema {
         sb.append(props.get("database"));
         String schemaJSON;
         String jdbcUrl = sb.toString();
-        String query = "SELECT schema_json FROM asset_schema WHERE chaincode_name='%s' AND function_name='%s'";
+        String query = "SELECT schema_json FROM asset_schema WHERE asset_name='%s'";
         try {
             Connection conn = DriverManager.getConnection(jdbcUrl, props.getProperty("username"), props.getProperty("password"));
             Statement stat = conn.createStatement();
-            ResultSet rs = stat.executeQuery(String.format(query, chaincodeName, functionName));
+            ResultSet rs = stat.executeQuery(String.format(query, asset));
             if(rs.next()) {
                 schemaJSON = rs.getString("schema_json");
             } else {
