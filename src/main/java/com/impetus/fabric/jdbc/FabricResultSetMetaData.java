@@ -16,124 +16,138 @@
 package com.impetus.fabric.jdbc;
 
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.impetus.blkch.jdbc.BlkchnResultSetMetaData;
+import com.mysql.jdbc.ResultSetMetaData;
 
 public class FabricResultSetMetaData implements BlkchnResultSetMetaData {
+    
+    private String tableName;
+
+    private Map<String, Integer> columnNamesMap = new HashMap<String, Integer>();
+
+    private Map<Integer, String> indexToColumnMap = null;
+
+    private Map<Integer, String> indexToAliasMap = new HashMap<Integer, String>();
+
+    private Map<String, String> aliasMapping;
+    
+    public FabricResultSetMetaData(String tableName, Map<String, Integer> columnNamesMap, Map<String, String> aliasMapping) {
+        this.tableName = tableName;
+        this.columnNamesMap = columnNamesMap;
+        this.indexToColumnMap = columnNamesMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+        this.aliasMapping = aliasMapping;
+        if(aliasMapping != null) {
+            setIndexToAlias();
+        }
+    }
 
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new SQLFeatureNotSupportedException();
     }
 
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public String getCatalogName(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getCatalogName(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public String getColumnClassName(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getColumnClassName(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     public int getColumnCount() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        return columnNamesMap.size();
     }
 
-    public int getColumnDisplaySize(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+    public int getColumnDisplaySize(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public String getColumnLabel(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getColumnLabel(int column) throws SQLException {
+        if (!aliasMapping.isEmpty()) {
+            return indexToAliasMap.get(column);
+        } else
+            return getColumnName(column);
     }
 
-    public String getColumnName(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getColumnName(int column) throws SQLException {
+        return indexToColumnMap.get(column);
     }
 
-    public int getColumnType(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+    public int getColumnType(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public String getColumnTypeName(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getColumnTypeName(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public int getPrecision(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+    public int getPrecision(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public int getScale(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+    public int getScale(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public String getSchemaName(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getSchemaName(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public String getTableName(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getTableName(int column) throws SQLException {
+        return tableName;
     }
 
-    public boolean isAutoIncrement(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isAutoIncrement(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public boolean isCaseSensitive(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isCaseSensitive(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public boolean isCurrency(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isCurrency(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public boolean isDefinitelyWritable(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isDefinitelyWritable(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public int isNullable(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+    public int isNullable(int column) throws SQLException {
+        return ResultSetMetaData.columnNullableUnknown;
     }
 
-    public boolean isReadOnly(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isReadOnly(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public boolean isSearchable(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isSearchable(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public boolean isSigned(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isSigned(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
-    public boolean isWritable(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isWritable(int column) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
+    }
+    
+    private void setIndexToAlias() {
+        indexToAliasMap.putAll(indexToColumnMap);
+        for (Map.Entry<String, String> aliasMapEntrySet : aliasMapping.entrySet()) {
+            if (indexToAliasMap.containsValue((aliasMapEntrySet.getValue()))) {
+                indexToAliasMap.put(columnNamesMap.get(aliasMapEntrySet.getValue()), aliasMapEntrySet.getKey());
+            }
+        }
     }
 
 }
