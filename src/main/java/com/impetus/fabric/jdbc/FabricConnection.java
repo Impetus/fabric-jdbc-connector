@@ -67,59 +67,48 @@ public class FabricConnection implements BlkchnConnection {
         return user;
     }
 
-    public boolean isWrapperFor(Class<?> arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public <T> T unwrap(Class<T> arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void abort(Executor arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void abort(Executor executor) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public void clearWarnings() throws SQLException {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     public void close() throws SQLException {
-        // TODO Auto-generated method stub
-
+        // Nothing to do
     }
 
     public void commit() throws SQLException {
-        // TODO Auto-generated method stub
-
+        // Nothing to do
     }
 
-    public Array createArrayOf(String arg0, Object[] arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public Blob createBlob() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public Clob createClob() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public NClob createNClob() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public SQLXML createSQLXML() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public Statement createStatement() throws SQLException {
@@ -134,34 +123,28 @@ public class FabricConnection implements BlkchnConnection {
         return new FabricStatement(this, type, concurrency, holdability);
     }
 
-    public Struct createStruct(String arg0, Object[] arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public boolean getAutoCommit() throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     public String getCatalog() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public Properties getClientInfo() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
-    public String getClientInfo(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getClientInfo(String name) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public int getHoldability() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     public DatabaseMetaData getMetaData() throws SQLException {
@@ -170,168 +153,135 @@ public class FabricConnection implements BlkchnConnection {
     }
 
     public int getNetworkTimeout() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     public String getSchema() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public int getTransactionIsolation() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     public Map<String, Class<?>> getTypeMap() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public SQLWarning getWarnings() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public boolean isClosed() throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     public boolean isReadOnly() throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
-    public boolean isValid(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isValid(int timeout) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public String nativeSQL(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public String nativeSQL(String sql) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public CallableStatement prepareCall(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public CallableStatement prepareCall(String sql) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public CallableStatement prepareCall(String arg0, int arg1, int arg2) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public CallableStatement prepareCall(String arg0, int arg1, int arg2, int arg3) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public PreparedStatement prepareStatement(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public PreparedStatement prepareStatement(String sql) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public PreparedStatement prepareStatement(String arg0, int arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public PreparedStatement prepareStatement(String arg0, int[] arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public PreparedStatement prepareStatement(String arg0, String[] arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public PreparedStatement prepareStatement(String arg0, int arg1, int arg2) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public PreparedStatement prepareStatement(String arg0, int arg1, int arg2, int arg3) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void releaseSavepoint(Savepoint arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void releaseSavepoint(Savepoint savepoint) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public void rollback() throws SQLException {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
-    public void rollback(Savepoint arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void rollback(Savepoint savepoint) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setAutoCommit(boolean arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setCatalog(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setCatalog(String catalog) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setClientInfo(Properties arg0) throws SQLClientInfoException {
-        // TODO Auto-generated method stub
-
+    public void setClientInfo(Properties properties) throws SQLClientInfoException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setClientInfo(String arg0, String arg1) throws SQLClientInfoException {
-        // TODO Auto-generated method stub
-
+    public void setClientInfo(String name, String value) throws SQLClientInfoException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setHoldability(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setHoldability(int holdability) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setNetworkTimeout(Executor arg0, int arg1) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setReadOnly(boolean arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setReadOnly(boolean readOnly) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public Savepoint setSavepoint() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
-    public Savepoint setSavepoint(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public Savepoint setSavepoint(String name) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setSchema(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setSchema(String schema) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setTransactionIsolation(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setTransactionIsolation(int level) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setTypeMap(Map<String, Class<?>> arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
 }
