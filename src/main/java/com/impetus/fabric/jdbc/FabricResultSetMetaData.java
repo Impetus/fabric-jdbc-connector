@@ -72,13 +72,13 @@ public class FabricResultSetMetaData implements BlkchnResultSetMetaData {
 
     public String getColumnLabel(int column) throws SQLException {
         if (!aliasMapping.isEmpty()) {
-            return indexToAliasMap.get(column);
+            return indexToAliasMap.get(column - 1);
         } else
             return getColumnName(column);
     }
 
     public String getColumnName(int column) throws SQLException {
-        return indexToColumnMap.get(column);
+        return indexToColumnMap.get(column - 1);
     }
 
     public int getColumnType(int column) throws SQLException {
