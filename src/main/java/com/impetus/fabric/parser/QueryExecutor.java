@@ -52,7 +52,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
     public DataFrame executeQuery() {
         physicalPlan.getWhereClause().traverse();
         if (!physicalPlan.validateLogicalPlan()) {
-            throw new BlkchnException("This query can't be executed");
+            throw new BlkchnException("This query can't be executed as it requires fetching huge amount of data");
         }
         DataFrame dataframe = getFromTable();
         if(dataframe.isEmpty()) {
@@ -190,6 +190,10 @@ public class QueryExecutor extends AbstractQueryExecutor {
             T max = range.getMax().equals(rangeOps.getMaxValue()) ? (T) (new Long(height -1)) : range.getMax();
             do {
                 if ("block".equals(rangeTable) && "blockNo".equals(rangeCol)) {
+                    if(Long.parseLong(current.toString()) >= height || Long.parseLong(current.toString()) <= 0l) {
+                        current = rangeOps.add(current, 1);
+                        continue;
+                    }
                     try {
                         if (dataMap.get(current.toString()) != null) {
                             keys.add(current);
@@ -302,6 +306,18 @@ public class QueryExecutor extends AbstractQueryExecutor {
                         }
                     } catch (InvalidProtocolBufferException e) {
                         throw new BlkchnException("Error fetching channel id", e);
+                    }
+                    break;
+                    
+                case "previousHash":
+                    if (!comparator.isEQ() && !comparator.isNEQ()) {
+                        throw new BlkchnException(String.format(
+                                "String values in %s field can only be compared for equivalence and non-equivalence", fieldName));
+                    }
+                    if(comparator.isEQ()) {
+                        retValue = Hex.encodeHexString(blockInfo.getPreviousHash()).equals(value.replaceAll("'", ""));
+                    } else {
+                        retValue = !Hex.encodeHexString(blockInfo.getPreviousHash()).equals(value.replaceAll("'", ""));
                     }
                     break;
 
