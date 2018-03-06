@@ -1,18 +1,18 @@
 /*******************************************************************************
-* * Copyright 2017 Impetus Infotech.
-* *
-* * Licensed under the Apache License, Version 2.0 (the "License");
-* * you may not use this file except in compliance with the License.
-* * You may obtain a copy of the License at
-* *
-* * http://www.apache.org/licenses/LICENSE-2.0
-* *
-* * Unless required by applicable law or agreed to in writing, software
-* * distributed under the License is distributed on an "AS IS" BASIS,
-* * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* * See the License for the specific language governing permissions and
-* * limitations under the License.
-******************************************************************************/
+ * * Copyright 2017 Impetus Infotech.
+ * *
+ * * Licensed under the Apache License, Version 2.0 (the "License");
+ * * you may not use this file except in compliance with the License.
+ * * You may obtain a copy of the License at
+ * *
+ * * http://www.apache.org/licenses/LICENSE-2.0
+ * *
+ * * Unless required by applicable law or agreed to in writing, software
+ * * distributed under the License is distributed on an "AS IS" BASIS,
+ * * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * * See the License for the specific language governing permissions and
+ * * limitations under the License.
+ ******************************************************************************/
 package com.impetus.fabric.jdbc;
 
 import java.sql.Connection;
@@ -25,12 +25,17 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import com.impetus.blkch.BlkchnErrorListener;
 import com.impetus.blkch.jdbc.BlkchnStatement;
 import com.impetus.blkch.sql.DataFrame;
+import com.impetus.blkch.sql.asset.Asset;
+import com.impetus.blkch.sql.function.CallFunction;
 import com.impetus.blkch.sql.generated.BlkchnSqlLexer;
 import com.impetus.blkch.sql.generated.BlkchnSqlParser;
 import com.impetus.blkch.sql.parser.AbstractSyntaxTreeVisitor;
 import com.impetus.blkch.sql.parser.BlockchainVisitor;
 import com.impetus.blkch.sql.parser.CaseInsensitiveCharStream;
 import com.impetus.blkch.sql.parser.LogicalPlan;
+import com.impetus.blkch.sql.query.FromItem;
+import com.impetus.blkch.sql.query.IdentifierNode;
+import com.impetus.blkch.sql.query.Table;
 import com.impetus.fabric.parser.FabricAssetManager;
 import com.impetus.fabric.parser.FunctionExecutor;
 import com.impetus.fabric.parser.InsertExecutor;
@@ -46,7 +51,7 @@ public class FabricStatement implements BlkchnStatement {
     private int concurrency;
 
     private int holdablity;
-    
+
     private FabricResultSet resultSet;
 
     FabricStatement(FabricConnection conn, int type, int concurrency, int holdability) {
@@ -57,93 +62,89 @@ public class FabricStatement implements BlkchnStatement {
     }
 
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
-    public void addBatch(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void addBatch(String sql) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public void cancel() throws SQLException {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     public void clearBatch() throws SQLException {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     public void clearWarnings() throws SQLException {
-        // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException();
     }
 
     public void close() throws SQLException {
-        // TODO Auto-generated method stub
-
+        // Nothing to do
     }
 
     public void closeOnCompletion() throws SQLException {
-        // TODO Auto-generated method stub
-
+        // Nothing to do
     }
 
     public boolean execute(String sql) throws SQLException {
         LogicalPlan logicalPlan = getLogicalPlan(sql);
         QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath(), this.connection.getChannel());
         queryBlock.enrollAndRegister(this.connection.getUser());
-        switch(logicalPlan.getType()) {
-            case CREATE_FUNCTION : new FunctionExecutor(logicalPlan, queryBlock).executeCreate();
-                                   return false;
-                                   
-            case CALL_FUNCTION : executeQuery(sql);
-                                 return true;
-                                 
-            case QUERY : executeQuery(sql);
-                         return true;
-                         
-            case INSERT : new InsertExecutor(logicalPlan, queryBlock).executeInsert();
-                          return false;
-                          
-            case CREATE_ASSET : new FabricAssetManager(logicalPlan, queryBlock.getConf()).executeCreateAsset();
-                                return false;
-                                
-            case DELETE_FUNCTION : new FunctionExecutor(logicalPlan, queryBlock).executeCall();
-                                   return false;
-                                   
-            case DROP_ASSET : new FabricAssetManager(logicalPlan, queryBlock.getConf()).executeDropAsset();
-                              return false;
-            
-            default: return false;
+        switch (logicalPlan.getType()) {
+            case CREATE_FUNCTION:
+                new FunctionExecutor(logicalPlan, queryBlock).executeCreate();
+                return false;
+
+            case CALL_FUNCTION:
+                executeQuery(sql);
+                return true;
+
+            case QUERY:
+                executeQuery(sql);
+                return true;
+
+            case INSERT:
+                new InsertExecutor(logicalPlan, queryBlock).executeInsert();
+                return false;
+
+            case CREATE_ASSET:
+                new FabricAssetManager(logicalPlan, queryBlock.getConf()).executeCreateAsset();
+                return false;
+
+            case DELETE_FUNCTION:
+                new FunctionExecutor(logicalPlan, queryBlock).executeCall();
+                return false;
+
+            case DROP_ASSET:
+                new FabricAssetManager(logicalPlan, queryBlock.getConf()).executeDropAsset();
+                return false;
+
+            default:
+                return false;
         }
     }
 
-    public boolean execute(String arg0, int arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean execute(String sql, int autoGeneratedKeys) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public boolean execute(String arg0, int[] arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean execute(String sql, int[] columnIndexes) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public boolean execute(String arg0, String[] arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean execute(String sql, String[] columnNames) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public int[] executeBatch() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public ResultSet executeQuery(String query) throws SQLException {
@@ -151,13 +152,25 @@ public class FabricStatement implements BlkchnStatement {
         QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath(), this.connection.getChannel());
         queryBlock.enrollAndRegister(this.connection.getUser());
         DataFrame dataframe = null;
-        switch(logicalPlan.getType()) {
-            case CALL_FUNCTION : dataframe = new FunctionExecutor(logicalPlan, queryBlock).executeCall();
-                                 break;
-                                 
-            default : dataframe = new QueryExecutor(logicalPlan, queryBlock).executeQuery();
+        String tableName;
+        switch (logicalPlan.getType()) {
+            case CALL_FUNCTION:
+                CallFunction callFunc = logicalPlan.getCallFunction();
+                if (!callFunc.hasChildType(Asset.class)) {
+                    tableName = null;
+                } else {
+                    tableName = callFunc.getChildType(Asset.class, 0).getChildType(IdentifierNode.class, 0)
+                            .getValue();
+                }
+                dataframe = new FunctionExecutor(logicalPlan, queryBlock).executeCall();
+                break;
+
+            default:
+                Table table = logicalPlan.getQuery().getChildType(FromItem.class, 0).getChildType(Table.class, 0);
+                tableName = table.getChildType(IdentifierNode.class, 0).getValue();
+                dataframe = new QueryExecutor(logicalPlan, queryBlock).executeQuery();
         }
-        resultSet = new FabricResultSet(this, dataframe);
+        resultSet = new FabricResultSet(this, dataframe, tableName);
         return resultSet;
     }
 
@@ -173,69 +186,56 @@ public class FabricStatement implements BlkchnStatement {
         return visitor.visitSingleStatement(parser.singleStatement());
     }
 
-    public int executeUpdate(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+    public int executeUpdate(String sql) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public int executeUpdate(String arg0, int arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+    public int executeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public int executeUpdate(String arg0, int[] arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+    public int executeUpdate(String sql, int[] columnIndexes) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public int executeUpdate(String arg0, String[] arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+    public int executeUpdate(String sql, String[] columnNames) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public Connection getConnection() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        return connection;
     }
 
     public int getFetchDirection() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     public int getFetchSize() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     public ResultSet getGeneratedKeys() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public int getMaxFieldSize() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     public int getMaxRows() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     public boolean getMoreResults() throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
-    public boolean getMoreResults(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean getMoreResults(int current) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public int getQueryTimeout() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     public ResultSet getResultSet() throws SQLException {
@@ -255,68 +255,55 @@ public class FabricStatement implements BlkchnStatement {
     }
 
     public int getUpdateCount() throws SQLException {
-        // TODO Auto-generated method stub
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     public SQLWarning getWarnings() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public boolean isCloseOnCompletion() throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     public boolean isClosed() throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     public boolean isPoolable() throws SQLException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new UnsupportedOperationException();
     }
 
-    public void setCursorName(String arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setCursorName(String name) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setEscapeProcessing(boolean arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setEscapeProcessing(boolean enable) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setFetchDirection(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setFetchDirection(int direction) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setFetchSize(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setFetchSize(int rows) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setMaxFieldSize(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setMaxFieldSize(int max) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setMaxRows(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setMaxRows(int max) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setPoolable(boolean arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setPoolable(boolean poolable) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
-    public void setQueryTimeout(int arg0) throws SQLException {
-        // TODO Auto-generated method stub
-
+    public void setQueryTimeout(int seconds) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
 }
