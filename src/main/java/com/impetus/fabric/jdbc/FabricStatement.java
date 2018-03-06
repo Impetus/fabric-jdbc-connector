@@ -31,6 +31,7 @@ import com.impetus.blkch.sql.parser.AbstractSyntaxTreeVisitor;
 import com.impetus.blkch.sql.parser.BlockchainVisitor;
 import com.impetus.blkch.sql.parser.CaseInsensitiveCharStream;
 import com.impetus.blkch.sql.parser.LogicalPlan;
+import com.impetus.fabric.parser.FabricAssetManager;
 import com.impetus.fabric.parser.FunctionExecutor;
 import com.impetus.fabric.parser.InsertExecutor;
 import com.impetus.fabric.parser.QueryExecutor;
@@ -45,6 +46,8 @@ public class FabricStatement implements BlkchnStatement {
     private int concurrency;
 
     private int holdablity;
+    
+    private FabricResultSet resultSet;
 
     FabricStatement(FabricConnection conn, int type, int concurrency, int holdability) {
         this.connection = conn;
@@ -101,14 +104,23 @@ public class FabricStatement implements BlkchnStatement {
             case CREATE_FUNCTION : new FunctionExecutor(logicalPlan, queryBlock).executeCreate();
                                    return false;
                                    
-            case CALL_FUNCTION : new FunctionExecutor(logicalPlan, queryBlock).executeCall();
-                                 return false;
+            case CALL_FUNCTION : executeQuery(sql);
+                                 return true;
                                  
             case QUERY : executeQuery(sql);
                          return true;
                          
             case INSERT : new InsertExecutor(logicalPlan, queryBlock).executeInsert();
                           return false;
+                          
+            case CREATE_ASSET : new FabricAssetManager(logicalPlan, queryBlock.getConf()).executeCreateAsset();
+                                return false;
+                                
+            case DELETE_FUNCTION : new FunctionExecutor(logicalPlan, queryBlock).executeCall();
+                                   return false;
+                                   
+            case DROP_ASSET : new FabricAssetManager(logicalPlan, queryBlock.getConf()).executeDropAsset();
+                              return false;
             
             default: return false;
         }
@@ -138,9 +150,15 @@ public class FabricStatement implements BlkchnStatement {
         LogicalPlan logicalPlan = getLogicalPlan(query);
         QueryBlock queryBlock = new QueryBlock(this.connection.getConfigPath(), this.connection.getChannel());
         queryBlock.enrollAndRegister(this.connection.getUser());
-        DataFrame dataframe = new QueryExecutor(logicalPlan, queryBlock).executeQuery();
-        ResultSet rs = new FabricResultSet(this, dataframe);
-        return rs;
+        DataFrame dataframe = null;
+        switch(logicalPlan.getType()) {
+            case CALL_FUNCTION : dataframe = new FunctionExecutor(logicalPlan, queryBlock).executeCall();
+                                 break;
+                                 
+            default : dataframe = new QueryExecutor(logicalPlan, queryBlock).executeQuery();
+        }
+        resultSet = new FabricResultSet(this, dataframe);
+        return resultSet;
     }
 
     private LogicalPlan getLogicalPlan(String query) {
@@ -221,8 +239,7 @@ public class FabricStatement implements BlkchnStatement {
     }
 
     public ResultSet getResultSet() throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        return resultSet;
     }
 
     public int getResultSetConcurrency() throws SQLException {
