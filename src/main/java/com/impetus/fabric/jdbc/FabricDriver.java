@@ -32,11 +32,7 @@ import com.impetus.blkch.jdbc.BlkchnDriver;
 
 public class FabricDriver implements BlkchnDriver {
 
-    private static final int MAJOR_VERSION = 1;
-
-    private static final int MINOR_VERSION = 1;
-
-    private static Pattern pattern = Pattern.compile("jdbc:fabric://([^:]*):(.*)");
+    private static Pattern pattern = Pattern.compile(DriverConstants.DRIVER_PREFIX + "://([^:]*):(.*)");
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(FabricDriver.class);
 
@@ -53,7 +49,7 @@ public class FabricDriver implements BlkchnDriver {
     }
 
     public boolean acceptsURL(String url) throws SQLException {
-        if (url == null || !url.startsWith("jdbc:fabric")) {
+        if (url == null || !url.startsWith(DriverConstants.DRIVER_PREFIX)) {
             return false;
         }
         return true;
@@ -65,21 +61,19 @@ public class FabricDriver implements BlkchnDriver {
     }
 
     public int getMajorVersion() {
-        return MAJOR_VERSION;
+        return DriverConstants.MAJOR_VERSION;
     }
 
     public int getMinorVersion() {
-        return MINOR_VERSION;
+        return DriverConstants.MINOR_VERSION;
     }
 
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException();
     }
 
-    public DriverPropertyInfo[] getPropertyInfo(String arg0, Properties arg1) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
+        throw new UnsupportedOperationException();
     }
 
     public boolean jdbcCompliant() {
