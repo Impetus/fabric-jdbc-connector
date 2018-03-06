@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Date;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
@@ -34,6 +35,8 @@ public class FabricResultSet extends AbstractResultSet {
     private Object[] recordData;
 
     private DataFrame dataframe;
+    
+    private String tableName;
 
     private int recIdx;
 
@@ -41,9 +44,10 @@ public class FabricResultSet extends AbstractResultSet {
 
     private static final int BEFORE_FIRST = -1;
 
-    FabricResultSet(Statement statement, DataFrame dataframe) {
+    FabricResultSet(Statement statement, DataFrame dataframe, String tableName) {
         this.statement = statement;
         this.dataframe = dataframe;
+        this.tableName = tableName;
         this.recIdx = BEFORE_FIRST;
         this.closed = false;
     }
@@ -62,7 +66,7 @@ public class FabricResultSet extends AbstractResultSet {
                 return i + 1;
             }
         }
-        throw new SQLException(String.format("Result set data doesn't contain column %s", column));
+        throw new SQLException(String.format("Result set data doesn't contain column '%s'", column));
     }
 
     public BigDecimal getBigDecimal(int index) throws SQLException {
@@ -247,6 +251,11 @@ public class FabricResultSet extends AbstractResultSet {
         }
         recordData = dataframe.getData().get(recIdx).toArray();
         return true;
+    }
+    
+    @Override
+    public ResultSetMetaData getMetaData() throws SQLException {
+        return new FabricResultSetMetaData(tableName, dataframe.getColumnNamesMap(), dataframe.getAliasMapping());
     }
 
 }

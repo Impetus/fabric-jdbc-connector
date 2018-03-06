@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.impetus.blkch.BlkchnException;
+import com.impetus.blkch.sql.DataFrame;
+import com.impetus.blkch.sql.asset.Asset;
 import com.impetus.blkch.sql.function.Args;
 import com.impetus.blkch.sql.function.ClassName;
 import com.impetus.blkch.sql.function.Parameters;
 import com.impetus.blkch.sql.function.Version;
 import com.impetus.blkch.sql.parser.LogicalPlan;
+import com.impetus.blkch.sql.parser.LogicalPlan.SQLType;
 import com.impetus.blkch.sql.parser.TreeNode;
 import com.impetus.blkch.sql.query.IdentifierNode;
 import com.impetus.fabric.query.QueryBlock;
@@ -45,8 +48,9 @@ public class FunctionExecutor {
         queryBlock.instantiateChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}));
     }
     
-    public void executeCall() {
-        TreeNode callFunc = logicalPlan.getCallFunction();
+    // This method is called for both call(query) and delete on chaincode
+    public DataFrame executeCall() {
+        TreeNode callFunc = logicalPlan.getType().equals(SQLType.CALL_FUNCTION) ? logicalPlan.getCallFunction() : logicalPlan.getDeleteFunction();
         String chaincodeName = callFunc.getChildType(IdentifierNode.class, 0).getValue();
         List<String> args = new ArrayList<>();
         if(!callFunc.hasChildType(Parameters.class)) {
@@ -60,6 +64,20 @@ public class FunctionExecutor {
         for(IdentifierNode ident : idents) {
             args.add(ident.getValue());
         }
-        queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
+        if(logicalPlan.getType().equals(SQLType.DELETE_FUNCTION)) {
+            queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
+            return null;
+        } else {
+            AssetSchema assetSchema;
+            if(!callFunc.hasChildType(Asset.class)) {
+                assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), null);
+            } else {
+                String assetName = callFunc.getChildType(Asset.class, 0).getChildType(IdentifierNode.class, 0).getValue();
+                assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), assetName);
+            }
+            String result = queryBlock.queryChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
+            DataFrame df = assetSchema.createDataFrame(result);
+            return df;
+        }
     }
 }

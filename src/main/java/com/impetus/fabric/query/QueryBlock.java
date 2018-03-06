@@ -30,10 +30,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import com.impetus.blkch.BlkchnException;
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.hyperledger.fabric.sdk.BlockEvent;
 import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.Channel;
@@ -44,6 +46,7 @@ import org.hyperledger.fabric.sdk.InstantiateProposalRequest;
 import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.ProposalResponse;
+import org.hyperledger.fabric.sdk.QueryByChaincodeRequest;
 import org.hyperledger.fabric.sdk.SDKUtils;
 import org.hyperledger.fabric.sdk.TransactionProposalRequest;
 import org.hyperledger.fabric.sdk.exception.CryptoException;
@@ -55,6 +58,7 @@ import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.impetus.blkch.BlkchnException;
 import com.impetus.fabric.model.Config;
 import com.impetus.fabric.model.HyperUser;
 import com.impetus.fabric.model.Org;
@@ -85,13 +89,13 @@ public class QueryBlock {
     private Collection<Org> SampleOrgs;
 
     private HFClient client = HFClient.createNewInstance();
-
+    
     public QueryBlock(String configPath, String channel) {
         conf = Config.getConfig(configPath);
         channelName = channel;
         adminName = conf.getAdmin();
     }
-    
+
     public Config getConf() {
         return conf;
     }
@@ -132,7 +136,7 @@ public class QueryBlock {
                 sampleOrg.setCAClient(HFCAClient.createNewInstance(sampleOrg.getCALocation(),
                         sampleOrg.getCAProperties()));
             } catch (MalformedURLException e) {
-                e.printStackTrace();
+                logger.error("QueryBlock | checkConfig | " + e);
             }
         }
 
@@ -174,14 +178,14 @@ public class QueryBlock {
                         sampleOrgName,
                         sampleOrg.getMSPID(),
                         conf.findFileSk(Paths.get(conf.getChannelPath(), "crypto-config/peerOrganizations/",
-                                sampleOrgDomainName, format("/users/%s@%s/msp/keystore", adminName, sampleOrgDomainName))
-                                .toFile()),
+                                sampleOrgDomainName,
+                                format("/users/%s@%s/msp/keystore", adminName, sampleOrgDomainName)).toFile()),
                         Paths.get(
                                 conf.getChannelPath(),
                                 "crypto-config/peerOrganizations/",
                                 sampleOrgDomainName,
-                                format("/users/%s@%s/msp/signcerts/%s@%s-cert.pem", adminName, sampleOrgDomainName, adminName,
-                                        sampleOrgDomainName)).toFile());
+                                format("/users/%s@%s/msp/signcerts/%s@%s-cert.pem", adminName, sampleOrgDomainName,
+                                        adminName, sampleOrgDomainName)).toFile());
                 sampleOrg.setPeerAdmin(peerOrgAdmin);
             } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException | IOException e) {
                 String errMsg = "QueryBlock | loadUserFromPersistence | " + e;
@@ -243,14 +247,14 @@ public class QueryBlock {
                         sampleOrgName,
                         sampleOrg.getMSPID(),
                         conf.findFileSk(Paths.get(conf.getChannelPath(), "crypto-config/peerOrganizations/",
-                                sampleOrgDomainName, format("/users/%s@%s/msp/keystore", adminName, sampleOrgDomainName))
-                                .toFile()),
+                                sampleOrgDomainName,
+                                format("/users/%s@%s/msp/keystore", adminName, sampleOrgDomainName)).toFile()),
                         Paths.get(
                                 conf.getChannelPath(),
                                 "crypto-config/peerOrganizations/",
                                 sampleOrgDomainName,
-                                format("/users/%s@%s/msp/signcerts/%s@%s-cert.pem", adminName, sampleOrgDomainName, adminName,
-                                        sampleOrgDomainName)).toFile());
+                                format("/users/%s@%s/msp/signcerts/%s@%s-cert.pem", adminName, sampleOrgDomainName,
+                                        adminName, sampleOrgDomainName)).toFile());
 
                 sampleOrg.setPeerAdmin(peerOrgAdmin);
 
@@ -274,7 +278,7 @@ public class QueryBlock {
             setTo = org.apache.log4j.Level.DEBUG;
             org.apache.log4j.Logger.getLogger("org.hyperledger.fabric").setLevel(setTo);
 
-            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[]{})[0];
+            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[] {})[0];
 
             client.setUserContext(sampleOrg.getPeerAdmin());
             Channel newChannel = client.newChannel(channelName);
@@ -318,7 +322,7 @@ public class QueryBlock {
         Collection<ProposalResponse> failed = new ArrayList<>();
         try {
             checkConfig();
-            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[]{})[0];
+            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[] {})[0];
             InstallProposalRequest installProposalRequest = getInstallProposalRequest(chaincodeName, version, goPath,
                     chainCodePath, sampleOrg);
             logger.info("Sending install proposal");
@@ -350,8 +354,7 @@ public class QueryBlock {
         } catch (Exception e) {
             String errMsg = "QueryBlock | installChaincode | " + e;
             logger.error(errMsg);
-            e.printStackTrace();
-            throw new BlkchnException("Chaincode installation failed"+" "+errMsg);
+            throw new BlkchnException("Chaincode installation failed" + " " + errMsg);
         }
     }
 
@@ -365,7 +368,7 @@ public class QueryBlock {
         try {
             checkConfig();
 
-            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[]{})[0];
+            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[] {})[0];
             Channel channel = reconstructChannel();
             Collection<Orderer> orderers = channel.getOrderers();
             InstantiateProposalRequest instantiateProposalRequest = getInstantiateProposalRequest(chaincodeName,
@@ -409,22 +412,18 @@ public class QueryBlock {
                                 logger.info("Finished instantiate transaction with transaction id %s",
                                         transactionEvent.getTransactionID());
                                 return null;
-                            })
-                    .exceptionally(
-                            e -> {
-                                if (e instanceof TransactionEventException) {
-                                    BlockEvent.TransactionEvent te = ((TransactionEventException) e)
-                                            .getTransactionEvent();
-                                    if (te != null) {
-                                        logger.info("Transaction with txid %s failed. %s", te.getTransactionID(),
-                                                e);
-                                    }
-                                }
-                                String errMsg = String.format(" failed with %s exception %s", e.getClass().getName(), e);
-                                logger.info(errMsg);
-                                //return null;
-                                throw new BlkchnException(errMsg);
-                            }).get(conf.getTransactionWaitTime(), TimeUnit.MILLISECONDS);
+                            }).exceptionally(e -> {
+                        if (e instanceof TransactionEventException) {
+                            BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
+                            if (te != null) {
+                                logger.info("Transaction with txid %s failed. %s", te.getTransactionID(), e);
+                            }
+                        }
+                        String errMsg = String.format(" failed with %s exception %s", e.getClass().getName(), e);
+                        logger.info(errMsg);
+                        // return null;
+                            throw new BlkchnException(errMsg);
+                        }).get(conf.getTransactionWaitTime(), TimeUnit.MILLISECONDS);
 
             return "Chaincode instantiated Successfully";
 
@@ -495,36 +494,73 @@ public class QueryBlock {
             logger.debug("getChaincodeActionResponseReadWriteSetInfo:::"
                     + resp.getChaincodeActionResponseReadWriteSetInfo());
             logger.info("Sending chaincode transaction to orderer.");
-            channel.sendTransaction(successful)
-                    .thenApply(transactionEvent -> {
+            channel.sendTransaction(successful).thenApply(transactionEvent -> {
 
-                        logger.info("transaction event is valid " + transactionEvent.isValid());
-                        logger.info("Finished invoke transaction with transaction id "
-                                    + transactionEvent.getTransactionID());
-                        return "Chaincode invoked successfully " + transactionEvent.getTransactionID();
-                    })
-                    .exceptionally(e -> {
-                        if (e instanceof TransactionEventException) {
-                            BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
-                            if (te != null) {
-                                String errMsg = "Transaction with txid " + te.getTransactionID() + " failed. " + e;
-                                logger.info(errMsg);
+                logger.info("transaction event is valid " + transactionEvent.isValid());
+                logger.info("Finished invoke transaction with transaction id " + transactionEvent.getTransactionID());
+                return "Chaincode invoked successfully " + transactionEvent.getTransactionID();
+            }).exceptionally(e -> {
+                if (e instanceof TransactionEventException) {
+                    BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
+                    if (te != null) {
+                        String errMsg = "Transaction with txid " + te.getTransactionID() + " failed. " + e;
+                        logger.info(errMsg);
 
-                        }
                     }
-                    String errMsg = "failed with " + e.getClass().getName() + " exception " + e;
-                    logger.info(errMsg);
-                    throw new BlkchnException(errMsg);
-                }   ).get(conf.getTransactionWaitTime(), TimeUnit.MILLISECONDS);
+                }
+                String errMsg = "failed with " + e.getClass().getName() + " exception " + e;
+                logger.info(errMsg);
+                throw new BlkchnException(errMsg);
+            }).get(conf.getTransactionWaitTime(), TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             logger.info("Caught an exception while invoking chaincode");
             String errMsg = "QueryBlock | invokeChaincode | " + e;
             logger.error(errMsg);
-            e.printStackTrace();
-            throw new BlkchnException("Caught an exception while invoking chaincode"+" "+ errMsg);
+            throw new BlkchnException("Caught an exception while invoking chaincode" + " " + errMsg);
 
         }
         return "Transaction invoked successfully ";
+    }
+
+    public String queryChaincode(String chaincodename, String chaincodeFunction, String[] chaincodeArgs) {
+        try {
+            checkConfig();
+
+            ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodename).build();
+            Channel channel = reconstructChannel();
+            logger.info("Channel Name is " + channel.getName());
+            logger.debug(String.format("Querying chaincode %s and function %s with arguments %s", chaincodename,
+                    chaincodeFunction, Arrays.asList(chaincodeArgs).toString()));
+
+            QueryByChaincodeRequest queryByChaincodeRequest = client.newQueryProposalRequest();
+            queryByChaincodeRequest.setArgs(chaincodeArgs);
+            queryByChaincodeRequest.setFcn(chaincodeFunction);
+            queryByChaincodeRequest.setChaincodeID(chaincodeID);
+
+            Map<String, byte[]> tm2 = new HashMap<>();
+            tm2.put("HyperLedgerFabric", "QueryByChaincodeRequest:JavaSDK".getBytes(UTF_8));
+            tm2.put("method", "QueryByChaincodeRequest".getBytes(UTF_8));
+            queryByChaincodeRequest.setTransientMap(tm2);
+            logger.debug("Chaincode request args:- " + queryByChaincodeRequest.getArgs().toString());
+            Collection<ProposalResponse> queryProposals = channel.queryByChaincode(queryByChaincodeRequest,
+                    channel.getPeers());
+
+            for (ProposalResponse proposalResponse : queryProposals) {
+                if (!proposalResponse.isVerified() || proposalResponse.getStatus() != ProposalResponse.Status.SUCCESS) {
+                    logger.debug("Failed query proposal from peer " + proposalResponse.getPeer().getName()
+                            + " status: " + proposalResponse.getStatus() + ". Messages: "
+                            + proposalResponse.getMessage() + ". Was verified : " + proposalResponse.isVerified());
+                } else {
+                    return proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
+                }
+
+            }
+
+        } catch (Exception e) {
+            logger.error("QueryBlock | queryChaincode | " + e.getMessage());
+            throw new BlkchnException(e);
+        }
+        throw new BlkchnException("Caught an exception while quering chaincode");
     }
 
     private InstallProposalRequest getInstallProposalRequest(String chaincodeName, String version, String goPath,
