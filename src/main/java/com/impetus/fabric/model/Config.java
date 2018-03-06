@@ -81,6 +81,8 @@ public class Config {
     
     private Properties hyperledgerProperties = new Properties();
     
+    private Properties dbProperties = new Properties();
+    
     private String admin;
 
     private Config(String configPath) {
@@ -204,6 +206,19 @@ public class Config {
                 admin = DEFAULT_ADMIN;
             }
         }
+        
+        try {
+            File file = new File(path + "/db.properties");
+            if(file.exists()) {
+                dbProperties.load(new FileInputStream(path + "/db.properties"));
+            }
+        } catch (IOException e) {
+            logger.error("Error loading db.properties file from location " + path, e);
+        }
+    }
+    
+    public Properties getDbProperties() {
+        return dbProperties;
     }
 
     private String grpcTLSify(String location) {
