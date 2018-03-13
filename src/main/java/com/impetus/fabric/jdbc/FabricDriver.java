@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 
 import org.slf4j.LoggerFactory;
 
+import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.jdbc.BlkchnDriver;
 
 public class FabricDriver implements BlkchnDriver {
@@ -56,6 +57,9 @@ public class FabricDriver implements BlkchnDriver {
     }
 
     public Connection connect(String url, Properties info) throws SQLException {
+        if(url == null || !url.startsWith(DriverConstants.DRIVER_PREFIX)) {
+            return null;
+        }
         Properties props = parseURL(url, info);
         return new FabricConnection(url, props);
     }
@@ -94,7 +98,7 @@ public class FabricDriver implements BlkchnDriver {
             props.put("configPath", m.group(1).trim());
             props.put("channel", m.group(2).trim());
         } else {
-            throw new RuntimeException("fabric jdbc url is wrong");
+            throw new BlkchnException("fabric jdbc url is wrong");
         }
         return props;
     }

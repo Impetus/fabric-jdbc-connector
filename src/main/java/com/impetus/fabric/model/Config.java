@@ -122,7 +122,7 @@ public class Config {
 
             defaultProperty(BLOCKCHAINTLS, null);
             defaultProperty(LOGGERLEVEL, "DEBUG");
-            runningTLS = null != sdkProperties.getProperty(BLOCKCHAINTLS, null);
+            runningTLS = ((null != sdkProperties.getProperty(BLOCKCHAINTLS, null)) && false != Boolean.parseBoolean(sdkProperties.getProperty(BLOCKCHAINTLS, null)));
             runningFabricCATLS = runningTLS;
             runningFabricTLS = runningTLS;
 
