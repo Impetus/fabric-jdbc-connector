@@ -547,9 +547,11 @@ public class QueryBlock {
 
             for (ProposalResponse proposalResponse : queryProposals) {
                 if (!proposalResponse.isVerified() || proposalResponse.getStatus() != ProposalResponse.Status.SUCCESS) {
-                    logger.debug("Failed query proposal from peer " + proposalResponse.getPeer().getName()
+                    String errorMsg = "Failed query proposal from peer " + proposalResponse.getPeer().getName()
                             + " status: " + proposalResponse.getStatus() + ". Messages: "
-                            + proposalResponse.getMessage() + ". Was verified : " + proposalResponse.isVerified());
+                            + proposalResponse.getMessage() + ". Was verified : " + proposalResponse.isVerified();
+                    logger.debug(errorMsg);
+                    throw new BlkchnException(errorMsg);
                 } else {
                     return proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
                 }
