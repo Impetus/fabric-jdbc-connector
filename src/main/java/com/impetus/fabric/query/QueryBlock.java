@@ -49,6 +49,7 @@ import org.hyperledger.fabric.sdk.ProposalResponse;
 import org.hyperledger.fabric.sdk.QueryByChaincodeRequest;
 import org.hyperledger.fabric.sdk.SDKUtils;
 import org.hyperledger.fabric.sdk.TransactionProposalRequest;
+import org.hyperledger.fabric.sdk.UpgradeProposalRequest;
 import org.hyperledger.fabric.sdk.exception.CryptoException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.TransactionEventException;
@@ -368,11 +369,10 @@ public class QueryBlock {
         try {
             checkConfig();
 
-            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[] {})[0];
             Channel channel = reconstructChannel();
             Collection<Orderer> orderers = channel.getOrderers();
             InstantiateProposalRequest instantiateProposalRequest = getInstantiateProposalRequest(chaincodeName,
-                    chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs, sampleOrg, channel);
+                    chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs);
             Map<String, byte[]> tm = new HashMap<>();
             tm.put("HyperLedgerFabric", "InstantiateProposalRequest:JavaSDK".getBytes(UTF_8));
             tm.put("method", "InstantiateProposalRequest".getBytes(UTF_8));
@@ -564,6 +564,75 @@ public class QueryBlock {
         }
         throw new BlkchnException("Caught an exception while quering chaincode");
     }
+    
+    public String upgradeChaincode(String chaincodeName, String chainCodeVersion, String chainCodePath,
+            String chaincodeFunction, String[] chaincodeArgs) {
+        Collection<ProposalResponse> responses;
+        Collection<ProposalResponse> successful = new ArrayList<>();
+        Collection<ProposalResponse> failed = new ArrayList<>();
+        
+        try {
+            checkConfig();
+            
+            Channel channel = reconstructChannel();
+            Collection<Orderer> orderers = channel.getOrderers();
+            UpgradeProposalRequest upgradeProposalRequest = getUpgradeProposalRequest(chaincodeName, chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs);
+            Map<String, byte[]> tm = new HashMap<>();
+            tm.put("HyperLedgerFabric", "UpgradeProposalRequest:JavaSDK".getBytes(UTF_8));
+            tm.put("method", "UpgradeProposalRequest".getBytes(UTF_8));
+            upgradeProposalRequest.setTransientMap(tm);
+            logger.info("Sending upgradeProposalRequest to all peers");
+
+            responses = channel.sendUpgradeProposal(upgradeProposalRequest, channel.getPeers());
+            for (ProposalResponse response : responses) {
+                if (response.isVerified() && response.getStatus() == ProposalResponse.Status.SUCCESS) {
+                    successful.add(response);
+                    logger.info(String.format("Succesful upgrade proposal response Txid: %s from peer %s",
+                            response.getTransactionID(), response.getPeer().getName()));
+                } else {
+                    failed.add(response);
+                }
+            }
+            
+            logger.info(String.format("Received %d upgrade proposal responses. Successful+verified: %d . Failed: %d",
+                    responses.size(), successful.size(), failed.size()));
+            if (failed.size() > 0) {
+                ProposalResponse first = failed.iterator().next();
+
+                String errMsg = "Chaincode upgradation failed , reason " + "Not enough endorsers for upgrade :"
+                        + successful.size() + "endorser failed with " + first.getMessage() + ". Was verified:"
+                        + first.isVerified();
+                throw new BlkchnException(errMsg);
+            }
+            
+            logger.info("Sending upgradeTransaction to orderer");
+            logger.info("orderers", orderers);
+            channel.sendTransaction(successful, orderers)
+                    .thenApply(
+                            transactionEvent -> {
+                                logger.info("transaction event is valid", transactionEvent.isValid());
+                                logger.info(String.format("Finished instantiate transaction with transaction id %s",
+                                        transactionEvent.getTransactionID()));
+                                return null;
+                            }).exceptionally(e -> {
+                        if (e instanceof TransactionEventException) {
+                            BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
+                            if (te != null) {
+                                logger.info(String.format("Transaction with txid %s failed. %s", te.getTransactionID(), e));
+                            }
+                        }
+                        String errMsg = String.format(" failed with %s exception %s", e.getClass().getName(), e);
+                        logger.info(errMsg);
+                        throw new BlkchnException(errMsg);
+                        }).get(conf.getTransactionWaitTime(), TimeUnit.MILLISECONDS);
+
+            return "Chaincode upgraded Successfully";
+        } catch(Exception e) {
+            String errMsg = "QueryBlock | upgradeChaincode |" + e;
+            logger.error(errMsg);
+            throw new BlkchnException("Chaincode upgradation failed , reason " + errMsg, e);
+        }
+    }
 
     private InstallProposalRequest getInstallProposalRequest(String chaincodeName, String version, String goPath,
             String chainCodePath, Org sampleOrg) throws InvalidArgumentException {
@@ -583,7 +652,7 @@ public class QueryBlock {
     }
 
     private InstantiateProposalRequest getInstantiateProposalRequest(String chaincodeName, String chainCodeVersion,
-            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs, Org sampleOrg, Channel channel) {
+            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs) {
         ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(chainCodeVersion)
                 .setPath(chainCodePath).build();
         InstantiateProposalRequest instantiateProposalRequest = client.newInstantiationProposalRequest();
@@ -592,6 +661,18 @@ public class QueryBlock {
         instantiateProposalRequest.setFcn(chaincodeFunction);
         instantiateProposalRequest.setArgs(chaincodeArgs);
         return instantiateProposalRequest;
+    }
+    
+    private UpgradeProposalRequest getUpgradeProposalRequest(String chaincodeName, String chainCodeVersion,
+            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs) {
+        ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(chainCodeVersion)
+                .setPath(chainCodePath).build();
+        UpgradeProposalRequest upgradeProposalRequest = client.newUpgradeProposalRequest();
+        upgradeProposalRequest.setProposalWaitTime(conf.getProposalWaitTime());
+        upgradeProposalRequest.setChaincodeID(chaincodeID);
+        upgradeProposalRequest.setFcn(chaincodeFunction);
+        upgradeProposalRequest.setArgs(chaincodeArgs);
+        return upgradeProposalRequest;
     }
 
 }

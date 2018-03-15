@@ -125,6 +125,10 @@ public class FabricStatement implements BlkchnStatement {
             case DROP_ASSET:
                 new FabricAssetManager(logicalPlan, queryBlock.getConf()).executeDropAsset();
                 return false;
+                
+            case UPGRADE_FUNCTION:
+                new FunctionExecutor(logicalPlan, queryBlock).executeUpgrade();
+                return false;
 
             default:
                 return false;
