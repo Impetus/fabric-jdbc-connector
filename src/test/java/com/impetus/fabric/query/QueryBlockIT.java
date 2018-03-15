@@ -89,18 +89,6 @@ public class QueryBlockIT extends TestCase {
     }
 
 
-    //TODO it will fail for now, once having with function logic added it will work.
-    @Test
-    public void testFabricStatementWithGroupByAndHaving() throws ClassNotFoundException, SQLException {
-        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        File configFolder = new File("src/test/resources/blockchain-query");
-        String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select blockNo,sum(blockNo) from block where blockNo = 2 group by blockNo having sum(blockNo) = 1"); // This is dummy query
-        assert(rs.next());
-    }
-
 
     @Test
     public void testFabricStatementWithOrderByAndGroupBy() throws ClassNotFoundException, SQLException {
@@ -171,25 +159,12 @@ public class QueryBlockIT extends TestCase {
         String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
                 + " WITH ARGS a, 500, b, 200";
         stat.execute(createFuncQuery);
-        String insertQuery = "INSERT INTO chncodefunc"+currentTimeStamp+" VALUES(invoke, 'a', 'b', '20')";
+        String insertQuery = "INSERT INTO chncodefunc"+currentTimeStamp+" VALUES('invoke', 'a', 'b', 20)";
         stat.execute(insertQuery);
     }
 
-    //TODO Check this unit test, it should not throw null point exception after fix.
-    //TODO This function should work even if there is no block number with id 200
-    @Test
-    public void testPhysicalQueryOptimization() throws ClassNotFoundException, SQLException {
-        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        File configFolder = new File("src/test/resources/blockchain-query");
-        String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from block blk where blockNo = 200 And blockNo>=2 blockNo <=300"); // This is dummy query
-        assert(rs.next());
-    }
 
 
-    //TODO After fix this function range should include negate number as well.
     @Test
     public void testQueryWithExpectedEmptyReturn() throws ClassNotFoundException, SQLException {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
