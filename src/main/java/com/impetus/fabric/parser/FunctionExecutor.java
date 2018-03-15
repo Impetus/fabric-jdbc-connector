@@ -81,4 +81,23 @@ public class FunctionExecutor {
             return df;
         }
     }
+    
+    public void executeUpgrade() {
+        TreeNode upgradeFunc = logicalPlan.getUpgradeFunction();
+        String chaincodeName = upgradeFunc.getChildType(IdentifierNode.class, 0).getValue();
+        String chaincodePath = upgradeFunc.getChildType(ClassName.class, 0).getName().replaceAll("'", "");
+        if(!upgradeFunc.hasChildType(Version.class)) {
+            throw new BlkchnException("Version is missing");
+        }
+        String version = upgradeFunc.getChildType(Version.class, 0).getVersion().replaceAll("'", "");
+        List<String> args = new ArrayList<>();
+        if(upgradeFunc.hasChildType(Args.class)) {
+            Args arguments = upgradeFunc.getChildType(Args.class, 0);
+            for(IdentifierNode ident : arguments.getChildType(IdentifierNode.class)) {
+                args.add(Utilities.unquote(ident.getValue()));
+            }
+        }
+        queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
+        queryBlock.upgradeChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}));
+    }
 }
