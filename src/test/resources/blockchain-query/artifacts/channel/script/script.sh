@@ -1,16 +1,6 @@
 #!/bin/bash
-# Copyright London Stock Exchange Group All Rights Reserved.
-#
-# SPDX-License-Identifier: Apache-2.0
 #
 set -e
-echo
-echo " ____    _____      _      ____    _____           _____   ____    _____ "
-echo "/ ___|  |_   _|    / \    |  _ \  |_   _|         | ____| |___ \  | ____|"
-echo "\___ \    | |     / _ \   | |_) |   | |    _____  |  _|     __) | |  _|  "
-echo " ___) |   | |    / ___ \  |  _ <    | |   |_____| | |___   / __/  | |___ "
-echo "|____/    |_|   /_/   \_\ |_| \_\   |_|           |_____| |_____| |_____|"
-echo
 CORE_PEER_TLS_ENABLED=true
 CHANNEL_NAME="$1"
 : ${CHANNEL_NAME:="mychannel"}
@@ -18,8 +8,6 @@ CHANNEL_NAME="$1"
 COUNTER=1
 MAX_RETRY=5
 ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
-
-echo "Channel name : "$CHANNEL_NAME
 
 verifyResult () {
 	if [ $1 -ne 0 ] ; then
@@ -60,7 +48,6 @@ setGlobals () {
 		fi
 	fi
 
-	env |grep CORE
 }
 
 checkOSNAvailability() {
@@ -152,7 +139,7 @@ joinChannel () {
 installChaincode () {
 	PEER=$1
 	setGlobals $PEER
-	peer chaincode install -n mycc -v 2.0 -p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02 >&log.txt
+	peer chaincode install -n impcc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02 >&log.txt
 	res=$?
 	cat log.txt
         verifyResult $res "Chaincode installation on remote peer PEER$PEER has Failed"
@@ -166,9 +153,9 @@ instantiateChaincode () {
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
-		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -v 2.0 -c '{"Args":["init","a","100","b","200"]}'  >&log.txt
+		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n impcc -v 1.0 -c '{"Args":["init","a","100","b","200"]}'  >&log.txt
 	else
-		peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -v 2.0 -c '{"Args":["init","a","100","b","200"]}' >&log.txt
+		peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n impcc -v 1.0 -c '{"Args":["init","a","100","b","200"]}' >&log.txt
 	fi
 	res=$?
 	cat log.txt
@@ -190,7 +177,7 @@ chaincodeQuery () {
   do
      sleep 3
      echo "Attempting to Query PEER$PEER ...$(($(date +%s)-starttime)) secs"
-     peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt
+     peer chaincode query -C $CHANNEL_NAME -n impcc -c '{"Args":["query","a"]}' >&log.txt
      test $? -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
      test "$VALUE" = "$2" && let rc=0
   done
@@ -212,9 +199,9 @@ chaincodeInvoke () {
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
-		peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+		peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n impcc -c '{"Args":["invoke","a","b","1"]}' >&log.txt
 	else
-		peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -c '{"Args":["invoke","a","b","1"]}' >&log.txt
+		peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n impcc -c '{"Args":["invoke","a","b","1"]}' >&log.txt
 	fi
 	res=$?
 	cat log.txt
@@ -231,4 +218,22 @@ createChannel
 echo "Having all peers join the channel..."
 joinChannel
 
+## Install chaincode on Peer0/Org1
+echo "Installing chaincode on org1/peer0..."
+installChaincode 0
+installChaincode 1
+
+#Instantiate chaincode on Peer0/Org1
+echo "Instantiating chaincode on Peer0/Org1..."
+#sleep 10
+instantiateChaincode 0
+
+sleep 10
+#Invoke on chaincode on Peer0/Org1
+echo "Sending invoke transaction on org1/peer0..."
+chaincodeInvoke 0
+
+sleep 3
+echo "Sending Some more invoke transaction on org1/peer0..."
+chaincodeInvoke 0
 exit 0
