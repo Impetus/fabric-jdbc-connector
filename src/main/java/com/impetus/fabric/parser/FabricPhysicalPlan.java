@@ -12,6 +12,8 @@ import com.impetus.blkch.sql.parser.PhysicalPlan;
 import com.impetus.blkch.util.LongRangeOperations;
 import com.impetus.blkch.util.RangeOperations;
 import com.impetus.blkch.util.Tuple2;
+import com.impetus.fabric.query.FabricColumns;
+import com.impetus.fabric.query.FabricTables;
 
 public class FabricPhysicalPlan extends PhysicalPlan {
     
@@ -24,11 +26,22 @@ public class FabricPhysicalPlan extends PhysicalPlan {
     private static Map<Tuple2<String, String>, RangeOperations<?>> rangeOpMap = new HashMap<>();
     
     static {
-        rangeColMap.put("block", Arrays.asList("blockNo"));
-        queryColMap.put("block", Arrays.asList("previousHash"));
+        rangeColMap.put(FabricTables.BLOCK, Arrays.asList(FabricColumns.BLOCK_NO));
+        queryColMap.put(FabricTables.BLOCK, Arrays.asList(FabricColumns.PREVIOUS_HASH));
         
-        rangeOpMap.put(new Tuple2<>("block", "blockNo"), new LongRangeOperations());
+        rangeColMap.put(FabricTables.TRANSACTION, Arrays.asList(FabricColumns.BLOCK_NO));
+        queryColMap.put(FabricTables.TRANSACTION, Arrays.asList(FabricColumns.TRANSACTION_ID));
         
+        rangeColMap.put(FabricTables.TRANSACTION_ACTION, Arrays.asList(FabricColumns.BLOCK_NO));
+        queryColMap.put(FabricTables.TRANSACTION_ACTION, Arrays.asList(FabricColumns.TRANSACTION_ID));
+        
+        rangeColMap.put(FabricTables.READ_WRITE_SET, Arrays.asList(FabricColumns.BLOCK_NO));
+        queryColMap.put(FabricTables.READ_WRITE_SET, Arrays.asList(FabricColumns.TRANSACTION_ID));
+        
+        rangeOpMap.put(new Tuple2<>(FabricTables.BLOCK, FabricColumns.BLOCK_NO), new LongRangeOperations());
+        rangeOpMap.put(new Tuple2<>(FabricTables.TRANSACTION, FabricColumns.BLOCK_NO), new LongRangeOperations());
+        rangeOpMap.put(new Tuple2<>(FabricTables.TRANSACTION_ACTION, FabricColumns.BLOCK_NO), new LongRangeOperations());
+        rangeOpMap.put(new Tuple2<>(FabricTables.READ_WRITE_SET, FabricColumns.BLOCK_NO), new LongRangeOperations());
     }
 
     public FabricPhysicalPlan(LogicalPlan logicalPlan) {
