@@ -30,11 +30,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 import org.hyperledger.fabric.sdk.BlockEvent;
 import org.hyperledger.fabric.sdk.ChaincodeID;
@@ -431,7 +428,7 @@ public class QueryBlock {
 
             String errMsg = "QueryBlock | instantiateChaincode |" + e;
             logger.error(errMsg);
-            throw new BlkchnException("Chaincode instantiation failed , reason " + errMsg);
+            throw new BlkchnException("Chaincode instantiation failed", e);
         }
 
     }
@@ -591,5 +588,5 @@ public class QueryBlock {
         instantiateProposalRequest.setArgs(chaincodeArgs);
         return instantiateProposalRequest;
     }
-
+    
 }

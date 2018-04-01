@@ -18,6 +18,7 @@ package com.impetus.fabric.jdbc;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Array;
 import java.sql.Date;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -26,6 +27,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 
 import com.impetus.blkch.jdbc.AbstractResultSet;
+import com.impetus.blkch.jdbc.BlkchnArray;
 import com.impetus.blkch.sql.DataFrame;
 
 public class FabricResultSet extends AbstractResultSet {
@@ -214,6 +216,19 @@ public class FabricResultSet extends AbstractResultSet {
 
     public String getString(String column) throws SQLException {
         return getString(findColumn(column));
+    }
+    
+    @Override
+    public Array getArray(int index) throws SQLException {
+        if (index > recordData.length) {
+            throw new SQLException(String.format("Result set doesn't contain index %d", index));
+        }
+        return (BlkchnArray) recordData[index - 1];
+    }
+    
+    @Override
+    public Array getArray(String column) throws SQLException {
+        return getArray(findColumn(column));
     }
 
     public int getType() throws SQLException {
