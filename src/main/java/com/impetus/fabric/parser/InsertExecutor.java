@@ -10,6 +10,7 @@ import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.parser.TreeNode;
 import com.impetus.blkch.sql.query.IdentifierNode;
 import com.impetus.blkch.sql.query.Table;
+import com.impetus.blkch.util.Utilities;
 import com.impetus.fabric.query.QueryBlock;
 
 public class InsertExecutor {
@@ -32,7 +33,7 @@ public class InsertExecutor {
             throw new BlkchnException("Invalid number of parameters");
         }
         for(IdentifierNode ident : idents) {
-            args.add(ident.getValue());
+            args.add(Utilities.unquote(ident.getValue()));
         }
         queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
     }
