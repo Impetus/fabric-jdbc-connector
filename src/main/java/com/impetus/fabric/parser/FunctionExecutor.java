@@ -15,6 +15,7 @@ import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.parser.LogicalPlan.SQLType;
 import com.impetus.blkch.sql.parser.TreeNode;
 import com.impetus.blkch.sql.query.IdentifierNode;
+import com.impetus.blkch.util.Utilities;
 import com.impetus.fabric.query.QueryBlock;
 
 public class FunctionExecutor {
@@ -41,7 +42,7 @@ public class FunctionExecutor {
         if(createFunc.hasChildType(Args.class)) {
             Args arguments = createFunc.getChildType(Args.class, 0);
             for(IdentifierNode ident : arguments.getChildType(IdentifierNode.class)) {
-                args.add(ident.getValue());
+                args.add(Utilities.unquote(ident.getValue()));
             }
         }
         queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
@@ -62,7 +63,7 @@ public class FunctionExecutor {
             throw new BlkchnException("Invalid number of parameters");
         }
         for(IdentifierNode ident : idents) {
-            args.add(ident.getValue());
+            args.add(Utilities.unquote(ident.getValue()));
         }
         if(logicalPlan.getType().equals(SQLType.DELETE_FUNCTION)) {
             queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
@@ -79,5 +80,24 @@ public class FunctionExecutor {
             DataFrame df = assetSchema.createDataFrame(result);
             return df;
         }
+    }
+    
+    public void executeUpgrade() {
+        TreeNode upgradeFunc = logicalPlan.getUpgradeFunction();
+        String chaincodeName = upgradeFunc.getChildType(IdentifierNode.class, 0).getValue();
+        String chaincodePath = upgradeFunc.getChildType(ClassName.class, 0).getName().replaceAll("'", "");
+        if(!upgradeFunc.hasChildType(Version.class)) {
+            throw new BlkchnException("Version is missing");
+        }
+        String version = upgradeFunc.getChildType(Version.class, 0).getVersion().replaceAll("'", "");
+        List<String> args = new ArrayList<>();
+        if(upgradeFunc.hasChildType(Args.class)) {
+            Args arguments = upgradeFunc.getChildType(Args.class, 0);
+            for(IdentifierNode ident : arguments.getChildType(IdentifierNode.class)) {
+                args.add(Utilities.unquote(ident.getValue()));
+            }
+        }
+        queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
+        queryBlock.upgradeChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}));
     }
 }
