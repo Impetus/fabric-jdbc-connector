@@ -27,7 +27,7 @@ public class QueryBlockIT extends TestCase {
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from block where blockNo = 2"); // This is dummy query
+        ResultSet rs = stat.executeQuery("select * from block where block_no = 2"); // This is dummy query
         assert(rs.next());
     }
 
@@ -97,7 +97,7 @@ public class QueryBlockIT extends TestCase {
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select blockNo, sum(blockNo) from block where blockNo >= 2 and blockNo <= 5  group by blockNo order by blockNo DESC ");
+        ResultSet rs = stat.executeQuery("select block_no, sum(block_no) from block where block_no >= 2 and block_no <= 5  group by block_no order by block_no DESC ");
         assert(rs.next());
     }
 
@@ -110,7 +110,7 @@ public class QueryBlockIT extends TestCase {
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from block where (blockNo = 2 or blockNo = 3) and (blockNo =4 or blockNo = 5)");
+        ResultSet rs = stat.executeQuery("select * from block where (block_no = 2 or block_no = 3) and (block_no =4 or block_no = 5)");
         assert(!rs.next());
     }
 
@@ -124,7 +124,7 @@ public class QueryBlockIT extends TestCase {
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
         String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
-                + " WITH ARGS a, 500, b, 200";
+                + " WITH ARGS 'a', 500, 'b', 200";
 
         stat.execute(createFuncQuery);
     }
@@ -138,10 +138,10 @@ public class QueryBlockIT extends TestCase {
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
         String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
-                + " WITH ARGS a, 500, b, 200";
+                + " WITH ARGS 'a', 500, 'b', 200";
         System.out.println(stat.execute(createFuncQuery));
 
-        String callQuery = "CALL chncodefunc"+currentTimeStamp+"(invoke, a, b, 20)";
+        String callQuery = "CALL chncodefunc"+currentTimeStamp+"('invoke', 'a', 'b', 20)";
         stat.execute(callQuery);
 
 
@@ -157,7 +157,7 @@ public class QueryBlockIT extends TestCase {
         Statement stat = conn.createStatement();
 
         String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
-                + " WITH ARGS a, 500, b, 200";
+                + " WITH ARGS 'a', 500, 'b', 200";
         stat.execute(createFuncQuery);
         String insertQuery = "INSERT INTO chncodefunc"+currentTimeStamp+" VALUES('invoke', 'a', 'b', 20)";
         stat.execute(insertQuery);
@@ -173,7 +173,7 @@ public class QueryBlockIT extends TestCase {
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
 
-        ResultSet rs = stat.executeQuery("select * from block blk where blockNo >= -2 and blockNo <= 1"); // This is dummy query
+        ResultSet rs = stat.executeQuery("select * from block blk where block_no >= -2 and block_no <= 1"); // This is dummy query
 
         assert(rs.next());
     }
