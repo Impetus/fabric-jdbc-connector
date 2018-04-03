@@ -26,6 +26,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 
+import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.jdbc.AbstractResultSet;
 import com.impetus.blkch.jdbc.BlkchnArray;
 import com.impetus.blkch.sql.DataFrame;
@@ -79,7 +80,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public BigDecimal getBigDecimal(String column) throws SQLException {
-        return getBigDecimal(findColumn(column));
+        return getBigDecimal(getColumnIndex(column));
     }
 
     public BigDecimal getBigDecimal(int index, int scale) throws SQLException {
@@ -87,7 +88,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public BigDecimal getBigDecimal(String column, int scale) throws SQLException {
-        return getBigDecimal(findColumn(column), scale);
+        return getBigDecimal(getColumnIndex(column), scale);
     }
 
     public boolean getBoolean(int index) throws SQLException {
@@ -98,7 +99,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public boolean getBoolean(String column) throws SQLException {
-        return getBoolean(findColumn(column));
+        return getBoolean(getColumnIndex(column));
     }
 
     public byte getByte(int index) throws SQLException {
@@ -109,7 +110,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public byte getByte(String column) throws SQLException {
-        return getByte(findColumn(column));
+        return getByte(getColumnIndex(column));
     }
 
     public int getConcurrency() throws SQLException {
@@ -130,7 +131,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public Date getDate(String column) throws SQLException {
-        return getDate(findColumn(column));
+        return getDate(getColumnIndex(column));
     }
 
     public double getDouble(int index) throws SQLException {
@@ -141,7 +142,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public double getDouble(String column) throws SQLException {
-        return getDouble(findColumn(column));
+        return getDouble(getColumnIndex(column));
     }
 
     public float getFloat(int index) throws SQLException {
@@ -152,7 +153,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public float getFloat(String column) throws SQLException {
-        return getFloat(findColumn(column));
+        return getFloat(getColumnIndex(column));
     }
 
     public int getHoldability() throws SQLException {
@@ -167,7 +168,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public int getInt(String column) throws SQLException {
-        return getInt(findColumn(column));
+        return getInt(getColumnIndex(column));
     }
 
     public long getLong(int index) throws SQLException {
@@ -178,7 +179,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public long getLong(String column) throws SQLException {
-        return getLong(findColumn(column));
+        return getLong(getColumnIndex(column));
     }
 
     public Object getObject(int index) throws SQLException {
@@ -189,7 +190,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public Object getObject(String column) throws SQLException {
-        return getObject(findColumn(column));
+        return getObject(getColumnIndex(column));
     }
 
     public short getShort(int index) throws SQLException {
@@ -200,7 +201,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public short getShort(String column) throws SQLException {
-        return getShort(findColumn(column));
+        return getShort(getColumnIndex(column));
     }
 
     public Statement getStatement() throws SQLException {
@@ -215,7 +216,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public String getString(String column) throws SQLException {
-        return getString(findColumn(column));
+        return getString(getColumnIndex(column));
     }
     
     @Override
@@ -228,7 +229,7 @@ public class FabricResultSet extends AbstractResultSet {
     
     @Override
     public Array getArray(String column) throws SQLException {
-        return getArray(findColumn(column));
+        return getArray(getColumnIndex(column));
     }
 
     public int getType() throws SQLException {
@@ -245,7 +246,7 @@ public class FabricResultSet extends AbstractResultSet {
     }
 
     public URL getURL(String column) throws SQLException {
-        return getURL(findColumn(column));
+        return getURL(getColumnIndex(column));
     }
 
     public boolean isClosed() throws SQLException {
@@ -271,6 +272,17 @@ public class FabricResultSet extends AbstractResultSet {
     @Override
     public ResultSetMetaData getMetaData() throws SQLException {
         return new FabricResultSetMetaData(tableName, dataframe.getColumnNamesMap(), dataframe.getAliasMapping());
+    }
+    
+    private int getColumnIndex(String columnLabel) {
+        if(!dataframe.getAliasMapping().isEmpty() && dataframe.getAliasMapping().containsKey(columnLabel)) {
+            return dataframe.getColumnNamesMap().get(dataframe.getAliasMapping().get(columnLabel)) + 1;
+        } else {
+            if(dataframe.getColumnNamesMap().get(columnLabel) == null) {
+                throw new BlkchnException(String.format("Result set data doesn't contain column '%s'", columnLabel));
+            }
+            return dataframe.getColumnNamesMap().get(columnLabel) + 1;
+        }
     }
 
 }
