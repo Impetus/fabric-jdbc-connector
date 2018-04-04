@@ -589,8 +589,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
             return new DataFrame(new ArrayList<>(), new ArrayList<>(), physicalPlan.getColumnAliasMapping());
         }
         if (dataMap.get(dataNode.getKeys().get(0).toString()) instanceof BlockInfo) {
-            String[] columns = { FabricColumns.PREVIOUS_HASH, FabricColumns.BLOCK_DATA_HASH, FabricColumns.TRANS_ACTIONS_META_DATA, FabricColumns.TRANSACTION_COUNT,
-                    FabricColumns.BLOCK_NO, FabricColumns.CHANNEL_ID };
+            String[] columns = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.BLOCK).toArray(new String[]{});
             List<List<Object>> data = new ArrayList<>();
             for (Object key : dataNode.getKeys()) {
                 BlockInfo blockInfo = (BlockInfo) dataMap.get(key.toString());
@@ -611,9 +610,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
             df.setRawData(dataMap.values());
             return df;
         } else if(dataMap.get(dataNode.getKeys().get(0).toString()) instanceof TransactionObject) {
-            String[] columns = { FabricColumns.BLOCK_NO, FabricColumns.TRANSACTION_ID, FabricColumns.HEADER_TYPE, FabricColumns.MESSAGE_PROTOCOL_VERSION,
-                    FabricColumns.TIMESTAMP, FabricColumns. EPOCH, FabricColumns.CHANNEL_ID, FabricColumns.CREATOR_MSP, FabricColumns.CREATOR_SIGNATURE,
-                    FabricColumns.NONCE};
+            String[] columns = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.TRANSACTION).toArray(new String[]{});
             List<List<Object>> data = new ArrayList<>();
             for(Object key : dataNode.getKeys()) {
                 TransactionObject transactionObject = (TransactionObject) dataMap.get(key.toString());
@@ -627,10 +624,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
             df.setRawData(dataMap.values());
             return df;
         } else if(dataMap.get(dataNode.getKeys().get(0).toString()) instanceof TransactionActionObject) {
-            String[] columns = { FabricColumns.BLOCK_NO, FabricColumns.TRANSACTION_ID, FabricColumns.ID_GENERATION_ALG, FabricColumns.CHAINCODE_TYPE,
-                    FabricColumns.CHAINCODE_NAME, FabricColumns.CHAINCODE_VERSION, FabricColumns.CHAINCODE_PATH, FabricColumns.CHAINCODE_ARGS,
-                    FabricColumns.TIME_OUT, FabricColumns.RW_DATAMODEL, FabricColumns.RESPONSE_MESSAGE, FabricColumns.RESPONSE_STATUS,
-                    FabricColumns.RESPONSE_PAYLOAD, FabricColumns.ENDORSEMENTS};
+            String[] columns = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.TRANSACTION_ACTION).toArray(new String[]{});
             List<List<Object>> data = new ArrayList<>();
             for(Object key : dataNode.getKeys()) {
                 TransactionActionObject transactionActionObject = (TransactionActionObject) dataMap.get(key.toString());
@@ -645,9 +639,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
             df.setRawData(dataMap.values());
             return df;
         } else if(dataMap.get(dataNode.getKeys().get(0).toString()) instanceof ReadWriteSetObject) {
-            String[] columns = { FabricColumns.BLOCK_NO, FabricColumns.TRANSACTION_ID, FabricColumns.NAMESPACE, FabricColumns.READ_KEY, FabricColumns.READ_BLOCK_NO,
-                    FabricColumns.READ_TX_NUM, FabricColumns.RANGE_QUERY_START_KEY, FabricColumns.RANGE_QUERY_END_KEY, FabricColumns.RANGE_QUERY_ITR_EXAUSTED,
-                    FabricColumns.RANGE_QUERY_READS_INFO, FabricColumns.WRITE_KEY, FabricColumns.IS_DELETE, FabricColumns.WRITE_VALUE};
+            String[] columns = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.READ_WRITE_SET).toArray(new String[]{});
             List<List<Object>> data = new ArrayList<>();
             for(Object key : dataNode.getKeys()) {
                 ReadWriteSetObject readWriteSetObject = (ReadWriteSetObject) dataMap.get(key.toString());
