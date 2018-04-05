@@ -1,21 +1,19 @@
 package com.impetus.fabric.query;
 
 
-import com.impetus.blkch.sql.parser.AbstractAssetManager;
-import com.impetus.fabric.jdbc.FabricResultSet;
-import com.impetus.fabric.parser.AssetSchema;
+import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import junit.framework.TestCase;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.impetus.test.catagory.IntegrationTest;
-
-import javax.print.attribute.standard.DateTimeAtProcessing;
-import java.io.File;
-import java.sql.*;
-import java.util.Date;
-import java.util.Properties;
 
 @Category(IntegrationTest.class)
 public class QueryBlockIT extends TestCase {
@@ -176,6 +174,23 @@ public class QueryBlockIT extends TestCase {
         ResultSet rs = stat.executeQuery("select * from block blk where block_no >= -2 and block_no <= 1"); // This is dummy query
 
         assert(rs.next());
+    }
+    
+    @Test
+    public void testUpgradeChaincode() throws ClassNotFoundException, SQLException {
+        long currentTimestamp = System.currentTimeMillis();
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        File configFolder = new File("src/test/resources/blockchain-query");
+        String configPath = configFolder.getAbsolutePath();
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        
+        Statement stat = conn.createStatement();
+        String createFuncQuery = "CREATE FUNCTION chncodeFunc" + currentTimestamp + " AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
+                + " WITH ARGS 'a', 500, 'b', 200";
+        stat.execute(createFuncQuery);
+        String upgradeFuncQuery = "UPGRADE FUNCTION chncodeFunc" + currentTimestamp + " AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '2.0'"
+                + " WITH ARGS 'a', 500, 'b', 200";
+        stat.execute(upgradeFuncQuery);
     }
 
 
