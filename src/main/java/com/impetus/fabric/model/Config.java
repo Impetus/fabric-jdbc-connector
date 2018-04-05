@@ -59,6 +59,14 @@ public class Config {
     
     private static final String DEFAULT_ADMIN = "admin";
 
+    private static final String FABRIC_CA_ADMIN_NAME = "FABRIC_CA_ADMIN_NAME";
+    
+    private static final String DEFAULT_FABRIC_CA_ADM= "admin";
+
+    private static final String FABRIC_CA_ADM_PASS = "FABRIC_CA_ADM_PASS";
+    
+    private static final String DEFAULT_FABRIC_CA_ADM_PASS = "adminpw";
+
     public static final String LOGGERLEVEL = "org.hyperledger.fabric.sdk.loglevel";
 
     private static final String ORGS = PROPBASE + "property.";
@@ -84,6 +92,10 @@ public class Config {
     private Properties dbProperties = new Properties();
     
     private String admin;
+
+    private String adminca;
+
+    private String admcapw;
 
     private Config(String configPath) {
         this.path = configPath.endsWith("/") ? configPath : configPath + "/";
@@ -114,6 +126,7 @@ public class Config {
             defaultProperty(ORGS + "peerOrg1.mspid", "Org1MSP");
             defaultProperty(ORGS + "peerOrg1.domname", "org1.example.com");
             defaultProperty(ORGS + "peerOrg1.ca_location", "http://localhost:7054");
+            defaultProperty(ORGS + "peerOrg1.usersAffilation", "org1.department1");
             defaultProperty(ORGS + "peerOrg1.peer_locations",
                     "peer0.org1.example.com@grpc://localhost:7051, peer1.org1.example.com@grpc://localhost:7056");
             defaultProperty(ORGS + "peerOrg1.orderer_locations", "orderer.example.com@grpc://localhost:7050");
@@ -156,6 +169,10 @@ public class Config {
                 final String domainName = sdkProperties.getProperty(ORGS + orgName + ".domname");
 
                 sampleOrg.setDomainName(domainName);
+
+                final String usrsAffilation = sdkProperties.getProperty(ORGS + orgName + ".usersAffilation");
+
+                sampleOrg.setUserAffilation(usrsAffilation);
 
                 String ordererNames = sdkProperties.getProperty(ORGS + orgName + ".orderer_locations");
                 ps = ordererNames.split("[ \t]*,[ \t]*");
@@ -206,6 +223,28 @@ public class Config {
                 admin = DEFAULT_ADMIN;
             }
         }
+
+        try {
+            hyperledgerProperties.load(new FileInputStream(path + "/hyperledger.properties"));
+            adminca = hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_NAME) != null ? hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_NAME) : DEFAULT_FABRIC_CA_ADM;
+        } catch(IOException e) {
+            logger.error("Error loading hyperledger.properties file from location " + path + ", loading default props", e);
+        } finally {
+            if(hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_NAME) == null) {
+                adminca = DEFAULT_FABRIC_CA_ADM;
+            }
+        }
+
+        try {
+            hyperledgerProperties.load(new FileInputStream(path + "/hyperledger.properties"));
+            admcapw = hyperledgerProperties.getProperty(FABRIC_CA_ADM_PASS) != null ? hyperledgerProperties.getProperty(FABRIC_CA_ADM_PASS) : DEFAULT_FABRIC_CA_ADM_PASS;
+        } catch(IOException e) {
+            logger.error("Error loading hyperledger.properties file from location " + path + ", loading default props", e);
+        } finally {
+            if(hyperledgerProperties.getProperty(FABRIC_CA_ADM_PASS) == null) {
+                admcapw = DEFAULT_FABRIC_CA_ADM_PASS;
+            }
+        }
         
         try {
             File file = new File(path + "/db.properties");
@@ -252,6 +291,14 @@ public class Config {
     
     public String getAdmin() {
         return admin;
+    }
+    
+    public String getAdminCA() {
+        return adminca;
+    }
+    
+    public String getAdminCApw() {
+        return admcapw;
     }
 
     /**

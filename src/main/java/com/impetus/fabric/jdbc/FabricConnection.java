@@ -35,6 +35,7 @@ import java.util.Properties;
 import java.util.concurrent.Executor;
 
 import com.impetus.blkch.jdbc.BlkchnConnection;
+import com.impetus.fabric.query.QueryBlock;
 
 public class FabricConnection implements BlkchnConnection {
 
@@ -46,13 +47,17 @@ public class FabricConnection implements BlkchnConnection {
     
     private String user;
     
+    private QueryBlock qb;
+    
     private static final String DEFAULT_USER = "test";
 
     FabricConnection(String url, Properties props) {
         this.url = url;
         this.configPath = props.getProperty("configPath");
         this.channel = props.getProperty("channel");
-        this.user = props.getProperty("user") != null ? props.getProperty("user") : DEFAULT_USER;
+        this.user = props.getProperty("USER") != null ? props.getProperty("USER") : DEFAULT_USER;
+        qb = new QueryBlock(this.configPath, this.channel);
+        qb.enrollAndRegister(this.user);
     }
 
     String getConfigPath() {
@@ -65,6 +70,10 @@ public class FabricConnection implements BlkchnConnection {
     
     String getUser() {
         return user;
+    }
+    
+    QueryBlock getQueryObject() {
+        return qb;
     }
 
     public boolean isWrapperFor(Class<?> iface) throws SQLException {

@@ -53,6 +53,8 @@ public class Org {
     private String caLocation;
 
     private Properties caProperties = null;
+    
+	private String usrAffilation;
 
     private HyperUser peerAdmin;
 
@@ -180,5 +182,13 @@ public class Org {
 
     public String getDomainName() {
         return domainName;
+    }
+
+    public void setUserAffilation(String usrAffilation) {
+        this.usrAffilation= usrAffilation;
+    }
+
+    public String getUsrAffilation() {
+        return usrAffilation;
     }
 }

@@ -80,6 +80,10 @@ public class QueryBlock {
 
     private String channelName;
 
+    private String adminCA;
+
+    private String admCApw;
+    
     // For setting CryptoSuite only if the application is running for the first
     // time.
     private int counter = 0;
@@ -92,7 +96,9 @@ public class QueryBlock {
         conf = Config.getConfig(configPath);
         channelName = channel;
         adminName = conf.getAdmin();
-    }
+        adminCA = conf.getAdminCA();
+        admCApw = conf.getAdminCApw();
+     }
 
     public Config getConf() {
         return conf;
@@ -200,7 +206,7 @@ public class QueryBlock {
      * enroll and register user at starting takes username as input returns
      * status as string
      */
-    public String enrollAndRegister(String uname) {
+    public synchronized String enrollAndRegister(String uname) {
 
         try {
             checkConfig();
@@ -214,9 +220,9 @@ public class QueryBlock {
                 final String orgName = sampleOrg.getName();
                 final String mspid = sampleOrg.getMSPID();
                 ca.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-                HyperUser admin = sampleStore.getMember(orgName + adminName, orgName);
+                HyperUser admin = sampleStore.getMember(orgName + "FABRIC_CA"+ adminCA, orgName);
                 if (!admin.isEnrolled()) {
-                    admin.setEnrollment(ca.enroll(admin.getName(), ""));
+                    admin.setEnrollment(ca.enroll(adminCA, admCApw));
                     admin.setMspId(mspid);
                 }
 
@@ -224,13 +230,12 @@ public class QueryBlock {
                     String result = loadUserFromPersistence(uname);
                     return result;
                 }
+                
                 HyperUser user = sampleStore.getMember(uname, sampleOrg.getName());
-
+                String usrAffilation = sampleOrg.getUsrAffilation();
                 if (!user.isRegistered()) {
-                    RegistrationRequest rr = new RegistrationRequest(user.getName(), "");
-
+                    RegistrationRequest rr = new RegistrationRequest(user.getName(), usrAffilation);
                     user.setEnrollmentSecret(ca.register(rr, admin));
-
                 }
                 if (!user.isEnrolled()) {
                     user.setEnrollment(ca.enroll(user.getName(), user.getEnrollmentSecret()));
