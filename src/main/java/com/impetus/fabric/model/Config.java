@@ -126,7 +126,7 @@ public class Config {
             defaultProperty(ORGS + "peerOrg1.mspid", "Org1MSP");
             defaultProperty(ORGS + "peerOrg1.domname", "org1.example.com");
             defaultProperty(ORGS + "peerOrg1.ca_location", "http://localhost:7054");
-            defaultProperty(ORGS + "peerOrg1.usersAffilation", "org1.department1");
+            defaultProperty(ORGS + "peerOrg1.users_affilation", "org1.department1");
             defaultProperty(ORGS + "peerOrg1.peer_locations",
                     "peer0.org1.example.com@grpc://localhost:7051, peer1.org1.example.com@grpc://localhost:7056");
             defaultProperty(ORGS + "peerOrg1.orderer_locations", "orderer.example.com@grpc://localhost:7050");
@@ -170,7 +170,7 @@ public class Config {
 
                 sampleOrg.setDomainName(domainName);
 
-                final String usrsAffilation = sdkProperties.getProperty(ORGS + orgName + ".usersAffilation");
+                final String usrsAffilation = sdkProperties.getProperty(ORGS + orgName + ".users_affilation");
 
                 sampleOrg.setUserAffilation(usrsAffilation);
 
