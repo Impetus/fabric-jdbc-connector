@@ -157,7 +157,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
         if (dataMap.containsKey(value)) {
             return new DataNode<>(table, Arrays.asList(value));
         }
-        Channel channel = queryBlock.reconstructChannel();
+        Channel channel = queryBlock.getChannel();
         if (table.equals(FabricTables.BLOCK) && column.equals(FabricColumns.BLOCK_NO)) {
             try {
                 BlockInfo blockInfo = channel.queryBlockByNumber(Long.parseLong(value));
@@ -327,7 +327,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
                 rangeNode.getColumn());
         String rangeCol = rangeNode.getColumn();
         String rangeTable = rangeNode.getTable();
-        Channel channel = queryBlock.reconstructChannel();
+        Channel channel = queryBlock.getChannel();
         Long height;
         try {
             height = channel.queryBlockchainInfo().getHeight();

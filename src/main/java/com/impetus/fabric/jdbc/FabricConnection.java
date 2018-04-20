@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+
 import com.impetus.blkch.jdbc.BlkchnConnection;
 import com.impetus.fabric.query.QueryBlock;
 
@@ -48,7 +49,7 @@ public class FabricConnection implements BlkchnConnection {
     private String user;
     
     private QueryBlock qb;
-    
+        
     private static final String DEFAULT_USER = "test";
 
     FabricConnection(String url, Properties props) {
@@ -58,6 +59,7 @@ public class FabricConnection implements BlkchnConnection {
         this.user = props.getProperty("USER") != null ? props.getProperty("USER") : DEFAULT_USER;
         qb = new QueryBlock(this.configPath, this.channel);
         qb.enrollAndRegister(this.user);
+        qb.setChannel();     
     }
 
     String getConfigPath() {

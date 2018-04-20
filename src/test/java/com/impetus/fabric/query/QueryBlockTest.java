@@ -120,6 +120,7 @@ public class QueryBlockTest extends TestCase {
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         QueryBlock qb = new QueryBlock(configPath,"mychannel");
+	qb.setChannel();
         String chaincodeName ="chncodefunc";
         String version = "1.0";
         String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
@@ -150,6 +151,7 @@ public class QueryBlockTest extends TestCase {
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         QueryBlock qb = new QueryBlock(configPath,"mychannel");
+        qb.setChannel();
         String chaincodeName ="chncodefunc";
         String version = "1.0";
         String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
@@ -208,7 +210,7 @@ public class QueryBlockTest extends TestCase {
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         QueryBlock qb = new QueryBlock(configPath,"mychannel");
-
+        qb.setChannel();
         String chaincodeName ="chncodefunc";
         String version = "1.0";
         String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
