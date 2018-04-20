@@ -84,6 +84,8 @@ public class QueryBlock {
 
     private String admCApw;
     
+    private Channel channel;
+    
     // For setting CryptoSuite only if the application is running for the first
     // time.
     private int counter = 0;
@@ -120,6 +122,15 @@ public class QueryBlock {
         this.channelName = channelName;
     }
 
+    //Setting channel object for QueryBlock Object.
+    public void setChannel() {
+        this.channel = reconstructChannel();          
+    }
+    
+    public Channel getChannel() {
+        return channel;          
+    }
+    
     /**
      * checking config at starting
      */
@@ -318,6 +329,9 @@ public class QueryBlock {
         }
 
     }
+    
+
+    
 
     public String installChaincode(String chaincodeName, String version, String goPath, String chainCodePath) {
         Collection<ProposalResponse> responses;
@@ -371,7 +385,6 @@ public class QueryBlock {
         try {
             checkConfig();
 
-            Channel channel = reconstructChannel();
             Collection<Orderer> orderers = channel.getOrderers();
             InstantiateProposalRequest instantiateProposalRequest = getInstantiateProposalRequest(chaincodeName,
                     chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs);
@@ -433,7 +446,7 @@ public class QueryBlock {
 
             String errMsg = "QueryBlock | instantiateChaincode |" + e;
             logger.error(errMsg);
-            throw new BlkchnException("Chaincode instantiation failed", e);
+            throw new BlkchnException(errMsg, e);
         }
 
     }
@@ -448,7 +461,6 @@ public class QueryBlock {
             checkConfig();
 
             ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodename).build();
-            Channel channel = reconstructChannel();
             logger.info(String.format("[Channel Name:- %s, Chaincode Function:- %s, Chaincode Args:- %s]",
                     channel.getName(), chaincodeFunction, Arrays.asList(chaincodeArgs)));
             TransactionProposalRequest transactionProposalRequest = client.newTransactionProposalRequest();
@@ -496,24 +508,7 @@ public class QueryBlock {
             logger.debug("getChaincodeActionResponseReadWriteSetInfo:::"
                     + resp.getChaincodeActionResponseReadWriteSetInfo());
             logger.info("Sending chaincode transaction to orderer.");
-            channel.sendTransaction(successful).thenApply(transactionEvent -> {
-
-                logger.info("transaction event is valid " + transactionEvent.isValid());
-                logger.info("Finished invoke transaction with transaction id " + transactionEvent.getTransactionID());
-                return "Chaincode invoked successfully " + transactionEvent.getTransactionID();
-            }).exceptionally(e -> {
-                if (e instanceof TransactionEventException) {
-                    BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
-                    if (te != null) {
-                        String errMsg = "Transaction with txid " + te.getTransactionID() + " failed. " + e;
-                        logger.info(errMsg);
-
-                    }
-                }
-                String errMsg = "failed with " + e.getClass().getName() + " exception " + e;
-                logger.info(errMsg);
-                throw new BlkchnException(errMsg);
-            }).get(conf.getTransactionWaitTime(), TimeUnit.MILLISECONDS);
+            channel.sendTransaction(successful);
         } catch (Exception e) {
             logger.info("Caught an exception while invoking chaincode");
             String errMsg = "QueryBlock | invokeChaincode | " + e;
@@ -529,7 +524,6 @@ public class QueryBlock {
             checkConfig();
 
             ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodename).build();
-            Channel channel = reconstructChannel();
             logger.info("Channel Name is " + channel.getName());
             logger.debug(String.format("Querying chaincode %s and function %s with arguments %s", chaincodename,
                     chaincodeFunction, Arrays.asList(chaincodeArgs).toString()));
@@ -576,7 +570,6 @@ public class QueryBlock {
         try {
             checkConfig();
             
-            Channel channel = reconstructChannel();
             Collection<Orderer> orderers = channel.getOrderers();
             UpgradeProposalRequest upgradeProposalRequest = getUpgradeProposalRequest(chaincodeName, chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs);
             Map<String, byte[]> tm = new HashMap<>();
@@ -640,7 +633,6 @@ public class QueryBlock {
             String chainCodePath, Org sampleOrg) throws InvalidArgumentException {
         ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(version)
                 .setPath(chainCodePath).build();
-        Channel channel = reconstructChannel();
         final String channelName = channel.getName();
         logger.info(String.format("Running channel %s", channelName));
 

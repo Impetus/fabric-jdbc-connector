@@ -148,7 +148,7 @@ public class APIConverter {
             if (logicalPlan.getQuery().hasChildType(WhereClause.class)) {
                 blockInfos.addAll(executeWithWhereClause(tableName));
             } else {
-                Channel channel = queryBlock.reconstructChannel();
+                Channel channel = queryBlock.getChannel();
                 BlockchainInfo channelInfo;
                 try {
                     channelInfo = channel.queryBlockchainInfo();
@@ -208,7 +208,7 @@ public class APIConverter {
         // TODO Implement comparator function to take other operators(for now
         // only =)
         String value = filterItem.getChildType(IdentifierNode.class, 0).getValue();
-        Channel channel = queryBlock.reconstructChannel();
+        Channel channel = queryBlock.getChannel();
         BlockInfo blockInfo;
         if ("blockNo".equalsIgnoreCase(filterColumn)) {
             try {
