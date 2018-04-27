@@ -1,17 +1,12 @@
 package com.impetus.fabric.parser;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,6 +17,7 @@ import org.json.simple.parser.ParseException;
 
 import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.sql.DataFrame;
+import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.fabric.model.Config;
 
 public class AssetSchema {
@@ -107,7 +103,7 @@ public class AssetSchema {
     }
     
     
-    public static AssetSchema getAssetSchema(Config config, String asset) {
+    public static AssetSchema getAssetSchema(LogicalPlan logicalPlan, Config config, String asset) {
         AssetSchemaBuilder builder = new AssetSchemaBuilder();
         if(asset == null) {
             LinkedHashMap<String, String> columns = new LinkedHashMap<>();
@@ -119,26 +115,11 @@ public class AssetSchema {
             columns.put("data", "string");
             return builder.setColumnDetails(columns).setLineDelimiter("\n").setStorageType(StorageType.RAW).build();
         }
-        StringBuilder sb = new StringBuilder();
-        Properties props = config.getDbProperties();
-        sb.append("jdbc:mysql://");
-        sb.append(props.get("host") + ":" + props.getProperty("port") + "/");
-        sb.append(props.get("database"));
         String schemaJSON;
-        String jdbcUrl = sb.toString();
-        String query = "SELECT schema_json FROM asset_schema WHERE asset_name='%s'";
+        FabricAssetManager assetManager = new FabricAssetManager(logicalPlan, config);
         try {
-            Connection conn = DriverManager.getConnection(jdbcUrl, props.getProperty("username"), props.getProperty("password"));
-            Statement stat = conn.createStatement();
-            ResultSet rs = stat.executeQuery(String.format(query, asset));
-            if(rs.next()) {
-                schemaJSON = rs.getString("schema_json");
-            } else {
-                LinkedHashMap<String, String> columns = new LinkedHashMap<>();
-                columns.put("data", "string");
-                return builder.setColumnDetails(columns).setLineDelimiter("\n").setStorageType(StorageType.RAW).build();
-            }
-        } catch (SQLException e) {
+            schemaJSON = assetManager.getSchemaJSON(asset);
+        } catch (SQLException | BlkchnException e) {
             LOGGER.error("Error reading schema json from database. Falling back to RAW storage type", e);
             LinkedHashMap<String, String> columns = new LinkedHashMap<>();
             columns.put("data", "string");
