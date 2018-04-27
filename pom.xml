@@ -4,7 +4,7 @@
 
 	<groupId>com.impetus</groupId>
 	<artifactId>fabric-jdbc-driver</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>fabric-jdbc-driver</name>
@@ -47,6 +47,12 @@
 			<artifactId>blkchn-sql-interfaces</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+            <groupId>com.impetus</groupId>
+            <artifactId>blkchn-sql-addons</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
@@ -225,7 +231,7 @@
 						<transformer
 							implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
 					</transformers>
-					<finalName>${project.artifactId}-${project.version}</finalName>
+					<finalName>${project.artifactId}_assembly-${project.version}</finalName>
 				</configuration>
 			</plugin>
 		</plugins>
