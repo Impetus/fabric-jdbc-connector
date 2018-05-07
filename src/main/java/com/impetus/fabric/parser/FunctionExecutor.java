@@ -71,10 +71,10 @@ public class FunctionExecutor {
         } else {
             AssetSchema assetSchema;
             if(!callFunc.hasChildType(Asset.class)) {
-                assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), null);
+                assetSchema = AssetSchema.getAssetSchema(logicalPlan, queryBlock.getConf(), null);
             } else {
                 String assetName = callFunc.getChildType(Asset.class, 0).getChildType(IdentifierNode.class, 0).getValue();
-                assetSchema = AssetSchema.getAssetSchema(queryBlock.getConf(), assetName);
+                assetSchema = AssetSchema.getAssetSchema(logicalPlan, queryBlock.getConf(), assetName);
             }
             String result = queryBlock.queryChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
             DataFrame df = assetSchema.createDataFrame(result);
