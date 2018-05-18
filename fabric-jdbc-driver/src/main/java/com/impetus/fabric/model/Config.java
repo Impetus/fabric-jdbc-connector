@@ -123,16 +123,6 @@ public class Config {
             defaultProperty(DEPLOYWAITTIME, "120000");
             defaultProperty(PROPOSALWAITTIME, "120000");
 
-            defaultProperty(ORGS + "peerOrg1.mspid", "Org1MSP");
-            defaultProperty(ORGS + "peerOrg1.domname", "org1.example.com");
-            defaultProperty(ORGS + "peerOrg1.ca_location", "http://localhost:7054");
-            defaultProperty(ORGS + "peerOrg1.users_affilation", "org1.department1");
-            defaultProperty(ORGS + "peerOrg1.peer_locations",
-                    "peer0.org1.example.com@grpc://localhost:7051, peer1.org1.example.com@grpc://localhost:7056");
-            defaultProperty(ORGS + "peerOrg1.orderer_locations", "orderer.example.com@grpc://localhost:7050");
-            defaultProperty(ORGS + "peerOrg1.eventhub_locations",
-                    "peer0.org1.example.com@grpc://localhost:7053,peer1.org1.example.com@grpc://localhost:7058");
-
             defaultProperty(BLOCKCHAINTLS, null);
             defaultProperty(LOGGERLEVEL, "DEBUG");
             runningTLS = ((null != sdkProperties.getProperty(BLOCKCHAINTLS, null)) && false != Boolean.parseBoolean(sdkProperties.getProperty(BLOCKCHAINTLS, null)));

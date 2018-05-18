@@ -163,7 +163,7 @@ public class QueryBlockTest extends TestCase {
         when(mockChannel.sendTransaction(any(ArrayList.class),anyCollection())).thenReturn(mockCompletableFutureTEvent);// .thenReturn(mockCompletableFutureTEvent);
 
         try {
-            String result = qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"});
+            String result = qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"}, null);
         }
         catch(BlkchnException blkEx){
             //Do Nothing for Java Concurrent Error
