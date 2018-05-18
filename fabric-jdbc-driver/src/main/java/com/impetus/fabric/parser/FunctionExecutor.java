@@ -9,6 +9,7 @@ import com.impetus.blkch.sql.DataFrame;
 import com.impetus.blkch.sql.asset.Asset;
 import com.impetus.blkch.sql.function.Args;
 import com.impetus.blkch.sql.function.ClassName;
+import com.impetus.blkch.sql.function.Endorsers;
 import com.impetus.blkch.sql.function.Parameters;
 import com.impetus.blkch.sql.function.Version;
 import com.impetus.blkch.sql.parser.LogicalPlan;
@@ -30,7 +31,6 @@ public class FunctionExecutor {
     }
 
     public void executeCreate() {
-        //TODO We need to implement handling of endorsement policy
         TreeNode createFunc = logicalPlan.getCreateFunction();
         String chaincodeName = createFunc.getChildType(IdentifierNode.class, 0).getValue();
         String chaincodePath = createFunc.getChildType(ClassName.class, 0).getName().replaceAll("'", "");
@@ -46,7 +46,8 @@ public class FunctionExecutor {
             }
         }
         queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
-        queryBlock.instantiateChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}));
+        queryBlock.instantiateChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}), 
+                createFunc.hasChildType(Endorsers.class) ? createFunc.getChildType(Endorsers.class, 0) : null);
     }
     
     // This method is called for both call(query) and delete on chaincode
@@ -98,6 +99,7 @@ public class FunctionExecutor {
             }
         }
         queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
-        queryBlock.upgradeChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}));
+        queryBlock.upgradeChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}),
+                upgradeFunc.hasChildType(Endorsers.class) ? upgradeFunc.getChildType(Endorsers.class, 0) : null);
     }
 }

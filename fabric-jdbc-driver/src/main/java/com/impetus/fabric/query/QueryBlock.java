@@ -21,6 +21,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -29,11 +30,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.hyperledger.fabric.sdk.BlockEvent;
+import org.hyperledger.fabric.sdk.ChaincodeEndorsementPolicy;
 import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.EventHub;
@@ -47,6 +53,7 @@ import org.hyperledger.fabric.sdk.QueryByChaincodeRequest;
 import org.hyperledger.fabric.sdk.SDKUtils;
 import org.hyperledger.fabric.sdk.TransactionProposalRequest;
 import org.hyperledger.fabric.sdk.UpgradeProposalRequest;
+import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
 import org.hyperledger.fabric.sdk.exception.CryptoException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.TransactionEventException;
@@ -55,8 +62,15 @@ import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
 
 import com.impetus.blkch.BlkchnException;
+import com.impetus.blkch.sql.function.Endorsers;
+import com.impetus.blkch.sql.function.PolicyFile;
+import com.impetus.blkch.sql.query.IdentifierNode;
+import com.impetus.blkch.sql.query.LogicalOperation;
+import com.impetus.blkch.util.Tuple2;
 import com.impetus.fabric.model.Config;
 import com.impetus.fabric.model.HyperUser;
 import com.impetus.fabric.model.Org;
@@ -70,6 +84,7 @@ import com.impetus.fabric.model.Store;
  *
  */
 
+@NotThreadSafe
 public class QueryBlock {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryBlock.class);
@@ -272,8 +287,6 @@ public class QueryBlock {
 
                 sampleOrg.setPeerAdmin(peerOrgAdmin);
 
-                return "User  Enrolled Successfuly";
-
             }
 
         } catch (Exception e) {
@@ -281,94 +294,104 @@ public class QueryBlock {
             logger.error(errMsg);
             throw new BlkchnException(errMsg);
         }
-        return "Something went wrong";
+        return "User  Enrolled Successfuly";
     }
-
-    public Channel reconstructChannel() {
-
+    
+    public Channel reconstructChannel()
+    {
         checkConfig();
-        try {
+        try
+        {
             org.apache.log4j.Level setTo = null;
             setTo = org.apache.log4j.Level.DEBUG;
             org.apache.log4j.Logger.getLogger("org.hyperledger.fabric").setLevel(setTo);
 
-            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[] {})[0];
+            Org sampleOrg1 = conf.getSampleOrgs().toArray(new Org[] {})[0];
 
-            client.setUserContext(sampleOrg.getPeerAdmin());
-            Channel newChannel = client.newChannel(channelName);
-
-            for (String orderName : sampleOrg.getOrdererNames()) {
-
-                newChannel.addOrderer(client.newOrderer(orderName, sampleOrg.getOrdererLocation(orderName),
-                        conf.getOrdererProperties(orderName)));
-            }
-            for (String peerName : sampleOrg.getPeerNames()) {
-                logger.debug(peerName);
-                String peerLocation = sampleOrg.getPeerLocation(peerName);
-                Peer peer = client.newPeer(peerName, peerLocation, conf.getPeerProperties(peerName));
-
-                Set<String> channels = client.queryChannels(peer);
-                if (!channels.contains(channelName)) {
-                    logger.info("Peer %s does not appear to belong to channel %s", peerName, channelName);
+            Channel newChannel = null;
+            boolean test = true;
+            for (Org sampleOrg : SampleOrgs)
+            {
+                
+                client.setUserContext(sampleOrg.getPeerAdmin());
+                if (test)
+                {
+                    newChannel = client.newChannel(channelName);
+                    for (String orderName : sampleOrg1.getOrdererNames())
+                    {
+                        newChannel.addOrderer(client.newOrderer(orderName, sampleOrg1.getOrdererLocation(orderName),
+                                conf.getOrdererProperties(orderName)));
+                    }
+                    test = false;
                 }
-                newChannel.addPeer(peer);
-                sampleOrg.addPeer(peer);
-            }
 
-            for (String eventHubName : sampleOrg.getEventHubNames()) {
-                EventHub eventHub = client.newEventHub(eventHubName, sampleOrg.getEventHubLocation(eventHubName),
-                        conf.getEventHubProperties(eventHubName));
-                newChannel.addEventHub(eventHub);
+                for (String peerName : sampleOrg.getPeerNames())
+                {
+                    logger.debug(peerName);
+                    String peerLocation = sampleOrg.getPeerLocation(peerName);
+                    Peer peer = client.newPeer(peerName, peerLocation, conf.getPeerProperties(peerName));
+
+                    Set<String> channels = client.queryChannels(peer);
+                    if (!channels.contains(channelName))
+                    {
+                        logger.info(String.format("Peer %s does not appear to belong to channel %s", peerName, channelName));
+                    }
+                    newChannel.addPeer(peer);
+                    sampleOrg.addPeer(peer);
+                }
+
+                for (String eventHubName : sampleOrg.getEventHubNames())
+                {
+                    EventHub eventHub = client.newEventHub(eventHubName, sampleOrg.getEventHubLocation(eventHubName),
+                            conf.getEventHubProperties(eventHubName));
+                    newChannel.addEventHub(eventHub);
+                }
+                newChannel.initialize();
             }
-            newChannel.initialize();
             return newChannel;
-        } catch (Exception e) {
+
+        }
+        catch (Exception e)
+        {
             String errMsg = "QueryBlock | reconstructChannel " + e;
             logger.error(errMsg);
-            throw new BlkchnException(errMsg);
+            throw new BlkchnException(errMsg, e);
         }
 
     }
     
-
-    
-
-    public String installChaincode(String chaincodeName, String version, String goPath, String chainCodePath) {
+    public String installChaincode(String chaincodeName, String version, String goPath, String chaincodePath) {
         Collection<ProposalResponse> responses;
         Collection<ProposalResponse> successful = new ArrayList<>();
         Collection<ProposalResponse> failed = new ArrayList<>();
+        int numInstallProposal = 0;
         try {
             checkConfig();
-            Org sampleOrg = conf.getSampleOrgs().toArray(new Org[] {})[0];
-            InstallProposalRequest installProposalRequest = getInstallProposalRequest(chaincodeName, version, goPath,
-                    chainCodePath, sampleOrg);
-            logger.info("Sending install proposal");
-            int numInstallProposal = 0;
-
-            Set<Peer> peersFromOrg = sampleOrg.getPeers();
-            numInstallProposal = numInstallProposal + peersFromOrg.size();
-            responses = client.sendInstallProposal(installProposalRequest, peersFromOrg);
-
-            for (ProposalResponse response : responses) {
-                if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
-                    logger.debug(String.format("Successful install proposal response Txid: %s from peer %s",
-                            response.getTransactionID(), response.getPeer().getName()));
-                    successful.add(response);
-                } else {
-                    failed.add(response);
+            for(Org sampleOrg : conf.getSampleOrgs()) {
+                InstallProposalRequest installProposalRequest = getInstallProposalRequest(chaincodeName, version, goPath, chaincodePath, sampleOrg);
+                Set<Peer> peersFromOrg = sampleOrg.getPeers();
+                numInstallProposal = numInstallProposal + peersFromOrg.size();
+                responses = client.sendInstallProposal(installProposalRequest, peersFromOrg);
+                for(ProposalResponse response : responses) {
+                    if(response.getStatus() == ProposalResponse.Status.SUCCESS) {
+                        logger.debug(String.format("Successful install proposal response Txid: %s from peer %s",
+                                response.getTransactionID(), response.getPeer().getName()));
+                        successful.add(response);
+                    } else {
+                        failed.add(response);
+                    }
+                }
+                SDKUtils.getProposalConsistencySets(responses);
+                if (failed.size() > 0) {
+                    ProposalResponse first = failed.iterator().next();
+                    String errMsg = "Not enough endorsers for install :" + successful.size() + ".  " + first.getMessage();
+                    throw new BlkchnException(errMsg);
                 }
             }
-            SDKUtils.getProposalConsistencySets(responses);
             logger.info(String.format("Received %d install proposal responses. Successful+verified: %d . Failed: %d",
                     numInstallProposal, successful.size(), failed.size()));
-            if (failed.size() > 0) {
-                ProposalResponse first = failed.iterator().next();
-                String errMsg = "Not enough endorsers for install :" + successful.size() + ".  " + first.getMessage();
-                throw new BlkchnException(errMsg);
-            }
-
             return "Chaincode installed successfully";
-        } catch (Exception e) {
+        } catch(Exception e) {
             String errMsg = "QueryBlock | installChaincode | " + e;
             logger.error(errMsg);
             throw new BlkchnException("Chaincode installation failed" + " " + errMsg);
@@ -376,7 +399,7 @@ public class QueryBlock {
     }
 
     public String instantiateChaincode(String chaincodeName, String chainCodeVersion, String chainCodePath,
-            String chaincodeFunction, String[] chaincodeArgs) {
+            String chaincodeFunction, String[] chaincodeArgs, Endorsers endorsers) {
 
         Collection<ProposalResponse> responses;
         Collection<ProposalResponse> successful = new ArrayList<>();
@@ -387,14 +410,14 @@ public class QueryBlock {
 
             Collection<Orderer> orderers = channel.getOrderers();
             InstantiateProposalRequest instantiateProposalRequest = getInstantiateProposalRequest(chaincodeName,
-                    chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs);
+                    chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs, endorsers);
             Map<String, byte[]> tm = new HashMap<>();
             tm.put("HyperLedgerFabric", "InstantiateProposalRequest:JavaSDK".getBytes(UTF_8));
             tm.put("method", "InstantiateProposalRequest".getBytes(UTF_8));
             instantiateProposalRequest.setTransientMap(tm);
             logger.info(
                     "Sending instantiateProposalRequest to all peers with arguments: a and b set to 100 and %s respectively",
-                    "" + (200));
+                    "" + (200));            
 
             responses = channel.sendInstantiationProposal(instantiateProposalRequest, channel.getPeers());
             for (ProposalResponse response : responses) {
@@ -450,7 +473,7 @@ public class QueryBlock {
         }
 
     }
-
+    
     public String invokeChaincode(String chaincodename, String chaincodeFunction, String[] chaincodeArgs) {
 
         try {
@@ -562,7 +585,7 @@ public class QueryBlock {
     }
     
     public String upgradeChaincode(String chaincodeName, String chainCodeVersion, String chainCodePath,
-            String chaincodeFunction, String[] chaincodeArgs) {
+            String chaincodeFunction, String[] chaincodeArgs, Endorsers endorsers) {
         Collection<ProposalResponse> responses;
         Collection<ProposalResponse> successful = new ArrayList<>();
         Collection<ProposalResponse> failed = new ArrayList<>();
@@ -571,7 +594,7 @@ public class QueryBlock {
             checkConfig();
             
             Collection<Orderer> orderers = channel.getOrderers();
-            UpgradeProposalRequest upgradeProposalRequest = getUpgradeProposalRequest(chaincodeName, chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs);
+            UpgradeProposalRequest upgradeProposalRequest = getUpgradeProposalRequest(chaincodeName, chainCodeVersion, chainCodePath, chaincodeFunction, chaincodeArgs, endorsers);
             Map<String, byte[]> tm = new HashMap<>();
             tm.put("HyperLedgerFabric", "UpgradeProposalRequest:JavaSDK".getBytes(UTF_8));
             tm.put("method", "UpgradeProposalRequest".getBytes(UTF_8));
@@ -646,7 +669,7 @@ public class QueryBlock {
     }
 
     private InstantiateProposalRequest getInstantiateProposalRequest(String chaincodeName, String chainCodeVersion,
-            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs) {
+            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs, Endorsers endorsers) {
         ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(chainCodeVersion)
                 .setPath(chainCodePath).build();
         InstantiateProposalRequest instantiateProposalRequest = client.newInstantiationProposalRequest();
@@ -654,11 +677,15 @@ public class QueryBlock {
         instantiateProposalRequest.setChaincodeID(chaincodeID);
         instantiateProposalRequest.setFcn(chaincodeFunction);
         instantiateProposalRequest.setArgs(chaincodeArgs);
+        if(endorsers != null) {
+            ChaincodeEndorsementPolicy policy = getChaincodeEndorsementPolicy(endorsers);
+            instantiateProposalRequest.setChaincodeEndorsementPolicy(policy);
+        }
         return instantiateProposalRequest;
     }
     
     private UpgradeProposalRequest getUpgradeProposalRequest(String chaincodeName, String chainCodeVersion,
-            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs) {
+            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs, Endorsers endorsers) {
         ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(chainCodeVersion)
                 .setPath(chainCodePath).build();
         UpgradeProposalRequest upgradeProposalRequest = client.newUpgradeProposalRequest();
@@ -666,7 +693,25 @@ public class QueryBlock {
         upgradeProposalRequest.setChaincodeID(chaincodeID);
         upgradeProposalRequest.setFcn(chaincodeFunction);
         upgradeProposalRequest.setArgs(chaincodeArgs);
+        if(endorsers != null) {
+            ChaincodeEndorsementPolicy policy = getChaincodeEndorsementPolicy(endorsers);
+            upgradeProposalRequest.setChaincodeEndorsementPolicy(policy);
+        }
         return upgradeProposalRequest;
+    }
+    
+    private ChaincodeEndorsementPolicy getChaincodeEndorsementPolicy(Endorsers endorsers) {
+        ChaincodeEndorsementPolicy policy = new ChaincodeEndorsementPolicy();
+        PolicyFile policyFile = endorsers.getChildType(PolicyFile.class, 0);
+        String fileLoc = policyFile.getFileLocation().replace("'", "").replace("\"", "");
+        try {
+            policy.fromYamlFile(new File(fileLoc));
+        } catch (ChaincodeEndorsementPolicyParseException | IOException e) {
+            String errMsg = "QueryBlock | getChaincodeEndorsementPolicy |" + e;
+            logger.error(errMsg);
+            throw new BlkchnException(errMsg, e);
+        }
+        return policy;
     }
 
 }
