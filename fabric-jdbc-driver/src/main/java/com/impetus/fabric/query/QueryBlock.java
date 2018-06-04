@@ -416,21 +416,20 @@ public class QueryBlock {
             tm.put("method", "InstantiateProposalRequest".getBytes(UTF_8));
             instantiateProposalRequest.setTransientMap(tm);
             logger.info(
-                    "Sending instantiateProposalRequest to all peers with arguments: a and b set to 100 and %s respectively",
-                    "" + (200));            
+                    "Sending instantiateProposalRequest to all peers with arguments:" + Arrays.asList(chaincodeArgs));
 
             responses = channel.sendInstantiationProposal(instantiateProposalRequest, channel.getPeers());
             for (ProposalResponse response : responses) {
                 if (response.isVerified() && response.getStatus() == ProposalResponse.Status.SUCCESS) {
                     successful.add(response);
-                    logger.info("Succesful instantiate proposal response Txid: %s from peer %s",
-                            response.getTransactionID(), response.getPeer().getName());
+                    logger.info(String.format("Succesful instantiate proposal response Txid: %s from peer %s",
+                            response.getTransactionID(), response.getPeer().getName()));
                 } else {
                     failed.add(response);
                 }
             }
-            logger.info("Received %d instantiate proposal responses. Successful+verified: %d . Failed: %d",
-                    responses.size(), successful.size(), failed.size());
+            logger.info(String.format("Received %d instantiate proposal responses. Successful+verified: %d . Failed: %d",
+                    responses.size(), successful.size(), failed.size()));
             if (failed.size() > 0) {
                 ProposalResponse first = failed.iterator().next();
 
@@ -440,21 +439,20 @@ public class QueryBlock {
                 throw new BlkchnException(errMsg);
             }
 
-            logger.info("Sending instantiateTransaction to orderer with a and b set to 100 and %s respectively",
-                    "" + (200));
+            logger.info("Sending instantiateTransaction to orderer");
             logger.info("orderers", orderers);
             channel.sendTransaction(successful, orderers)
                     .thenApply(
                             transactionEvent -> {
                                 logger.info("transaction event is valid", transactionEvent.isValid());
-                                logger.info("Finished instantiate transaction with transaction id %s",
-                                        transactionEvent.getTransactionID());
+                                logger.info(String.format("Finished instantiate transaction with transaction id %s",
+                                        transactionEvent.getTransactionID()));
                                 return null;
                             }).exceptionally(e -> {
                         if (e instanceof TransactionEventException) {
                             BlockEvent.TransactionEvent te = ((TransactionEventException) e).getTransactionEvent();
                             if (te != null) {
-                                logger.info("Transaction with txid %s failed. %s", te.getTransactionID(), e);
+                                logger.info(String.format("Transaction with txid %s failed. %s", te.getTransactionID(), e));
                             }
                         }
                         String errMsg = String.format(" failed with %s exception %s", e.getClass().getName(), e);
