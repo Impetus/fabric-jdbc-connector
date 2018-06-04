@@ -34,7 +34,7 @@ public class App {
             throw new RuntimeException("Select option between 1 and 6");
         }
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath + ":" + channel, "Swati Raj", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath + ":" + channel, "Hari", "");
         if(option == 1) {
             createAsset(conn);
         } else if(option == 2) {
