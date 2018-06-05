@@ -17,7 +17,8 @@
 
     <modules>
         <module>fabric-jdbc-driver</module>
-        <module>fabric-sample</module>
+	<module>fabric-sample</module>
+	<module>fabric-jdbc-assembly</module>
     </modules>
 
     <build>
