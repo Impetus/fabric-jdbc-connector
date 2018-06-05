@@ -1,3 +1,19 @@
+/*******************************************************************************
+ * * Copyright 2018 Impetus Infotech.
+ * *
+ * * Licensed under the Apache License, Version 2.0 (the "License");
+ * * you may not use this file except in compliance with the License.
+ * * You may obtain a copy of the License at
+ * *
+ * * http://www.apache.org/licenses/LICENSE-2.0
+ * *
+ * * Unless required by applicable law or agreed to in writing, software
+ * * distributed under the License is distributed on an "AS IS" BASIS,
+ * * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * * See the License for the specific language governing permissions and
+ * * limitations under the License.
+ ******************************************************************************/
+
 package com.impetus.fabric.query;
 
 
@@ -22,6 +38,7 @@ public class QueryBlockIT extends TestCase {
     public void testFabricStatement() throws ClassNotFoundException, SQLException {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
+        ///home/impetus/IdeaProjects/fabric-jdbc-connector/fabric-jdbc-driver/src/test/resources/blockchain-query/src/etltracker
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
@@ -121,9 +138,7 @@ public class QueryBlockIT extends TestCase {
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
-        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
-                + " WITH ARGS 'a', 500, 'b', 200";
-
+        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'examples/etltracker' WITH VERSION '1.0'";
         stat.execute(createFuncQuery);
     }
 
@@ -135,11 +150,10 @@ public class QueryBlockIT extends TestCase {
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
-        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
-                + " WITH ARGS 'a', 500, 'b', 200";
+        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'examples/etltracker' WITH VERSION '1.0'";
         System.out.println(stat.execute(createFuncQuery));
 
-        String callQuery = "CALL chncodefunc"+currentTimeStamp+"('invoke', 'a', 'b', 20)";
+        String callQuery = "CALL chncodefunc"+currentTimeStamp+"('insert', 'impdb', 'customer', 'alter table customer add name varchar')";
         stat.execute(callQuery);
 
 
@@ -154,10 +168,9 @@ public class QueryBlockIT extends TestCase {
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
 
-        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
-                + " WITH ARGS 'a', 500, 'b', 200";
+        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'examples/etltracker' WITH VERSION '1.0'";
         stat.execute(createFuncQuery);
-        String insertQuery = "INSERT INTO chncodefunc"+currentTimeStamp+" VALUES('invoke', 'a', 'b', 20)";
+        String insertQuery = "INSERT INTO chncodefunc"+currentTimeStamp+" VALUES('insert', 'impdb', 'customer', 'alter table customer add name varchar')";
         stat.execute(insertQuery);
     }
 
@@ -185,11 +198,9 @@ public class QueryBlockIT extends TestCase {
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         
         Statement stat = conn.createStatement();
-        String createFuncQuery = "CREATE FUNCTION chncodeFunc" + currentTimestamp + " AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '1.0'"
-                + " WITH ARGS 'a', 500, 'b', 200";
+        String createFuncQuery = "CREATE FUNCTION chncodeFunc" + currentTimestamp + " AS 'examples/etltracker' WITH VERSION '1.0'";
         stat.execute(createFuncQuery);
-        String upgradeFuncQuery = "UPGRADE FUNCTION chncodeFunc" + currentTimestamp + " AS 'hyperledger/fabric/examples/chaincode/go/chaincode_example02' WITH VERSION '2.0'"
-                + " WITH ARGS 'a', 500, 'b', 200";
+        String upgradeFuncQuery = "UPGRADE FUNCTION chncodeFunc" + currentTimestamp + " AS 'examples/etltracker' WITH VERSION '2.0'";
         stat.execute(upgradeFuncQuery);
     }
 
