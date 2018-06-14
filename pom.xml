@@ -2,61 +2,60 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.impetus</groupId>
-    <artifactId>fabric-jdbc-connector</artifactId>
-    <version>${project.release.version}</version>
-    <packaging>pom</packaging>
-    <name>Fabric JDBC Connector</name>
+	<groupId>com.impetus</groupId>
+	<artifactId>fabric-jdbc-connector</artifactId>
+	<version>1.0.0</version>
+	<packaging>pom</packaging>
+	<name>Fabric JDBC Connector</name>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.release.version>1.0.0</project.release.version>
-        <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
-        <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
-        <jdk.compiler.version>1.8</jdk.compiler.version>
-    </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
+		<jdk.compiler.version>1.8</jdk.compiler.version>
+	</properties>
 
-    <modules>
-        <module>fabric-jdbc-driver</module>
-	<module>fabric-sample</module>
-	<module>fabric-jdbc-assembly</module>
-    </modules>
+	<modules>
+		<module>fabric-jdbc-driver</module>
+		<module>fabric-sample</module>
+		<module>fabric-jdbc-assembly</module>
+	</modules>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin.version}</version>
-                    <configuration>
-                        <source>${jdk.compiler.version}</source>
-                        <target>${jdk.compiler.version}</target>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>${maven-dependency-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>download-sources</id>
-                            <goals>
-                                <goal>sources</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven-compiler-plugin.version}</version>
+					<configuration>
+						<source>${jdk.compiler.version}</source>
+						<target>${jdk.compiler.version}</target>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>${maven-dependency-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>download-sources</id>
+							<goals>
+								<goal>sources</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 
-    <distributionManagement>
-        <repository>
-            <id>deployment</id>
-            <name>Blockchain JDBC nexus</name>
-            <url>http://172.25.32.44:8081/content/repositories/releases/</url>
-        </repository>
-    </distributionManagement>
+	<distributionManagement>
+		<repository>
+			<id>deployment</id>
+			<name>Blockchain JDBC nexus</name>
+			<url>http://172.25.32.44:8081/content/repositories/releases/</url>
+		</repository>
+	</distributionManagement>
 
 </project>

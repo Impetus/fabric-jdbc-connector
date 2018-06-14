@@ -7,11 +7,10 @@
 	<parent>
                 <groupId>com.impetus</groupId>
                 <artifactId>fabric-jdbc-connector</artifactId>
-                <version>${project.release.version}</version>
+                <version>1.0.0</version>
         </parent>
 	<artifactId>fabric-sample</artifactId>
-
-	<name>fabric-sample</name>
+	<name>Fabric Samples</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
