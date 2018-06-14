@@ -5,14 +5,12 @@
 	<parent>
 		<groupId>com.impetus</groupId>
 		<artifactId>fabric-jdbc-connector</artifactId>
-		<version>${project.release.version}</version>
+		<version>1.0.0</version>
 	</parent>
 
 	<artifactId>fabric-jdbc-driver</artifactId>
 	<packaging>jar</packaging>
-
-	<name>fabric-jdbc-driver</name>
-	<url>http://maven.apache.org</url>
+	<name>Fabric Jdbc Driver</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -23,7 +21,7 @@
 		<skip.integration.tests>true</skip.integration.tests>
 		<powermock.version>1.7.3</powermock.version>
 		<mockito.version>1.10.19</mockito.version>
-                <blkchn.sql.version>1.1.0-SNAPSHOT</blkchn.sql.version>
+		<blkchn.sql.version>1.0.0</blkchn.sql.version>
 	</properties>
 
 	<profiles>

@@ -4,12 +4,15 @@
 	<parent>
 		<groupId>com.impetus</groupId>
 		<artifactId>fabric-jdbc-connector</artifactId>
-		<version>${project.release.version}</version>
+		<version>1.0.0</version>
 	</parent>
 	<artifactId>fabric-jdbc-assembly</artifactId>
+	<name>Fabric Jdbc Assembly</name>
+	
 	<properties>
 		<maven.deploy.skip>true</maven.deploy.skip>
 	</properties>
+	
 	<build>
 		<finalName>fabric-jdbc-package-${project.version}</finalName>
 		<plugins>
