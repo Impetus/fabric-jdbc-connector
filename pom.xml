@@ -7,11 +7,16 @@
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
 	<name>Fabric JDBC Connector</name>
+	<description>Fabric JDBC connector implements a pure java, type 4 JDBC driver that executes SQL queries on Hyperledger fabric blockchain</description>
+	<url>https://github.com/Impetus/fabric-jdbc-connector</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
+		<maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+		<maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
+		<maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
 		<jdk.compiler.version>1.8</jdk.compiler.version>
 	</properties>
 
@@ -46,8 +51,58 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>${maven-source-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<goals>
+								<goal>jar-no-fork</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>${maven-javadoc-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>attach-javadocs</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>${maven-gpg-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>sign-artifacts</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>sign</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+			</plugin>
+		</plugins>
 	</build>
 
 	<distributionManagement>
