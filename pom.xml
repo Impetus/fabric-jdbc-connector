@@ -7,11 +7,65 @@
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
 	<name>Fabric JDBC Connector</name>
+	<description>Fabric JDBC connector implements a pure java, type 4 JDBC driver that executes SQL queries on Hyperledger fabric blockchain</description>
+	<url>https://github.com/Impetus/fabric-jdbc-connector</url>
+	
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>ashishkshukla</id>
+			<name>Ashish K Shukla</name>
+			<email>ashishk.shukla@impetus.co.in</email>
+		</developer>
+		<developer>
+			<id>narahari92</id>
+			<name>Hosur Narhari</name>
+			<email>hosur.narhari@impetus.co.in</email>
+		</developer>
+		<developer>
+			<id>karthikprasad13</id>
+			<name>Karthik Prasad Manchala</name>
+			<email>karthikp.manchala@impetus.co.in</email>
+		</developer>
+		<developer>
+			<id>JeetenJaiswal</id>
+			<name>Jeetendra Jaiswal</name>
+			<email>jeetendra.jaiswal@impetus.co.in</email>
+		</developer>
+		<developer>
+			<id>ajay-shriwastava</id>
+			<name>Ajay Shriwastava</name>
+			<email>ajay.shriwastava@impetus.co.in</email>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git://github.com/Impetus/fabric-jdbc-connector.git</connection>
+		<developerConnection>scm:git:ssh://github.com/Impetus/fabric-jdbc-connector.git</developerConnection>
+		<url>http://github.com/Impetus/fabric-jdbc-connector/tree/master</url>
+	</scm>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
+		<maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+		<maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
+		<maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
 		<jdk.compiler.version>1.8</jdk.compiler.version>
 	</properties>
 
@@ -46,16 +100,58 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>${maven-source-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<goals>
+								<goal>jar-no-fork</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>${maven-javadoc-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>attach-javadocs</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>${maven-gpg-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>sign-artifacts</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>sign</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+			</plugin>
+		</plugins>
 	</build>
-
-	<distributionManagement>
-		<repository>
-			<id>deployment</id>
-			<name>Blockchain JDBC nexus</name>
-			<url>http://172.25.32.44:8081/content/repositories/releases/</url>
-		</repository>
-	</distributionManagement>
 
 </project>
