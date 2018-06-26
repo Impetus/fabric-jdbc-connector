@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.impetus</groupId>
+		<groupId>com.impetus.fabric</groupId>
 		<artifactId>fabric-jdbc-connector</artifactId>
 		<version>1.0.0</version>
 	</parent>
@@ -46,12 +46,12 @@
 			<version>1.0.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.impetus</groupId>
+			<groupId>com.impetus.blkchn</groupId>
 			<artifactId>blkchn-sql-interfaces</artifactId>
 			<version>${blkchn.sql.version}</version>
 		</dependency>
 		<dependency>
-            <groupId>com.impetus</groupId>
+            <groupId>com.impetus.blkchn</groupId>
             <artifactId>blkchn-sql-addons</artifactId>
             <version>${blkchn.sql.version}</version>
             <scope>provided</scope>

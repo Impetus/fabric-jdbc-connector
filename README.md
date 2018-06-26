@@ -34,7 +34,7 @@ Fabric JDBC connector is a maven based project. It can be directly added as mave
   
 ``` 
 <dependency> 
-<groupId>com.impetus</groupId> 
+<groupId>com.impetus.fabric</groupId> 
 <artifactId>fabric-jdbc-driver</artifactId> 
 <version>${fabricjdbcdriver.version}</version> 
 </dependency> 
