@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-                <groupId>com.impetus</groupId>
+                <groupId>com.impetus.fabric</groupId>
                 <artifactId>fabric-jdbc-connector</artifactId>
                 <version>1.0.0</version>
         </parent>
@@ -25,7 +25,7 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.impetus</groupId>
+			<groupId>com.impetus.fabric</groupId>
 			<artifactId>fabric-jdbc-driver</artifactId>
 			<version>${project.version}</version>
 		</dependency>
