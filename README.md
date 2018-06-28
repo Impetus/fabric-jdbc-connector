@@ -9,6 +9,13 @@ Fabric JDBC connector implements a pure java, type 4 JDBC driver that executes S
 It uses [blkchn-sql-driver](https://github.com/Impetus/blkchn-sql-driver) to parse the query and create corresponding logical plan. This logical plan is then converted into an optimized physical plan. The driver extends and implements the physical plan, using corresponding function calls of [fabric-sdk-java](https://github.com/hyperledger/fabric-sdk-java) to interact with Fabric network. The driver then converts the returned objects to a JDBC compliant result set and return it to the user. 
  
  
+
+# Tested with
+| Dependency | Version |
+|---|---|
+| maven | 3.3.3 |
+|java | 1.8 |
+|fabric-sdk-java | 1.0.1 |
  
 
 Supported Features  
@@ -17,13 +24,23 @@ Supported Features
 - Querying on blocks, transactions, transaction actions and read write sets
 - Creating Assets
 - Querying Assets 
-- Creating and dropping Asset schema  
+- Deleting Assets
+- Creating Asset schema
+- Dropping Asset schema  
+- Creating Chaincode
+- Upgrading Chaincode
 
+Building fabric-jdbc-connector
+==========================
+- [Download](https://github.com/Impetus/blkchn-sql-driver/archive/master.zip) or clone <b>blkchn-sql-driver</b> project `git clone https://github.com/Impetus/blkchn-sql-driver.git`
+- build blkchn-sql-driver using `mvn clean install -Pgen-sources`
+- [Download](https://github.com/Impetus/fabric-jdbc-connector/archive/master.zip) <b>fabric-jdbc-connector</b> source code or use `git clone https://github.com/Impetus/fabric-jdbc-connector.git` 
+- build it using `mvn clean install` 
 
 Getting Started 
-=============== 
- 
-- [Download](https://github.com/Impetus/fabric-jdbc-connector/archive/master.zip) source code or use `git clone https://github.com/Impetus/fabric-jdbc-connector.git` 
+===============  
+
+
 - Navigate to [examples](https://github.com/Impetus/fabric-jdbc-connector/tree/master/fabric-sample) folder 
 - Run [`App.java`](https://github.com/Impetus/fabric-jdbc-connector/blob/master/fabric-sample/src/main/java/com/impetus/fabricsample/App.java) for quick start 
  
