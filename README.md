@@ -2,6 +2,9 @@
  
 Overview 
 ========= 
+
+[![Join the chat at https://gitter.im/Impetus/fabric-jdbc-connector](https://badges.gitter.im/Impetus/fabric-jdbc-connector.svg)](https://gitter.im/Impetus/fabric-jdbc-connector?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
  
 Fabric JDBC connector implements a pure java, type 4 JDBC driver that executes SQL queries on Hyperledger fabric blockchain. It facilitates getting the data in and out of fabric in JDBC compliant manner. The Fabric JDBC Connector can be used to perform ETL, BI reporting and analytics using the familiar SQL language.  
  
