@@ -6,7 +6,7 @@ Use `git clone https://github.com/Impetus/fabric-jdbc-connector.git`
 
 ### 2. Discuss with fabric-jdbc-connector Team:
 
-Share your thoughts with us at Gitter [chat](<add gitter link>) or mail us at ILABS-BLR-RD@impetus.co.in
+Share your thoughts with us at Gitter [chat](https://gitter.im/Impetus/fabric-jdbc-connector?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) or mail us at dev-fabric-driver@impetus.co.in
 
 After discussion, Raise a new issue on [github](https://github.com/Impetus/fabric-jdbc-connector/issues)
 
