@@ -9,8 +9,8 @@
                 <artifactId>fabric-jdbc-connector</artifactId>
                 <version>1.0.0</version>
         </parent>
-	<artifactId>fabric-sample</artifactId>
-	<name>Fabric Samples</name>
+	<artifactId>fabric-jdbc-examples</artifactId>
+	<name>Fabric JDBC Examples</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
