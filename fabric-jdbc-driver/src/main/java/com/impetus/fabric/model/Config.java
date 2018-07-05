@@ -61,11 +61,11 @@ public class Config {
 
     private static final String FABRIC_CA_ADMIN_NAME = "FABRIC_CA_ADMIN_NAME";
     
-    private static final String DEFAULT_FABRIC_CA_ADM= "admin";
+    private static final String DEFAULT_FABRIC_CA_ADMIN_NAME= "admin";
 
-    private static final String FABRIC_CA_ADM_PASS = "FABRIC_CA_ADM_PASS";
+    private static final String FABRIC_CA_ADMIN_PASS = "FABRIC_CA_ADMIN_PASS";
     
-    private static final String DEFAULT_FABRIC_CA_ADM_PASS = "adminpw";
+    private static final String DEFAULT_FABRIC_CA_ADMIN_PASS = "adminpw";
 
     public static final String LOGGERLEVEL = "org.hyperledger.fabric.sdk.loglevel";
 
@@ -216,23 +216,23 @@ public class Config {
 
         try {
             hyperledgerProperties.load(new FileInputStream(path + "/hyperledger.properties"));
-            adminca = hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_NAME) != null ? hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_NAME) : DEFAULT_FABRIC_CA_ADM;
+            adminca = hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_NAME) != null ? hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_NAME) : DEFAULT_FABRIC_CA_ADMIN_NAME;
         } catch(IOException e) {
             logger.error("Error loading hyperledger.properties file from location " + path + ", loading default props", e);
         } finally {
             if(hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_NAME) == null) {
-                adminca = DEFAULT_FABRIC_CA_ADM;
+                adminca = DEFAULT_FABRIC_CA_ADMIN_NAME;
             }
         }
 
         try {
             hyperledgerProperties.load(new FileInputStream(path + "/hyperledger.properties"));
-            admcapw = hyperledgerProperties.getProperty(FABRIC_CA_ADM_PASS) != null ? hyperledgerProperties.getProperty(FABRIC_CA_ADM_PASS) : DEFAULT_FABRIC_CA_ADM_PASS;
+            admcapw = hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_PASS) != null ? hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_PASS) : DEFAULT_FABRIC_CA_ADMIN_PASS;
         } catch(IOException e) {
             logger.error("Error loading hyperledger.properties file from location " + path + ", loading default props", e);
         } finally {
-            if(hyperledgerProperties.getProperty(FABRIC_CA_ADM_PASS) == null) {
-                admcapw = DEFAULT_FABRIC_CA_ADM_PASS;
+            if(hyperledgerProperties.getProperty(FABRIC_CA_ADMIN_PASS) == null) {
+                admcapw = DEFAULT_FABRIC_CA_ADMIN_PASS;
             }
         }
         

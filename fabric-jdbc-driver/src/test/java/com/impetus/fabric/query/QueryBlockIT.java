@@ -38,11 +38,10 @@ public class QueryBlockIT extends TestCase {
     public void testFabricStatement() throws ClassNotFoundException, SQLException {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
-        ///home/impetus/IdeaProjects/fabric-jdbc-connector/fabric-jdbc-driver/src/test/resources/blockchain-query/src/etltracker
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from block where block_no = 2"); // This is dummy query
+        ResultSet rs = stat.executeQuery("select * from block where block_no = 2");
         assert(rs.next());
     }
 
@@ -138,7 +137,7 @@ public class QueryBlockIT extends TestCase {
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
-        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'examples/etltracker' WITH VERSION '1.0'";
+        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'assettransfer' WITH VERSION '1.0'";
         stat.execute(createFuncQuery);
     }
 
@@ -150,10 +149,10 @@ public class QueryBlockIT extends TestCase {
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
-        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'examples/etltracker' WITH VERSION '1.0'";
+        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'assettransfer' WITH VERSION '1.0'";
         System.out.println(stat.execute(createFuncQuery));
 
-        String callQuery = "CALL chncodefunc"+currentTimeStamp+"('insert', 'impdb', 'customer', 'alter table customer add name varchar')";
+        String callQuery = "CALL chncodefunc"+currentTimeStamp+"('getAsset', 1000)";
         stat.execute(callQuery);
 
 
@@ -168,9 +167,9 @@ public class QueryBlockIT extends TestCase {
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
 
-        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'examples/etltracker' WITH VERSION '1.0'";
+        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'assettransfer' WITH VERSION '1.0'";
         stat.execute(createFuncQuery);
-        String insertQuery = "INSERT INTO chncodefunc"+currentTimeStamp+" VALUES('insert', 'impdb', 'customer', 'alter table customer add name varchar')";
+        String insertQuery = "INSERT INTO chncodefunc"+currentTimeStamp+" VALUES('transferAsset', 1001, 2001, 2002)";
         stat.execute(insertQuery);
     }
 
@@ -184,7 +183,7 @@ public class QueryBlockIT extends TestCase {
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         Statement stat = conn.createStatement();
 
-        ResultSet rs = stat.executeQuery("select * from block blk where block_no >= -2 and block_no <= 1"); // This is dummy query
+        ResultSet rs = stat.executeQuery("select * from block blk where block_no >= -2 and block_no <= 1");
 
         assert(rs.next());
     }
@@ -198,9 +197,9 @@ public class QueryBlockIT extends TestCase {
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
         
         Statement stat = conn.createStatement();
-        String createFuncQuery = "CREATE FUNCTION chncodeFunc" + currentTimestamp + " AS 'examples/etltracker' WITH VERSION '1.0'";
+        String createFuncQuery = "CREATE FUNCTION chncodeFunc" + currentTimestamp + " AS 'assettransfer' WITH VERSION '1.0'";
         stat.execute(createFuncQuery);
-        String upgradeFuncQuery = "UPGRADE FUNCTION chncodeFunc" + currentTimestamp + " AS 'examples/etltracker' WITH VERSION '2.0'";
+        String upgradeFuncQuery = "UPGRADE FUNCTION chncodeFunc" + currentTimestamp + " AS 'assettransfer' WITH VERSION '2.0'";
         stat.execute(upgradeFuncQuery);
     }
 
