@@ -41,8 +41,8 @@ Getting Started
 ===============  
 
 
-- Navigate to [examples](https://github.com/Impetus/fabric-jdbc-connector/tree/master/fabric-sample) folder 
-- Run [`App.java`](https://github.com/Impetus/fabric-jdbc-connector/blob/master/fabric-sample/src/main/java/com/impetus/fabricsample/App.java) for quick start 
+- Navigate to [examples](https://github.com/Impetus/fabric-jdbc-connector/tree/master/fabric-jdbc-examples) folder 
+- Run [`App.java`](https://github.com/Impetus/fabric-jdbc-connector/blob/master/fabric-jdbc-examples/src/main/java/com/impetus/fabric/example/App.java) for quick start 
  
  
 Fabric JDBC connector is a maven based project. It can be directly added as maven dependency in your project in the following manner : 
