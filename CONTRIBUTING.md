@@ -37,7 +37,7 @@ _**At any point feel free to contact.**_
 
 ### Sample Projects
 
-Create sample projects using fabric-jdbc-driver. For example, you can create a sample web application using Spring. Check existing [examples](https://github.com/Impetus/fabric-jdbc-connector/tree/master/fabric-sample).
+Create sample projects using fabric-jdbc-driver. For example, you can create a sample web application using Spring. Check existing [examples](https://github.com/Impetus/fabric-jdbc-connector/tree/master/fabric-jdbc-examples).
 
 ### Fix open issues
 
