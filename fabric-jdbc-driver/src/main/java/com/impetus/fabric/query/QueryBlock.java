@@ -110,7 +110,7 @@ public class QueryBlock {
     private HFClient client = HFClient.createNewInstance();
     
     public QueryBlock(String configPath, String channel) {
-        conf = Config.getConfig(configPath);
+        conf = new Config(configPath);
         channelName = channel;
         adminName = conf.getAdmin();
         adminCA = conf.getAdminCA();
