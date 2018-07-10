@@ -77,7 +77,7 @@ public class Config {
 
     private static Config config;
 
-    public static final Properties sdkProperties = new Properties();
+    private final Properties sdkProperties = new Properties();
 
     private final boolean runningTLS;
 
@@ -85,7 +85,7 @@ public class Config {
 
     private final boolean runningFabricTLS;
 
-    private static final Map<String, Org> orgs = new HashMap<>();
+    private final Map<String, Org> orgs = new HashMap<>();
     
     private Properties hyperledgerProperties = new Properties();
     
@@ -97,7 +97,7 @@ public class Config {
 
     private String admcapw;
 
-    private Config(String configPath) {
+    public Config(String configPath) {
         this.path = configPath.endsWith("/") ? configPath : configPath + "/";
 
         try {
@@ -265,19 +265,6 @@ public class Config {
 
         return runningFabricCATLS ? location.replaceFirst("^http://", "https://") : location;
     }
-
-    /**
-     * getConfig return back singleton for SDK configuration.
-     *
-     * @return Global configuration
-     */
-    public static Config getConfig(String path) {
-        if (null == config) {
-            config = new Config(path);
-        }
-        return config;
-
-    }
     
     public String getAdmin() {
         return admin;
@@ -307,7 +294,7 @@ public class Config {
         return ret;
     }
 
-    private static void defaultProperty(String key, String value) {
+    private void defaultProperty(String key, String value) {
 
         String ret = System.getProperty(key);
         if (ret != null) {
