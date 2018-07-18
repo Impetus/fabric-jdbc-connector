@@ -35,6 +35,7 @@ import com.impetus.blkch.sql.parser.CaseInsensitiveCharStream;
 import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.query.FromItem;
 import com.impetus.blkch.sql.query.IdentifierNode;
+import com.impetus.blkch.sql.query.RangeNode;
 import com.impetus.blkch.sql.query.Table;
 import com.impetus.fabric.parser.FabricAssetManager;
 import com.impetus.fabric.parser.FunctionExecutor;
@@ -53,6 +54,8 @@ public class FabricStatement implements BlkchnStatement {
     private int holdablity;
 
     private FabricResultSet resultSet;
+    
+    private RangeNode<?> pageRange;
 
     FabricStatement(FabricConnection conn, int type, int concurrency, int holdability) {
         this.connection = conn;
@@ -170,7 +173,11 @@ public class FabricStatement implements BlkchnStatement {
             default:
                 Table table = logicalPlan.getQuery().getChildType(FromItem.class, 0).getChildType(Table.class, 0);
                 tableName = table.getChildType(IdentifierNode.class, 0).getValue();
-                dataframe = new QueryExecutor(logicalPlan, queryBlock).executeQuery();
+                QueryExecutor executor = new QueryExecutor(logicalPlan, queryBlock);
+                if(this.pageRange != null) {
+                    executor.paginate(pageRange);
+                }
+                dataframe = executor.executeQuery();
         }
         resultSet = new FabricResultSet(this, dataframe, tableName);
         return resultSet;
@@ -306,6 +313,11 @@ public class FabricStatement implements BlkchnStatement {
 
     public void setQueryTimeout(int seconds) throws SQLException {
         throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public void setPageRange(RangeNode<?> pageRange) {
+        this.pageRange = pageRange;
     }
 
 }

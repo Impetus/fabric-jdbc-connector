@@ -1,0 +1,105 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+                <groupId>com.impetus.fabric</groupId>
+                <artifactId>fabric-jdbc-connector</artifactId>
+                <version>1.1.0-SNAPSHOT</version>
+        </parent>
+
+	<artifactId>fabric-jdbc-driver-shaded</artifactId>
+	<packaging>jar</packaging>
+
+	<name>fabric-sdk-java-shaded</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.impetus.fabric</groupId>
+			<artifactId>fabric-jdbc-driver</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+			 <exclusion>
+			     <groupId>io.grpc</groupId>
+			     <artifactId>grpc-netty</artifactId>
+			 </exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+		  <groupId>io.grpc</groupId>
+		  <artifactId>grpc-netty</artifactId>
+		  <version>1.6.1</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<relocations>
+								<relocation>
+									<pattern>io.netty.util.internal</pattern>
+									<shadedPattern>com.impetus.io.netty.util.internal</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>com.google.protobuf</pattern>
+									<shadedPattern>com.impetus.com.google.protobuf</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>com.google.common</pattern>
+									<shadedPattern>com.impetus.com.google.common</shadedPattern>
+								</relocation>
+								<relocation>
+								    <pattern>io.grpc.netty</pattern>
+								    <shadedPattern>com.impetus.io.grpc.netty</shadedPattern>
+								</relocation>
+								<!-- <relocation>
+								    <pattern>META-INF/native/libnetty</pattern>
+								    <shadedPattern>META-INF/native/libshadednetty</shadedPattern>
+								</relocation>
+								<relocation>
+								    <pattern>META-INF/native/netty</pattern>
+								    <shadedPattern>META-INF/native/shadednetty</shadedPattern>
+								</relocation> -->
+							</relocations>
+<filters>
+                    <filter>
+                        <!-- filter out signature files from signed dependencies, else repackaging fails with security ex -->
+                        <artifact>*:*</artifact>
+                        <excludes>
+                            <exclude>META-INF/*.SF</exclude>
+                            <exclude>META-INF/*.DSA</exclude>
+                            <exclude>META-INF/*.RSA</exclude>
+                        </excludes>
+                    </filter>
+                </filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

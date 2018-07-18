@@ -84,7 +84,8 @@ public class QueryExecutor extends AbstractQueryExecutor {
     public QueryExecutor(LogicalPlan logicalPlan, QueryBlock queryBlock) {
         this.logicalPlan = logicalPlan;
         this.queryBlock = queryBlock;
-        this.physicalPlan = new FabricPhysicalPlan(logicalPlan);
+        this.originalPhysicalPlan = new FabricPhysicalPlan(logicalPlan);
+        this.physicalPlan = originalPhysicalPlan;
     }
 
     public DataFrame executeQuery() {
