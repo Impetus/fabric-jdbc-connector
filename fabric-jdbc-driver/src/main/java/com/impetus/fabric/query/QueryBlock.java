@@ -290,9 +290,9 @@ public class QueryBlock {
             }
 
         } catch (Exception e) {
-            String errMsg = "QueryBlock | enrollAndRegister | " + e;
-            logger.error(errMsg);
-            throw new BlkchnException(errMsg);
+            String errMsg = "QueryBlock | enrollAndRegister: Failed to enroll user";
+            logger.error(errMsg, e);
+            throw new BlkchnException(errMsg, e);
         }
         return "User  Enrolled Successfuly";
     }

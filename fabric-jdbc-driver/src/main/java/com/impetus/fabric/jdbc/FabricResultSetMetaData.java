@@ -17,6 +17,7 @@ package com.impetus.fabric.jdbc;
 
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -82,7 +83,7 @@ public class FabricResultSetMetaData implements BlkchnResultSetMetaData {
     }
 
     public int getColumnType(int column) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        return Types.VARCHAR;
     }
 
     public String getColumnTypeName(int column) throws SQLException {
