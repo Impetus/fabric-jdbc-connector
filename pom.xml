@@ -92,6 +92,7 @@
 		<module>fabric-jdbc-driver</module>
 		<module>fabric-jdbc-examples</module>
 		<module>fabric-jdbc-driver-shaded</module>
+		<module>spark-fabric-connector</module>
 		<module>fabric-jdbc-assembly</module>
 	</modules>
 
