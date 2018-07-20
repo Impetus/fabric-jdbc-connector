@@ -16,12 +16,15 @@
 
 package com.impetus.fabric.parser;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.parser.PhysicalPlan;
@@ -45,6 +48,8 @@ public class FabricPhysicalPlan extends PhysicalPlan {
             FabricTables.TRANSACTION_ACTION, FabricTables.READ_WRITE_SET);
 
     private static Map<String, List<String>> fabricTableColumnMap = new HashMap<>();
+    
+    private static Map<String, Map<String, Integer>> fabricTableColumnTypeMap = new HashMap<>();
 
     static {
         rangeColMap.put(FabricTables.BLOCK, Arrays.asList(FabricColumns.BLOCK_NO));
@@ -84,6 +89,65 @@ public class FabricPhysicalPlan extends PhysicalPlan {
                 FabricColumns.RANGE_QUERY_END_KEY, FabricColumns.RANGE_QUERY_ITR_EXAUSTED,
                 FabricColumns.RANGE_QUERY_READS_INFO, FabricColumns.WRITE_KEY, FabricColumns.IS_DELETE,
                 FabricColumns.WRITE_VALUE));
+        
+        fabricTableColumnTypeMap.put(FabricTables.BLOCK, 
+                ImmutableMap.<String, Integer>builder()
+                .put(FabricColumns.PREVIOUS_HASH, Types.VARCHAR)
+                .put(FabricColumns.BLOCK_DATA_HASH, Types.VARCHAR)
+                .put(FabricColumns.TRANS_ACTIONS_META_DATA, Types.VARCHAR)
+                .put(FabricColumns.TRANSACTION_COUNT, Types.INTEGER)
+                .put(FabricColumns.BLOCK_NO, Types.BIGINT)
+                .put(FabricColumns.CHANNEL_ID, Types.VARCHAR)
+                .build());
+        
+        fabricTableColumnTypeMap.put(FabricTables.TRANSACTION,  
+                ImmutableMap.<String, Integer>builder()
+                .put(FabricColumns.BLOCK_NO, Types.BIGINT)
+                .put(FabricColumns.TRANSACTION_ID, Types.VARCHAR)
+                .put(FabricColumns.HEADER_TYPE, Types.INTEGER)
+                .put(FabricColumns.MESSAGE_PROTOCOL_VERSION, Types.INTEGER)
+                .put(FabricColumns.TIMESTAMP, Types.JAVA_OBJECT)
+                .put(FabricColumns.EPOCH, Types.BIGINT)
+                .put(FabricColumns.CHANNEL_ID, Types.VARCHAR)
+                .put(FabricColumns.CREATOR_MSP, Types.VARCHAR)
+                .put(FabricColumns.CREATOR_SIGNATURE, Types.VARCHAR)
+                .put(FabricColumns.NONCE, Types.VARCHAR)
+                .build());
+        
+        fabricTableColumnTypeMap.put(FabricTables.TRANSACTION_ACTION, 
+                ImmutableMap.<String, Integer>builder()
+                .put(FabricColumns.BLOCK_NO, Types.BIGINT)
+                .put(FabricColumns.TRANSACTION_ID, Types.VARCHAR)
+                .put(FabricColumns.ID_GENERATION_ALG, Types.VARCHAR)
+                .put(FabricColumns.CHAINCODE_TYPE, Types.VARCHAR)
+                .put(FabricColumns.CHAINCODE_NAME, Types.VARCHAR)
+                .put(FabricColumns.CHAINCODE_VERSION, Types.VARCHAR)
+                .put(FabricColumns.CHAINCODE_PATH, Types.VARCHAR)
+                .put(FabricColumns.CHAINCODE_ARGS, Types.ARRAY)
+                .put(FabricColumns.TIME_OUT, Types.INTEGER)
+                .put(FabricColumns.RW_DATAMODEL, Types.VARCHAR)
+                .put(FabricColumns.RESPONSE_MESSAGE, Types.VARCHAR)
+                .put(FabricColumns.RESPONSE_STATUS, Types.INTEGER)
+                .put(FabricColumns.RESPONSE_PAYLOAD, Types.VARCHAR)
+                .put(FabricColumns.ENDORSEMENTS, Types.ARRAY)
+                .build());
+        
+        fabricTableColumnTypeMap.put(FabricTables.READ_WRITE_SET,
+                ImmutableMap.<String, Integer>builder()
+                .put(FabricColumns.BLOCK_NO, Types.BIGINT)
+                .put(FabricColumns.TRANSACTION_ID, Types.VARCHAR)
+                .put(FabricColumns.NAMESPACE, Types.VARCHAR)
+                .put(FabricColumns.READ_KEY, Types.VARCHAR)
+                .put(FabricColumns.READ_BLOCK_NO, Types.BIGINT)
+                .put(FabricColumns.READ_TX_NUM, Types.BIGINT)
+                .put(FabricColumns.RANGE_QUERY_START_KEY, Types.VARCHAR)
+                .put(FabricColumns.RANGE_QUERY_END_KEY, Types.VARCHAR)
+                .put(FabricColumns.RANGE_QUERY_ITR_EXAUSTED, Types.BOOLEAN)
+                .put(FabricColumns.RANGE_QUERY_READS_INFO, Types.VARCHAR)
+                .put(FabricColumns.WRITE_KEY, Types.VARCHAR)
+                .put(FabricColumns.IS_DELETE, Types.BOOLEAN)
+                .put(FabricColumns.WRITE_VALUE, Types.VARCHAR)
+                .build());
     }
 
     public FabricPhysicalPlan(LogicalPlan logicalPlan) {
@@ -129,6 +193,15 @@ public class FabricPhysicalPlan extends PhysicalPlan {
 
     static Map<String, List<String>> getFabricTableColumnMap() {
         return fabricTableColumnMap;
+    }
+
+    @Override
+    public Map<String, Integer> getColumnTypeMap(String table) {
+        return fabricTableColumnTypeMap.get(table);
+    }
+    
+    public static Map<String, Integer> getColumnTypes(String table) {
+        return fabricTableColumnTypeMap.get(table);
     }
 
 }

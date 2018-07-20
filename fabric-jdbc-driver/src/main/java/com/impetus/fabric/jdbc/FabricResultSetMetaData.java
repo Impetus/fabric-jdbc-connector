@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.impetus.blkch.jdbc.BlkchnResultSetMetaData;
+import com.impetus.fabric.parser.FabricPhysicalPlan;
 import com.mysql.jdbc.ResultSetMetaData;
 
 public class FabricResultSetMetaData implements BlkchnResultSetMetaData {
@@ -83,7 +84,7 @@ public class FabricResultSetMetaData implements BlkchnResultSetMetaData {
     }
 
     public int getColumnType(int column) throws SQLException {
-        return Types.VARCHAR;
+        return FabricPhysicalPlan.getColumnTypes(tableName).get(getColumnName(column));
     }
 
     public String getColumnTypeName(int column) throws SQLException {
