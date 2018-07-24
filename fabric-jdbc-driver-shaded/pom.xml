@@ -23,17 +23,6 @@
 			<groupId>com.impetus.fabric</groupId>
 			<artifactId>fabric-jdbc-driver</artifactId>
 			<version>${project.version}</version>
-			<exclusions>
-			 <exclusion>
-			     <groupId>io.grpc</groupId>
-			     <artifactId>grpc-netty</artifactId>
-			 </exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-		  <groupId>io.grpc</groupId>
-		  <artifactId>grpc-netty</artifactId>
-		  <version>1.6.1</version>
 		</dependency>
 	</dependencies>
 

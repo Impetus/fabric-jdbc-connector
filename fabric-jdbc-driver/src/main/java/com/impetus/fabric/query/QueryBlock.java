@@ -20,8 +20,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -62,15 +60,10 @@ import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
 
 import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.sql.function.Endorsers;
 import com.impetus.blkch.sql.function.PolicyFile;
-import com.impetus.blkch.sql.query.IdentifierNode;
-import com.impetus.blkch.sql.query.LogicalOperation;
-import com.impetus.blkch.util.Tuple2;
 import com.impetus.fabric.model.Config;
 import com.impetus.fabric.model.HyperUser;
 import com.impetus.fabric.model.Org;
@@ -156,7 +149,9 @@ public class QueryBlock {
             try {
                 client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
                 counter++;
-            } catch (CryptoException | InvalidArgumentException e) {
+            } catch (CryptoException | InvalidArgumentException | IllegalAccessException 
+                    | InstantiationException | ClassNotFoundException | NoSuchMethodException 
+                    | InvocationTargetException e) {
                 logger.error("QueryBlock | checkConfig | " + e);
             }
         }
@@ -381,7 +376,6 @@ public class QueryBlock {
                         failed.add(response);
                     }
                 }
-                SDKUtils.getProposalConsistencySets(responses);
                 if (failed.size() > 0) {
                     ProposalResponse first = failed.iterator().next();
                     String errMsg = "Not enough endorsers for install :" + successful.size() + ".  " + first.getMessage();
@@ -394,7 +388,7 @@ public class QueryBlock {
         } catch(Exception e) {
             String errMsg = "QueryBlock | installChaincode | " + e;
             logger.error(errMsg);
-            throw new BlkchnException("Chaincode installation failed" + " " + errMsg);
+            throw new BlkchnException("Chaincode installation failed", e);
         }
     }
 
