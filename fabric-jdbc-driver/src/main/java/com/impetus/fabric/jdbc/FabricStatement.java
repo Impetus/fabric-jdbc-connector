@@ -37,6 +37,7 @@ import com.impetus.blkch.sql.query.FromItem;
 import com.impetus.blkch.sql.query.IdentifierNode;
 import com.impetus.blkch.sql.query.RangeNode;
 import com.impetus.blkch.sql.query.Table;
+import com.impetus.fabric.parser.CAManager;
 import com.impetus.fabric.parser.FabricAssetManager;
 import com.impetus.fabric.parser.FunctionExecutor;
 import com.impetus.fabric.parser.InsertExecutor;
@@ -130,6 +131,10 @@ public class FabricStatement implements BlkchnStatement {
                 
             case UPGRADE_FUNCTION:
                 new FunctionExecutor(logicalPlan, queryBlock).executeUpgrade();
+                return false;
+                
+            case CREATE_USER:
+                new CAManager(logicalPlan, queryBlock).registerUser();
                 return false;
 
             default:

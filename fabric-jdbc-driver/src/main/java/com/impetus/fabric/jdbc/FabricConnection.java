@@ -48,15 +48,20 @@ public class FabricConnection implements BlkchnConnection {
     
     private String user;
     
+    private String secret;
+    
     private QueryBlock qb;
         
     private static final String DEFAULT_USER = "test";
+    
+    private static final String DEFAULT_PASSWORD = "password";
 
     FabricConnection(String url, Properties props) {
         this.url = url;
         this.configPath = props.getProperty("configPath");
         this.channel = props.getProperty("channel");
         this.user = props.getProperty("USER") != null ? props.getProperty("USER") : DEFAULT_USER;
+        this.secret = props.getProperty("PASSWORD") != null ? props.getProperty("PASSWORD") : DEFAULT_PASSWORD;
         qb = new QueryBlock(this.configPath, this.channel);
         qb.enrollAndRegister(this.user);
         qb.setChannel();     

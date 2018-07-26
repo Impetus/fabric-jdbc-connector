@@ -98,7 +98,7 @@ public class QueryBlock {
     // time.
     private int counter = 0;
 
-    private Collection<Org> SampleOrgs;
+    private Collection<Org> sampleOrgs;
 
     private HFClient client = HFClient.createNewInstance();
     
@@ -144,7 +144,7 @@ public class QueryBlock {
      */
     public void checkConfig() {
 
-        SampleOrgs = conf.getSampleOrgs();
+        sampleOrgs = conf.getSampleOrgs();
         if (counter == 0) {
             try {
                 client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
@@ -156,7 +156,7 @@ public class QueryBlock {
             }
         }
 
-        for (Org sampleOrg : SampleOrgs) {
+        for (Org sampleOrg : sampleOrgs) {
             try {
                 sampleOrg.setCAClient(HFCAClient.createNewInstance(sampleOrg.getCALocation(),
                         sampleOrg.getCAProperties()));
@@ -183,7 +183,7 @@ public class QueryBlock {
         File sampleStoreFile = new File(conf.getConfigPath() + "/HyperledgerEnroll.properties");
 
         final Store sampleStore = new Store(sampleStoreFile);
-        for (Org sampleOrg : SampleOrgs) {
+        for (Org sampleOrg : sampleOrgs) {
 
             final String orgName = sampleOrg.getName();
 
@@ -222,6 +222,24 @@ public class QueryBlock {
         return "Successfully loaded member from persistence";
 
     }
+    
+    public synchronized void registerUser(String username, String secret, String affiliation) {
+        try {
+            checkConfig();
+            RegistrationRequest regReq = new RegistrationRequest(username, affiliation);
+            regReq.setSecret(secret);
+            for(Org org : sampleOrgs) {
+                HFCAClient ca = org.getCAClient();
+                ca.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
+                
+            }
+            
+        } catch (Exception e) {
+            String errMsg = "Error registering user " + username;
+            logger.error(errMsg, e);
+            throw new BlkchnException(errMsg, e);
+        }
+    }
 
     /**
      * enroll and register user at starting takes username as input returns
@@ -235,7 +253,7 @@ public class QueryBlock {
             File sampleStoreFile = new File(conf.getConfigPath() + "/HyperledgerEnroll.properties");
 
             final Store sampleStore = new Store(sampleStoreFile);
-            for (Org sampleOrg : SampleOrgs) {
+            for (Org sampleOrg : sampleOrgs) {
 
                 HFCAClient ca = sampleOrg.getCAClient();
                 final String orgName = sampleOrg.getName();
@@ -305,7 +323,7 @@ public class QueryBlock {
 
             Channel newChannel = null;
             boolean test = true;
-            for (Org sampleOrg : SampleOrgs)
+            for (Org sampleOrg : sampleOrgs)
             {
                 
                 client.setUserContext(sampleOrg.getPeerAdmin());
