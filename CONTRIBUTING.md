@@ -15,6 +15,7 @@ After discussion, Raise a new issue on [github](https://github.com/Impetus/fabri
 - Add proper javadocs and comments.
 - Contributed code must pass existing test cases.
 - Write new test cases using junit.
+- For Eclipse: use this [Formatter](https://github.com/JeetenJaiswal/fabric-jdbc-connector/blob/UpdateReadMeBranch/sites/eclipse-java-code-formatter.xml).
 - We recommend contributor to use Java 8.
 
 
