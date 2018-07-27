@@ -605,7 +605,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
 
     protected DataFrame createDataFrame(DataNode<?> dataNode) {
         if(dataNode.getKeys().isEmpty()) {
-            return new DataFrame(new ArrayList<>(), new ArrayList<>(), physicalPlan.getColumnAliasMapping());
+            return new DataFrame(new ArrayList<>(), getColumnNames(), physicalPlan.getColumnAliasMapping());
         }
         if (dataMap.get(dataNode.getKeys().get(0).toString()) instanceof BlockInfo) {
             String[] columns = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.BLOCK).toArray(new String[]{});
@@ -675,7 +675,30 @@ public class QueryExecutor extends AbstractQueryExecutor {
             throw new BlkchnException("Cannot create dataframe from unknown object type");
         }
     }
-    
+
+    private List<String> getColumnNames(){
+        Table table = logicalPlan.getQuery().getChildType(FromItem.class, 0).getChildType(Table.class, 0);
+        String tableName = table.getChildType(IdentifierNode.class, 0).getValue();
+        List<String> columnList;
+        switch (tableName) {
+            case FabricTables.BLOCK:
+                columnList = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.BLOCK);
+                break;
+            case FabricTables.TRANSACTION:
+                columnList = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.TRANSACTION);
+                break;
+            case FabricTables.TRANSACTION_ACTION:
+                columnList = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.TRANSACTION_ACTION);
+                break;
+            case FabricTables.READ_WRITE_SET:
+                columnList = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.READ_WRITE_SET);
+                break;
+            default:
+                columnList = new ArrayList<>();
+        }
+        return columnList;
+    }
+
     private boolean filterFieldBlock(String fieldName, Object obj, String value, Comparator comparator) {
         BlockInfo blockInfo = (BlockInfo) obj;
         boolean retValue;
