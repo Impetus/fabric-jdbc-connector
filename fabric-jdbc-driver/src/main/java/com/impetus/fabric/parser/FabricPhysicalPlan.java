@@ -19,6 +19,7 @@ package com.impetus.fabric.parser;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +49,7 @@ public class FabricPhysicalPlan extends PhysicalPlan {
             FabricTables.TRANSACTION_ACTION, FabricTables.READ_WRITE_SET);
 
     private static Map<String, List<String>> fabricTableColumnMap = new HashMap<>();
-    
+
     private static Map<String, Map<String, Integer>> fabricTableColumnTypeMap = new HashMap<>();
 
     static {
@@ -89,8 +90,8 @@ public class FabricPhysicalPlan extends PhysicalPlan {
                 FabricColumns.RANGE_QUERY_END_KEY, FabricColumns.RANGE_QUERY_ITR_EXAUSTED,
                 FabricColumns.RANGE_QUERY_READS_INFO, FabricColumns.WRITE_KEY, FabricColumns.IS_DELETE,
                 FabricColumns.WRITE_VALUE));
-        
-        fabricTableColumnTypeMap.put(FabricTables.BLOCK, 
+
+        fabricTableColumnTypeMap.put(FabricTables.BLOCK,
                 ImmutableMap.<String, Integer>builder()
                 .put(FabricColumns.PREVIOUS_HASH, Types.VARCHAR)
                 .put(FabricColumns.BLOCK_DATA_HASH, Types.VARCHAR)
@@ -99,8 +100,8 @@ public class FabricPhysicalPlan extends PhysicalPlan {
                 .put(FabricColumns.BLOCK_NO, Types.BIGINT)
                 .put(FabricColumns.CHANNEL_ID, Types.VARCHAR)
                 .build());
-        
-        fabricTableColumnTypeMap.put(FabricTables.TRANSACTION,  
+
+        fabricTableColumnTypeMap.put(FabricTables.TRANSACTION,
                 ImmutableMap.<String, Integer>builder()
                 .put(FabricColumns.BLOCK_NO, Types.BIGINT)
                 .put(FabricColumns.TRANSACTION_ID, Types.VARCHAR)
@@ -113,8 +114,8 @@ public class FabricPhysicalPlan extends PhysicalPlan {
                 .put(FabricColumns.CREATOR_SIGNATURE, Types.VARCHAR)
                 .put(FabricColumns.NONCE, Types.VARCHAR)
                 .build());
-        
-        fabricTableColumnTypeMap.put(FabricTables.TRANSACTION_ACTION, 
+
+        fabricTableColumnTypeMap.put(FabricTables.TRANSACTION_ACTION,
                 ImmutableMap.<String, Integer>builder()
                 .put(FabricColumns.BLOCK_NO, Types.BIGINT)
                 .put(FabricColumns.TRANSACTION_ID, Types.VARCHAR)
@@ -131,7 +132,7 @@ public class FabricPhysicalPlan extends PhysicalPlan {
                 .put(FabricColumns.RESPONSE_PAYLOAD, Types.VARCHAR)
                 .put(FabricColumns.ENDORSEMENTS, Types.ARRAY)
                 .build());
-        
+
         fabricTableColumnTypeMap.put(FabricTables.READ_WRITE_SET,
                 ImmutableMap.<String, Integer>builder()
                 .put(FabricColumns.BLOCK_NO, Types.BIGINT)
@@ -191,15 +192,15 @@ public class FabricPhysicalPlan extends PhysicalPlan {
         return fabricTableColumnMap.get(table).contains(column);
     }
 
-    static Map<String, List<String>> getFabricTableColumnMap() {
-        return fabricTableColumnMap;
+    public static Map<String, List<String>> getFabricTableColumnMap() {
+        return Collections.unmodifiableMap(fabricTableColumnMap);
     }
 
     @Override
     public Map<String, Integer> getColumnTypeMap(String table) {
         return fabricTableColumnTypeMap.get(table);
     }
-    
+
     public static Map<String, Integer> getColumnTypes(String table) {
         return fabricTableColumnTypeMap.get(table);
     }

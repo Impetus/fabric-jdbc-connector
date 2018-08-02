@@ -606,7 +606,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
 
     protected DataFrame createDataFrame(DataNode<?> dataNode) {
         if(dataNode.getKeys().isEmpty()) {
-            return new DataFrame(new ArrayList<>(), getColumnNames(), physicalPlan.getColumnAliasMapping());
+            return new DataFrame(new ArrayList<>(), new ArrayList<>(), physicalPlan.getColumnAliasMapping());
         }
         if (dataMap.get(dataNode.getKeys().get(0).toString()) instanceof BlockInfo) {
             String[] columns = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.BLOCK).toArray(new String[]{});
