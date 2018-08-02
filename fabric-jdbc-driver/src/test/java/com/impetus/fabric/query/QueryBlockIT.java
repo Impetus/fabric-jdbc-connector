@@ -24,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.impetus.fabric.jdbc.FabricResultSet;
 import junit.framework.TestCase;
 
 import org.junit.Test;
@@ -43,6 +44,65 @@ public class QueryBlockIT extends TestCase {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from block where block_no = 2");
         assert(rs.next());
+    }
+
+    @Test
+    public void testDataframeSchemaInEmptyDataFrame() throws ClassNotFoundException, SQLException {
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        File configFolder = new File("src/test/resources/blockchain-query");
+        String configPath = configFolder.getAbsolutePath();
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Statement stat = conn.createStatement();
+
+        ResultSet rs_withAllColumn = stat.executeQuery("select * from block where block_no = 20000000");
+        int columnCount = ((FabricResultSet)rs_withAllColumn).getMetaData().getColumnCount();
+        assert(columnCount == 6);
+
+        ResultSet rs_withFewColumn = stat.executeQuery("select previous_hash, block_no from block where block_no = 20000000");
+        columnCount = ((FabricResultSet)rs_withFewColumn).getMetaData().getColumnCount();
+        String col1 = ((FabricResultSet)rs_withFewColumn).getMetaData().getColumnName(1);
+        String col2 = ((FabricResultSet)rs_withFewColumn).getMetaData().getColumnName(2);
+        assert(col1.equals("previous_hash"));
+        assert(col2.equals("block_no"));
+        assert(columnCount == 2);
+
+
+        ResultSet rs_limitZero = stat.executeQuery("select * from block where block_no = 2 limit 0");
+        columnCount = ((FabricResultSet)rs_limitZero).getMetaData().getColumnCount();
+        assert(columnCount == 6);
+
+        ResultSet rs_fewColumnWithAlais = stat.executeQuery("select previous_hash as abc, block_no as def from block where block_no = 200000");
+        columnCount = ((FabricResultSet)rs_fewColumnWithAlais).getMetaData().getColumnCount();
+        col1 = ((FabricResultSet)rs_fewColumnWithAlais).getMetaData().getColumnName(1);
+        col2 = ((FabricResultSet)rs_fewColumnWithAlais).getMetaData().getColumnName(2);
+        assert(col1.equals("previous_hash"));
+        assert(col2.equals("block_no"));
+        assert(columnCount == 2);
+
+
+        ResultSet rs_groupbyOrderBy = stat.executeQuery("select block_no, sum(block_no) from block where block_no >= 200000 and block_no <= 200001  group by block_no order by block_no DESC ");
+        columnCount = ((FabricResultSet)rs_groupbyOrderBy).getMetaData().getColumnCount();
+        col1 = ((FabricResultSet)rs_groupbyOrderBy).getMetaData().getColumnName(1);
+        col2 = ((FabricResultSet)rs_groupbyOrderBy).getMetaData().getColumnName(2);
+        assert(col1.equals("block_no"));
+        assert(col2.equals("sum(block_no)"));
+        assert(columnCount == 2);
+
+
+        //Transaction Table Data
+        ResultSet tr_withDataAllColumn = stat.executeQuery("select * from transaction where block_no = 10000000");
+        columnCount = ((FabricResultSet)tr_withDataAllColumn).getMetaData().getColumnCount();
+        assert(columnCount == 10);
+
+        //With Wrong Column Name, it should throw exception
+        try {
+            ResultSet rs_limitZeroFewColumns_WrongColumn = stat.executeQuery("select previous_hash1, block_no1 from block where block_no = 2000000");
+            assert(false);// If above call is not giving exception fail this test
+        }
+        catch(Exception e){
+            //exception is Expected
+            assert(true);
+        }
     }
 
     @Test

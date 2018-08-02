@@ -18,6 +18,7 @@ package com.impetus.fabric.parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,8 +128,8 @@ public class FabricPhysicalPlan extends PhysicalPlan {
         return fabricTableColumnMap.get(table).contains(column);
     }
 
-    static Map<String, List<String>> getFabricTableColumnMap() {
-        return fabricTableColumnMap;
+    public static Map<String, List<String>> getFabricTableColumnMap() {
+        return Collections.unmodifiableMap(fabricTableColumnMap);
     }
 
 }

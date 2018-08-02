@@ -675,7 +675,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
             throw new BlkchnException("Cannot create dataframe from unknown object type");
         }
     }
-    
+
     private boolean filterFieldBlock(String fieldName, Object obj, String value, Comparator comparator) {
         BlockInfo blockInfo = (BlockInfo) obj;
         boolean retValue;

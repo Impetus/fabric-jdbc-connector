@@ -19,7 +19,18 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+import com.impetus.blkch.sql.query.Column;
+import com.impetus.blkch.sql.query.FunctionNode;
+import com.impetus.blkch.sql.query.SelectItem;
+import com.impetus.blkch.sql.query.StarNode;
+import com.impetus.blkch.util.Utilities;
+import com.impetus.fabric.parser.FabricPhysicalPlan;
+import com.impetus.fabric.query.FabricTables;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import com.impetus.blkch.BlkchnErrorListener;
@@ -172,9 +183,79 @@ public class FabricStatement implements BlkchnStatement {
                 tableName = table.getChildType(IdentifierNode.class, 0).getValue();
                 dataframe = new QueryExecutor(logicalPlan, queryBlock).executeQuery();
         }
-        resultSet = new FabricResultSet(this, dataframe, tableName);
+        if(dataframe.isEmpty()){
+            DataFrame dfWithSchema = getDataFrameWithSchema(tableName,logicalPlan);
+            resultSet = new FabricResultSet(this, dfWithSchema, tableName);
+        }
+        else {
+            resultSet = new FabricResultSet(this, dataframe, tableName);
+        }
         return resultSet;
     }
+
+    private DataFrame getDataFrameWithSchema(String tableName, LogicalPlan logicalPlan){
+
+        FabricPhysicalPlan physicalPlan = new FabricPhysicalPlan(logicalPlan);
+        List<SelectItem> cols = physicalPlan.getSelectItems();
+        Map<String, Integer> columnNamesMap = buildColumnNamesMap(getColumnNames(logicalPlan));
+        Map<String, String> aliasMapping = physicalPlan.getColumnAliasMapping();
+
+        List<String> returnCols = new ArrayList<>();
+        for (SelectItem col : cols) {
+            if (col.hasChildType(StarNode.class)) {
+                for (String colName : columnNamesMap.keySet()) {
+                        returnCols.add(colName);
+                }
+
+            } else if (col.hasChildType(Column.class)) {
+                String colName = col.getChildType(Column.class, 0).getChildType(IdentifierNode.class, 0).getValue();
+                if (columnNamesMap.get(colName) != null) {
+                        returnCols.add(colName);
+                } else if (aliasMapping.containsKey(colName)) {
+                    String actualCol = aliasMapping.get(colName);
+                        returnCols.add(colName);
+                } else {
+                    throw new RuntimeException("Column " + colName + " doesn't exist in table");
+                }
+            } else if (col.hasChildType(FunctionNode.class)) {
+                    returnCols.add(Utilities.createFunctionColName(col.getChildType(FunctionNode.class, 0)));
+            }
+        }
+        return new DataFrame(new ArrayList<>(), returnCols, aliasMapping);
+    }
+
+    private Map<String, Integer> buildColumnNamesMap(List<String> columns) {
+        Map<String, Integer> columnsMap = new LinkedHashMap<>();
+        int index = 0;
+        for (String col : columns) {
+            columnsMap.put(col, index++);
+        }
+        return columnsMap;
+    }
+
+    private List<String> getColumnNames(LogicalPlan logicalPlan){
+        Table table = logicalPlan.getQuery().getChildType(FromItem.class, 0).getChildType(Table.class, 0);
+        String tableName = table.getChildType(IdentifierNode.class, 0).getValue();
+        List<String> columnList;
+        switch (tableName) {
+            case FabricTables.BLOCK:
+                columnList = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.BLOCK);
+                break;
+            case FabricTables.TRANSACTION:
+                columnList = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.TRANSACTION);
+                break;
+            case FabricTables.TRANSACTION_ACTION:
+                columnList = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.TRANSACTION_ACTION);
+                break;
+            case FabricTables.READ_WRITE_SET:
+                columnList = FabricPhysicalPlan.getFabricTableColumnMap().get(FabricTables.READ_WRITE_SET);
+                break;
+            default:
+                columnList = new ArrayList<>();
+        }
+        return columnList;
+    }
+
 
     private LogicalPlan getLogicalPlan(String query) {
         BlkchnSqlLexer lexer = new BlkchnSqlLexer(new CaseInsensitiveCharStream(query));
