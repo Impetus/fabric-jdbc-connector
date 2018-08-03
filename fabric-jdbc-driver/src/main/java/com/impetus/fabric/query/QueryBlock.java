@@ -608,7 +608,8 @@ public class QueryBlock {
     }
 
     private InstantiateProposalRequest getInstantiateProposalRequest(String chaincodeName, String chainCodeVersion,
-            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs, Endorsers endorsers) {
+            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs, Endorsers endorsers) throws InvalidArgumentException {
+        client.setUserContext(userOrg.getPeerAdmin());
         ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(chainCodeVersion)
                 .setPath(chainCodePath).build();
         InstantiateProposalRequest instantiateProposalRequest = client.newInstantiationProposalRequest();
@@ -624,7 +625,8 @@ public class QueryBlock {
     }
     
     private UpgradeProposalRequest getUpgradeProposalRequest(String chaincodeName, String chainCodeVersion,
-            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs, Endorsers endorsers) {
+            String chainCodePath, String chaincodeFunction, String[] chaincodeArgs, Endorsers endorsers) throws InvalidArgumentException {
+        client.setUserContext(userOrg.getPeerAdmin());
         ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(chainCodeVersion)
                 .setPath(chainCodePath).build();
         UpgradeProposalRequest upgradeProposalRequest = client.newUpgradeProposalRequest();

@@ -26,7 +26,10 @@ import com.impetus.blkch.sql.asset.Asset;
 import com.impetus.blkch.sql.function.Args;
 import com.impetus.blkch.sql.function.ClassName;
 import com.impetus.blkch.sql.function.Endorsers;
+import com.impetus.blkch.sql.function.InstallOnly;
+import com.impetus.blkch.sql.function.InstantiateOnly;
 import com.impetus.blkch.sql.function.Parameters;
+import com.impetus.blkch.sql.function.UpgradeOnly;
 import com.impetus.blkch.sql.function.Version;
 import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.parser.LogicalPlan.SQLType;
@@ -61,9 +64,16 @@ public class FunctionExecutor {
                 args.add(Utilities.unquote(ident.getValue()));
             }
         }
-        queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
-        queryBlock.instantiateChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}), 
-                createFunc.hasChildType(Endorsers.class) ? createFunc.getChildType(Endorsers.class, 0) : null);
+        if(createFunc.hasChildType(InstallOnly.class)) {
+            queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
+        } else if(createFunc.hasChildType(InstantiateOnly.class)) {
+            queryBlock.instantiateChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}), 
+                    createFunc.hasChildType(Endorsers.class) ? createFunc.getChildType(Endorsers.class, 0) : null);
+        } else {
+            queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
+            queryBlock.instantiateChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}), 
+                    createFunc.hasChildType(Endorsers.class) ? createFunc.getChildType(Endorsers.class, 0) : null);
+        }
     }
     
     // This method is called for both call(query) and delete on chaincode
@@ -114,8 +124,15 @@ public class FunctionExecutor {
                 args.add(Utilities.unquote(ident.getValue()));
             }
         }
-        queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
-        queryBlock.upgradeChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}),
-                upgradeFunc.hasChildType(Endorsers.class) ? upgradeFunc.getChildType(Endorsers.class, 0) : null);
+        if(upgradeFunc.hasChildType(InstallOnly.class)) {
+            queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
+        } else if(upgradeFunc.hasChildType(UpgradeOnly.class)) {
+            queryBlock.upgradeChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}),
+                    upgradeFunc.hasChildType(Endorsers.class) ? upgradeFunc.getChildType(Endorsers.class, 0) : null);
+        } else {
+            queryBlock.installChaincode(chaincodeName, version, queryBlock.getConf().getConfigPath(), chaincodePath);
+            queryBlock.upgradeChaincode(chaincodeName, version, chaincodePath, "init", args.toArray(new String[]{}),
+                    upgradeFunc.hasChildType(Endorsers.class) ? upgradeFunc.getChildType(Endorsers.class, 0) : null);
+        }
     }
 }
