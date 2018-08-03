@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-
 import com.impetus.blkch.jdbc.BlkchnConnection;
 import com.impetus.fabric.query.QueryBlock;
 
@@ -46,12 +45,12 @@ public class FabricConnection implements BlkchnConnection {
 
     private String url;
     
-    private String user;
+    private String username;
     
     private String secret;
     
     private QueryBlock qb;
-        
+    
     private static final String DEFAULT_USER = "test";
     
     private static final String DEFAULT_PASSWORD = "password";
@@ -60,11 +59,13 @@ public class FabricConnection implements BlkchnConnection {
         this.url = url;
         this.configPath = props.getProperty("configPath");
         this.channel = props.getProperty("channel");
-        this.user = props.getProperty("USER") != null ? props.getProperty("USER") : DEFAULT_USER;
+        this.username = props.getProperty("USER") != null ? props.getProperty("USER") : DEFAULT_USER;
         this.secret = props.getProperty("PASSWORD") != null ? props.getProperty("PASSWORD") : DEFAULT_PASSWORD;
-        qb = new QueryBlock(this.configPath, this.channel);
-        qb.enrollAndRegister(this.user);
-        qb.setChannel();     
+        
+        qb = new QueryBlock(this.configPath, this.channel, this.username, this.secret);
+        qb.enroll();
+        qb.setChannel();
+        
     }
 
     String getConfigPath() {
@@ -75,12 +76,16 @@ public class FabricConnection implements BlkchnConnection {
         return channel;
     }
     
-    String getUser() {
-        return user;
+    String getUsername() {
+        return username;
     }
     
     QueryBlock getQueryObject() {
         return qb;
+    }
+    
+    public String getUrl() {
+        return url;
     }
 
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
@@ -164,7 +169,6 @@ public class FabricConnection implements BlkchnConnection {
     }
 
     public DatabaseMetaData getMetaData() throws SQLException {
-        // TODO Auto-generated method stub
         return null;
     }
 

@@ -1,18 +1,18 @@
 /*******************************************************************************
-* * Copyright 2018 Impetus Infotech.
-* *
-* * Licensed under the Apache License, Version 2.0 (the "License");
-* * you may not use this file except in compliance with the License.
-* * You may obtain a copy of the License at
-* *
-* * http://www.apache.org/licenses/LICENSE-2.0
-* *
-* * Unless required by applicable law or agreed to in writing, software
-* * distributed under the License is distributed on an "AS IS" BASIS,
-* * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* * See the License for the specific language governing permissions and
-* * limitations under the License.
-******************************************************************************/
+ * * Copyright 2018 Impetus Infotech.
+ * *
+ * * Licensed under the Apache License, Version 2.0 (the "License");
+ * * you may not use this file except in compliance with the License.
+ * * You may obtain a copy of the License at
+ * *
+ * * http://www.apache.org/licenses/LICENSE-2.0
+ * *
+ * * Unless required by applicable law or agreed to in writing, software
+ * * distributed under the License is distributed on an "AS IS" BASIS,
+ * * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * * See the License for the specific language governing permissions and
+ * * limitations under the License.
+ ******************************************************************************/
 package com.impetus.fabric.model;
 
 import java.util.Collection;
@@ -24,7 +24,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.hyperledger.fabric.sdk.Peer;
-import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 
 /**
@@ -40,8 +39,6 @@ public class Org {
 
     HFCAClient caClient;
 
-    Map<String, User> userMap = new HashMap<>();
-
     Map<String, String> peerLocations = new HashMap<>();
 
     Map<String, String> ordererLocations = new HashMap<>();
@@ -53,8 +50,8 @@ public class Org {
     private String caLocation;
 
     private Properties caProperties = null;
-    
-	private String usrAffilation;
+
+    private String usrAffilation;
 
     private HyperUser peerAdmin;
 
@@ -136,14 +133,6 @@ public class Org {
         return name;
     }
 
-    public void addUser(HyperUser user) {
-        userMap.put(user.getName(), user);
-    }
-
-    public User getUser(String name) {
-        return userMap.get(name);
-    }
-
     public Collection<String> getOrdererLocations() {
         return Collections.unmodifiableCollection(ordererLocations.values());
     }
@@ -185,7 +174,7 @@ public class Org {
     }
 
     public void setUserAffilation(String usrAffilation) {
-        this.usrAffilation= usrAffilation;
+        this.usrAffilation = usrAffilation;
     }
 
     public String getUsrAffilation() {

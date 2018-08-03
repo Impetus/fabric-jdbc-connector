@@ -24,22 +24,31 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import junit.framework.TestCase;
-
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.impetus.test.catagory.IntegrationTest;
 
 @Category(IntegrationTest.class)
-public class QueryBlockIT extends TestCase {
+public class QueryBlockIT {
+    
+    @BeforeClass
+    public static void beforeClass() throws ClassNotFoundException, SQLException {
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        File configFolder = new File("src/test/resources/blockchain-query");
+        String configPath = configFolder.getAbsolutePath();
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "admin", "adminpw");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE USER impadmin IDENTIFIED BY 'impadminpw' AFFILIATED TO org1.department1");
+    }
 
     @Test
     public void testFabricStatement() throws ClassNotFoundException, SQLException {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from block where block_no = 2");
         assert(rs.next());
@@ -51,7 +60,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
 
         //Delete Asset if Exists
@@ -72,7 +81,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
         String sql = "Drop ASSET user_asset1";
         stat.execute(sql);
@@ -85,7 +94,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
 
         //Delete Asset if Exists
@@ -109,7 +118,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select block_no, sum(block_no) from block where block_no >= 2 and block_no <= 5  group by block_no order by block_no DESC ");
         assert(rs.next());
@@ -122,7 +131,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from block where (block_no = 2 or block_no = 3) and (block_no =4 or block_no = 5)");
         assert(!rs.next());
@@ -130,24 +139,26 @@ public class QueryBlockIT extends TestCase {
 
 
     // No need to Assert, test passed if didnt throw exception
+    @Test
     public void testCreateFunction() throws ClassNotFoundException, SQLException{
         long currentTimeStamp = System.currentTimeMillis();
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
         String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'assettransfer' WITH VERSION '1.0'";
         stat.execute(createFuncQuery);
     }
 
     // No need to Assert, test passed if didnt throw exception
+    @Test
     public void testCallFunction() throws ClassNotFoundException, SQLException{
         long currentTimeStamp = System.currentTimeMillis();
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
         String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'assettransfer' WITH VERSION '1.0'";
         System.out.println(stat.execute(createFuncQuery));
@@ -159,17 +170,17 @@ public class QueryBlockIT extends TestCase {
     }
 
     // No need to Assert, test passed if didnt throw exception
+    @Test
     public void testInsertFunction() throws ClassNotFoundException, SQLException{
-        long currentTimeStamp = System.currentTimeMillis();
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
 
-        String createFuncQuery = "CREATE FUNCTION chncodefunc"+currentTimeStamp+" AS 'assettransfer' WITH VERSION '1.0'";
+        String createFuncQuery = "CREATE FUNCTION chncodefunc_testInsertFunction AS 'assettransfer' WITH VERSION '1.0'";
         stat.execute(createFuncQuery);
-        String insertQuery = "INSERT INTO chncodefunc"+currentTimeStamp+" VALUES('transferAsset', 1001, 2001, 2002)";
+        String insertQuery = "INSERT INTO chncodefunc_testInsertFunction VALUES('transferAsset', 1001, 2001, 2002)";
         stat.execute(insertQuery);
     }
 
@@ -180,7 +191,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
 
         ResultSet rs = stat.executeQuery("select * from block blk where block_no >= -2 and block_no <= 1");
@@ -194,7 +205,7 @@ public class QueryBlockIT extends TestCase {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         
         Statement stat = conn.createStatement();
         String createFuncQuery = "CREATE FUNCTION chncodeFunc" + currentTimestamp + " AS 'assettransfer' WITH VERSION '1.0'";

@@ -16,20 +16,31 @@
 
 package com.impetus.fabric.query;
 
-import com.impetus.blkch.BlkchnException;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
 import junit.framework.TestCase;
 
-import org.hyperledger.fabric.sdk.*;
+import org.hyperledger.fabric.sdk.BlockEvent;
+import org.hyperledger.fabric.sdk.Channel;
+import org.hyperledger.fabric.sdk.HFClient;
+import org.hyperledger.fabric.sdk.InstallProposalRequest;
+import org.hyperledger.fabric.sdk.InstantiateProposalRequest;
+import org.hyperledger.fabric.sdk.Peer;
+import org.hyperledger.fabric.sdk.ProposalResponse;
+import org.hyperledger.fabric.sdk.SDKUtils;
+import org.hyperledger.fabric.sdk.TransactionProposalRequest;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.junit.Test;
@@ -37,18 +48,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-
-import java.io.File;
-import java.sql.*;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-
-import static org.mockito.Mockito.*;
-import static org.powermock.configuration.ConfigurationType.Mockito;
-import static org.powermock.configuration.ConfigurationType.PowerMock;
-
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.impetus.blkch.BlkchnException;
 import com.impetus.fabric.model.HyperUser;
 import com.impetus.fabric.model.Store;
 
@@ -63,51 +65,18 @@ public class QueryBlockTest extends TestCase {
     public void testEnrollAndRegisterUser() throws ClassNotFoundException, SQLException, java.lang.Exception {
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath,"mychannel");
-
+        QueryBlock qb = new QueryBlock(configPath,"mychannel", "test", "testpw");
         HyperUser mockuser = mock(HyperUser.class);
         when(mockuser.isEnrolled()).thenReturn(true);
-        when(mockuser.isRegistered()).thenReturn(true);
-
         Store mockStore = mock(Store.class);
-        when(mockStore.getMember(anyString(),anyString())).thenReturn(mockuser);
         PowerMockito.whenNew(Store.class).withAnyArguments().thenReturn(mockStore);
-
-
-        String result = qb.enrollAndRegister("Admin");
-        assert(result.equals("User  Enrolled Successfuly"));
-
-    }
-
-
-    @Test
-    public void testLoadUserFromPersistence() throws ClassNotFoundException, SQLException, java.lang.Exception {
-        String configPath = "src/test/resources/blockchain-query";
-        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath,"mychannel");
-
-        qb.checkConfig();
-
-        HyperUser mockuser = mock(HyperUser.class);
-        when(mockuser.isEnrolled()).thenReturn(true);
-        when(mockuser.isRegistered()).thenReturn(true);
-
-
-        Store mockStore = mock(Store.class);
-        when(mockStore.getMember(anyString(),anyString())).thenReturn(mockuser);
-        PowerMockito.whenNew(Store.class).withAnyArguments().thenReturn(mockStore);
-
-
-
-        String result = qb.loadUserFromPersistence("Admin");
-        assert(result.equals("Successfully loaded member from persistence"));
+//        qb.enroll();
     }
 
     @Mock
     HFClient mockClient;
     @Test
     public void testReconstructChannel() throws ClassNotFoundException, SQLException, InvalidArgumentException, ProposalException, java.lang.Exception {
-
         PowerMockito.mockStatic(HFClient.class);
         when(HFClient.createNewInstance()).thenReturn(mockClient);
 
@@ -119,27 +88,20 @@ public class QueryBlockTest extends TestCase {
 
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath,"mychannel");
+        QueryBlock qb = new QueryBlock(configPath,"mychannel", null, null);
 
 
 
         HyperUser mockuser = mock(HyperUser.class);
         when(mockuser.isEnrolled()).thenReturn(true);
-        when(mockuser.isRegistered()).thenReturn(true);
 
         Store mockStore = mock(Store.class);
-        when(mockStore.getMember(anyString(),anyString())).thenReturn(mockuser);
         PowerMockito.whenNew(Store.class).withAnyArguments().thenReturn(mockStore);
-
-
-        String result = qb.enrollAndRegister("Admin");
-
-
+        
         Channel mockChannel = mock(Channel.class);
         when(mockClient.newChannel(anyString())).thenReturn(mockChannel);
 
         qb.reconstructChannel();
-
     }
 
     @Mock
@@ -161,7 +123,7 @@ public class QueryBlockTest extends TestCase {
 
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath,"mychannel");
+        QueryBlock qb = new QueryBlock(configPath,"mychannel", null, null);
 	    qb.setChannel();
         String chaincodeName ="chncodefunc";
         String version = "1.0";
@@ -192,7 +154,7 @@ public class QueryBlockTest extends TestCase {
 
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath,"mychannel");
+        QueryBlock qb = new QueryBlock(configPath,"mychannel", null, null);
         qb.setChannel();
         String chaincodeName ="chncodefunc";
         String version = "1.0";
@@ -251,7 +213,7 @@ public class QueryBlockTest extends TestCase {
 
         String configPath = "src/test/resources/blockchain-query";
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        QueryBlock qb = new QueryBlock(configPath,"mychannel");
+        QueryBlock qb = new QueryBlock(configPath,"mychannel", null, null);
         qb.setChannel();
         String chaincodeName ="chncodefunc";
         String version = "1.0";
