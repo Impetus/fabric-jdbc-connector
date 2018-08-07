@@ -118,6 +118,33 @@ public class QueryBlockIT {
         }
     }
 
+
+    @Test
+    //Expecting empty Result set, if these call didnt throw exception, this test pass.
+    public void testQueryWithWrongData() throws ClassNotFoundException, SQLException {
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        File configFolder = new File("src/test/resources/blockchain-query");
+        String configPath = configFolder.getAbsolutePath();
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Statement stat = conn.createStatement();
+
+        ResultSet rs = stat.executeQuery("select previous_hash from block where previous_hash = 'abcd82f37020778c5e99b6ebc6ce609624ba391e9adc5b72207e39fe'");
+        assert(!rs.next());
+        ResultSet rs_withTransactionID = stat.executeQuery("select * from transaction where transaction_id = 200000");
+        assert(!rs_withTransactionID.next());
+        ResultSet rs_read_write_set_WithTransactionID = stat.executeQuery("select * from read_write_set where transaction_id = 200000");
+        assert(!rs_read_write_set_WithTransactionID.next());
+        ResultSet rs_transaction_ActionWithTransactionID = stat.executeQuery("select * from transaction_action where transaction_id = 200000");
+        assert(!rs_transaction_ActionWithTransactionID.next());
+        //Test Range node and Direct API Node combination. It should return empty resultset
+        ResultSet rs_BlockwithRangeNodeAndDataNode = stat.executeQuery("select * from block where  block_no > 0 and block_no <=2 and previous_hash = '200000'");
+        assert(!rs_BlockwithRangeNodeAndDataNode.next());
+
+        ResultSet rs_BlockwithRangeNodeOrDataNode = stat.executeQuery("select * from block where  block_no > 0 and block_no <=2 or previous_hash = '200000'");
+        assert(rs_BlockwithRangeNodeOrDataNode.next());
+
+    }
+
     @Test
     public void testSaveAssetToLocalDB() throws ClassNotFoundException, SQLException{
 

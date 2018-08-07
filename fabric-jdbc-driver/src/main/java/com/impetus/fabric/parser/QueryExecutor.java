@@ -76,11 +76,14 @@ import com.impetus.fabric.objects.TransactionObject;
 import com.impetus.fabric.query.FabricColumns;
 import com.impetus.fabric.query.FabricTables;
 import com.impetus.fabric.query.QueryBlock;
+import org.slf4j.LoggerFactory;
 
 public class QueryExecutor extends AbstractQueryExecutor {
 
     private QueryBlock queryBlock;
-    
+
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(QueryExecutor.class);
+
     public QueryExecutor(LogicalPlan logicalPlan, QueryBlock queryBlock) {
         this.logicalPlan = logicalPlan;
         this.queryBlock = queryBlock;
@@ -180,7 +183,12 @@ public class QueryExecutor extends AbstractQueryExecutor {
                 BlockInfo blockInfo = channel.queryBlockByNumber(Long.parseLong(value));
                 dataMap.put(Long.toString(blockInfo.getBlockNumber()), blockInfo);
                 return new DataNode<>(table, Arrays.asList(Long.toString(blockInfo.getBlockNumber())));
-            } catch (NumberFormatException | InvalidArgumentException | ProposalException e) {
+            } catch (NumberFormatException | InvalidArgumentException e) {
+                throw new BlkchnException("Error querying block by block number " + value, e);
+            } catch( ProposalException e) {
+                logger.error("Error querying block by block number " + value, e);
+                return new DataNode<>(table, new ArrayList<>());
+            } catch(Exception e) {
                 throw new BlkchnException("Error querying block by block number " + value, e);
             }
         } else if (table.equals(FabricTables.BLOCK) && column.equals(FabricColumns.PREVIOUS_HASH)) {
@@ -188,7 +196,12 @@ public class QueryExecutor extends AbstractQueryExecutor {
                 BlockInfo blockInfo = channel.queryBlockByHash(Hex.decodeHex(value.replace("'", "").toCharArray()));
                 dataMap.put(Long.toString(blockInfo.getBlockNumber()), blockInfo);
                 return new DataNode<>(table, Arrays.asList(Long.toString(blockInfo.getBlockNumber())));
-            } catch (InvalidArgumentException | ProposalException | DecoderException e) {
+            } catch (InvalidArgumentException | DecoderException e) {
+                throw new BlkchnException("Error querying block by hash " + value.replace("'", ""), e);
+            } catch (ProposalException e) {
+                logger.error("Error querying block by hash " + value.replace("'", ""), e);
+                return new DataNode<>(table, new ArrayList<>());
+            } catch(Exception e) {
                 throw new BlkchnException("Error querying block by hash " + value.replace("'", ""), e);
             }
         } else if(FabricTables.TRANSACTION.equals(table) && FabricColumns.TRANSACTION_ID.equals(column)) {
@@ -197,7 +210,12 @@ public class QueryExecutor extends AbstractQueryExecutor {
                 TransactionInfo transactionInfo = channel.queryTransactionByID(value.replace("'", ""));
                 dataMap.put(value.replace("'", ""), new TransactionObject(blockNo, transactionInfo));
                 return new DataNode<>(table, Arrays.asList(value.replace("'", "")));
-            } catch (ProposalException | InvalidArgumentException e) {
+            } catch (InvalidArgumentException e) {
+                throw new BlkchnException("Error querying transaction by id " + value.replace("'", ""), e);
+            } catch (ProposalException e){
+                logger.error("Error querying transaction by id " + value.replace("'", ""), e);
+                return new DataNode<>(table, new ArrayList<>());
+            } catch(Exception e){
                 throw new BlkchnException("Error querying transaction by id " + value.replace("'", ""), e);
             }
         } else if(FabricTables.TRANSACTION.equals(table) && FabricColumns.BLOCK_NO.equals(column)) {
@@ -212,7 +230,12 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     transactions.add(transactionId);
                 }
                 return new DataNode<>(table, transactions);
-            } catch (NumberFormatException | InvalidArgumentException | ProposalException e) {
+            } catch (NumberFormatException | InvalidArgumentException e) {
+                throw new BlkchnException("Error querying transactions for block number " + value, e);
+            } catch(ProposalException e){
+                logger.error("Error querying transactions for block number " + value, e);
+                return new DataNode<>(table, new ArrayList<>());
+            } catch(Exception e){
                 throw new BlkchnException("Error querying transactions for block number " + value, e);
             }
         } else if(FabricTables.TRANSACTION_ACTION.equals(table) && FabricColumns.TRANSACTION_ID.equals(column)) {
@@ -228,7 +251,12 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     actions.add(Integer.toString(new Tuple2<>(transactionInfo.getTransactionID(), i).hashCode()));
                 }
                 return new DataNode<>(table, actions);
-            } catch (ProposalException | InvalidArgumentException e) {
+            } catch (InvalidArgumentException e) {
+                throw new BlkchnException("Error querying transaction actions by id " + value.replace("'", ""), e);
+            } catch(ProposalException e){
+                logger.error("Error querying transaction actions by id " + value.replace("'", ""), e);
+                return new DataNode<>(table, new ArrayList<>());
+            } catch(Exception e) {
                 throw new BlkchnException("Error querying transaction actions by id " + value.replace("'", ""), e);
             }
         } else if(FabricTables.TRANSACTION_ACTION.equals(table) && FabricColumns.BLOCK_NO.equals(column)) {
@@ -247,7 +275,12 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     }
                 }
                 return new DataNode<>(table, actions);
-            } catch (NumberFormatException | InvalidArgumentException | ProposalException e) {
+            } catch (NumberFormatException | InvalidArgumentException e) {
+                throw new BlkchnException("Error querying transaction actions for block number " + value, e);
+            } catch(ProposalException e){
+                logger.error("Error querying transaction actions for block number " + value, e);
+                return new DataNode<>(table, new ArrayList<>());
+            } catch(Exception e){
                 throw new BlkchnException("Error querying transaction actions for block number " + value, e);
             }
         } else if(FabricTables.READ_WRITE_SET.equals(table) && FabricColumns.TRANSACTION_ID.equals(column)) {
@@ -285,7 +318,12 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     }
                 }
                 return new DataNode<>(table, keys);
-            } catch (InvalidArgumentException | ProposalException | InvalidProtocolBufferException e) {
+            } catch (InvalidArgumentException | InvalidProtocolBufferException e) {
+                throw new BlkchnException("Error querying read write sets by id " + value.replace("'", ""), e);
+            } catch(ProposalException e){
+                logger.error("Error querying read write sets by id " + value.replace("'", ""), e);
+                return new DataNode<>(table, new ArrayList<>());
+            } catch(Exception e){
                 throw new BlkchnException("Error querying read write sets by id " + value.replace("'", ""), e);
             }
         } else if(FabricTables.READ_WRITE_SET.equals(table) && FabricColumns.BLOCK_NO.equals(column)) {
@@ -326,7 +364,12 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     }
                 }
                 return new DataNode<>(table, keys);
-            } catch (NumberFormatException | InvalidArgumentException | ProposalException | InvalidProtocolBufferException e) {
+            } catch (NumberFormatException | InvalidArgumentException | InvalidProtocolBufferException e) {
+                throw new BlkchnException("Error querying read write sets for block number " + value, e);
+            } catch (ProposalException e){
+                logger.error("Error querying read write sets for block number " + value, e);
+                return new DataNode<>(table, new ArrayList<>());
+            } catch (Exception e){
                 throw new BlkchnException("Error querying read write sets for block number " + value, e);
             }
         } else {
@@ -510,7 +553,13 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     return node;
                 }).collect(Collectors.toList());
                 if(dataRanges.isEmpty()) {
-                    return rangeNode;
+                    if(oper.isOr()) {
+                        return rangeNode;
+                    }
+                    else {
+                        //return empty data;
+                        return new DataNode<T>(dataNode.getTable(),new ArrayList<>());
+                    }
                 }
                 RangeNode<T> dataRangeNodes = dataRanges.get(0);
                 if (dataRanges.size() > 1) {
