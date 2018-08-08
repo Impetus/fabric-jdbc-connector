@@ -12,7 +12,8 @@ import scala.reflect.ClassTag
 import com.impetus.blkch.spark.connector.rdd.partitioner.BlkchnPartitioner
 import com.impetus.fabric.spark.connector.rdd.partitioner.DefaultFabricPartitioner
 
-case class FabricSpark(sparkSession: SparkSession, connector: BlkchnConnector, readConf: ReadConf) {
+case class FabricSpark(sparkSession: SparkSession, connector: BlkchnConnector, readConf: ReadConf, 
+    options: Map[String, String]) {
 
   private def rdd[D: ClassTag]: BlkchnRDD[D] = {
     new BlkchnRDD[D](sparkSession.sparkContext, sparkSession.sparkContext.broadcast(connector), readConf)
@@ -21,8 +22,12 @@ case class FabricSpark(sparkSession: SparkSession, connector: BlkchnConnector, r
   def toRDD[D: ClassTag]: BlkchnRDD[D] = rdd[D]
   
   def toDF(): DataFrame = {
+    val readConfOptions = readConf.asOptions
+    val extraOptions = for((key, value) <- options ; if(!readConfOptions.contains(key))) yield {
+      (key, value)
+    }
     sparkSession.read.format(FabricFormat)
-          .options(readConf.asOptions()).load()
+          .options(readConfOptions).options(extraOptions).load()
   }
 
 }
@@ -39,7 +44,13 @@ object FabricSpark {
     builder().sc(sc).readConf(readConf).options(options).build().toRDD
   }
   
-  def load(spark: SparkSession): DataFrame = builder().sparkSession(spark).build().toDF()
+  def load(spark: SparkSession): DataFrame = load(spark, ReadConf(spark.sparkContext.conf))
+  
+  def load(spark: SparkSession, readConf: ReadConf): DataFrame = load(spark, readConf, Map())
+  
+  def load(spark: SparkSession, readConf: ReadConf, options: Map[String, String]): DataFrame = {
+    builder().sparkSession(spark).readConf(readConf).options(options).build().toDF()
+  }
 
   class Builder {
 
@@ -89,7 +100,7 @@ object FabricSpark {
         case Some(connect) => connect
         case None => new BlkchnConnector(FabricConnectorConf(session.sparkContext.conf, options))
       }
-      new FabricSpark(session, conn, readConf)
+      new FabricSpark(session, conn, readConf, options)
     }
   }
   

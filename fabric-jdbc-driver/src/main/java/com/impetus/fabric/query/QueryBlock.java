@@ -50,6 +50,7 @@ import org.hyperledger.fabric.sdk.TransactionProposalRequest;
 import org.hyperledger.fabric.sdk.UpgradeProposalRequest;
 import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
+import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionEventException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
@@ -588,6 +589,16 @@ public class QueryBlock {
             String errMsg = "QueryBlock | upgradeChaincode |" + e;
             logger.error(errMsg);
             throw new BlkchnException("Chaincode upgradation failed , reason " + errMsg, e);
+        }
+    }
+    
+    public Long getChannelHeight() {
+        try {
+            return getChannel().queryBlockchainInfo().getHeight();
+        } catch (ProposalException | InvalidArgumentException e) {
+            String errMsg = "Error Querying height of channel ledger";
+            logger.error(errMsg, e);
+            throw new BlkchnException(errMsg, e);
         }
     }
 

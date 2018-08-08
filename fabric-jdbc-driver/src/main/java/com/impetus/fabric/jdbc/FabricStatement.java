@@ -325,4 +325,17 @@ public class FabricStatement implements BlkchnStatement {
         this.pageRange = pageRange;
     }
 
+    @Override
+    public Number getBlockHeight() {
+        return connection.getQueryObject().getChannelHeight();
+    }
+
+    @Override
+    public RangeNode getProbableRange(String sql) {
+        LogicalPlan logicalPlan = getLogicalPlan(sql);
+        QueryBlock queryBlock = this.connection.getQueryObject();
+        QueryExecutor executor = new QueryExecutor(logicalPlan, queryBlock);
+        return executor.getProbableRange();
+    }
+
 }

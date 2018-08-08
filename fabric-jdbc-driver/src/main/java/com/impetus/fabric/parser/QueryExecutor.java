@@ -677,6 +677,95 @@ public class QueryExecutor extends AbstractQueryExecutor {
         }
     }
     
+    @Override
+    public RangeNode getFullRange() {
+        Table table = logicalPlan.getQuery().getChildType(FromItem.class, 0).getChildType(Table.class, 0);
+        String tableName = table.getChildType(IdentifierNode.class, 0).getValue();
+        RangeNode<Long> rangeNode = new RangeNode<Long>(tableName,"block_no");
+        rangeNode.getRangeList().addRange(new Range<Long>(1l, queryBlock.getChannelHeight() - 1));
+        return rangeNode;
+    }
+
+    @Override
+    public RangeNode<?> getRangeNodeFromDataNode(DataNode dataNode) {
+        Table table = logicalPlan.getQuery().getChildType(FromItem.class, 0).getChildType(Table.class, 0);
+        String tableName = table.getChildType(IdentifierNode.class, 0).getValue();
+        if(dataNode.getTable().equals(FabricTables.BLOCK)) {
+            List<RangeNode> rangeNodes = new ArrayList<>();
+            RangeOperations<?> rangeOps = physicalPlan.getRangeOperations(tableName, FabricColumns.BLOCK_NO);
+            for(Object blockObj : dataMap.keySet()) {
+                BlockInfo blockInfo = (BlockInfo) dataMap.get(blockObj);
+                RangeNode rangeNode = new RangeNode(tableName, FabricColumns.BLOCK_NO);
+                rangeNode.getRangeList().addRange(new Range(blockInfo.getBlockNumber(), blockInfo.getBlockNumber()));
+                rangeNodes.add(rangeNode);
+            }
+            if(rangeNodes.isEmpty()) {
+                RangeNode rangeNode = new RangeNode(tableName, FabricColumns.BLOCK_NO);
+                return rangeNode;
+            }
+            RangeNode rangeNode = rangeNodes.get(0);
+            for(int i = 1 ; i < rangeNodes.size() ; i++) {
+                rangeNode = rangeOps.rangeNodeOr(rangeNode, rangeNodes.get(i));
+            }
+            return rangeNode;
+        } else if(dataNode.getTable().equals(FabricTables.TRANSACTION)) {
+            List<RangeNode> rangeNodes = new ArrayList<>();
+            RangeOperations<?> rangeOps = physicalPlan.getRangeOperations(tableName, FabricColumns.BLOCK_NO);
+            for(Object transactionKey : dataMap.keySet()) {
+                TransactionObject transactionObject = (TransactionObject) dataMap.get(transactionKey);
+                RangeNode rangeNode = new RangeNode(tableName, FabricColumns.BLOCK_NO);
+                rangeNode.getRangeList().addRange(new Range(transactionObject.getBlockNo(), transactionObject.getBlockNo()));
+                rangeNodes.add(rangeNode);
+            }
+            if(rangeNodes.isEmpty()) {
+                RangeNode rangeNode = new RangeNode(tableName, FabricColumns.BLOCK_NO);
+                return rangeNode;
+            }
+            RangeNode rangeNode = rangeNodes.get(0);
+            for(int i = 1 ; i < rangeNodes.size() ; i++) {
+                rangeNode = rangeOps.rangeNodeOr(rangeNode, rangeNodes.get(i));
+            }
+            return rangeNode;
+        } else if(dataNode.getTable().equals(FabricTables.TRANSACTION_ACTION)) {
+            List<RangeNode> rangeNodes = new ArrayList<>();
+            RangeOperations<?> rangeOps = physicalPlan.getRangeOperations(tableName, FabricColumns.BLOCK_NO);
+            for(Object transactionActionKey : dataMap.keySet()) {
+                TransactionActionObject transactionActionObject = (TransactionActionObject) dataMap.get(transactionActionKey);
+                RangeNode rangeNode = new RangeNode(tableName, FabricColumns.BLOCK_NO);
+                rangeNode.getRangeList().addRange(new Range(transactionActionObject.getBlockNo(), transactionActionObject.getBlockNo()));
+                rangeNodes.add(rangeNode);
+            }
+            if(rangeNodes.isEmpty()) {
+                RangeNode rangeNode = new RangeNode(tableName, FabricColumns.BLOCK_NO);
+                return rangeNode;
+            }
+            RangeNode rangeNode = rangeNodes.get(0);
+            for(int i = 1 ; i < rangeNodes.size() ; i++) {
+                rangeNode = rangeOps.rangeNodeOr(rangeNode, rangeNodes.get(i));
+            }
+            return rangeNode;
+        } else if(dataNode.getTable().equals(FabricTables.READ_WRITE_SET)) {
+            List<RangeNode> rangeNodes = new ArrayList<>();
+            RangeOperations<?> rangeOps = physicalPlan.getRangeOperations(tableName, FabricColumns.BLOCK_NO);
+            for(Object rwSetKey : dataMap.keySet()) {
+                ReadWriteSetObject readWriteSetObject = (ReadWriteSetObject) dataMap.get(rwSetKey);
+                RangeNode rangeNode = new RangeNode(tableName, FabricColumns.BLOCK_NO);
+                rangeNode.getRangeList().addRange(new Range(readWriteSetObject.getBlockNo(), readWriteSetObject.getBlockNo()));
+                rangeNodes.add(rangeNode);
+            }
+            if(rangeNodes.isEmpty()) {
+                RangeNode rangeNode = new RangeNode(tableName, FabricColumns.BLOCK_NO);
+                return rangeNode;
+            }
+            RangeNode rangeNode = rangeNodes.get(0);
+            for(int i = 1 ; i < rangeNodes.size() ; i++) {
+                rangeNode = rangeOps.rangeNodeOr(rangeNode, rangeNodes.get(i));
+            }
+            return rangeNode;
+        }
+        throw new BlkchnException("Unidentified table name " + tableName);
+    }
+    
     private boolean filterFieldBlock(String fieldName, Object obj, String value, Comparator comparator) {
         BlockInfo blockInfo = (BlockInfo) obj;
         boolean retValue;
