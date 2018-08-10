@@ -17,6 +17,7 @@
 package com.impetus.fabric.objects;
 
 import java.lang.ref.WeakReference;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,7 +33,6 @@ import org.hyperledger.fabric.protos.peer.FabricTransaction.TransactionAction;
 import org.hyperledger.fabric.sdk.TransactionInfo;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.Timestamp;
 import com.impetus.blkch.BlkchnException;
 
 public class TransactionDeserializer {
@@ -73,7 +73,9 @@ public class TransactionDeserializer {
         if(_channelHeader == null || _channelHeader.get() == null) {
             populateChannelHeader();
         }
-        return _channelHeader.get().getTimestamp();
+        long millis = (_channelHeader.get().getTimestamp().getSeconds() * 1000) + 
+                (_channelHeader.get().getTimestamp().getNanos() / 1000);
+        return new Timestamp(millis);
     }
     
     public long getEpoch() {

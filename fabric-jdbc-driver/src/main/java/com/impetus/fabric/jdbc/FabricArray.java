@@ -15,16 +15,19 @@
  ******************************************************************************/
 package com.impetus.fabric.jdbc;
 
+import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Types;
 import java.util.Arrays;
 import java.util.Map;
 
 import com.impetus.blkch.jdbc.BlkchnArray;
 
-public class FabricArray implements BlkchnArray {
+public class FabricArray implements BlkchnArray, Serializable{
     
+    private static final long serialVersionUID = -7358910555095554719L;
     private Object[] array;
     
     public FabricArray(Object[] array) {
@@ -38,7 +41,26 @@ public class FabricArray implements BlkchnArray {
 
     @Override
     public int getBaseType() throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        if(array.length == 0) {
+            return Types.JAVA_OBJECT;
+        } else {
+            Object element = array[0];
+            if(element instanceof String) {
+                return Types.VARCHAR;
+            } else if(element instanceof Integer) {
+                return Types.INTEGER;
+            } else if(element instanceof Long) {
+                return Types.BIGINT;
+            } else if(element instanceof Double) {
+                return Types.DOUBLE;
+            } else if(element instanceof Float) {
+                return Types.FLOAT;
+            } else if(element instanceof Boolean) {
+                return Types.BOOLEAN;
+            } else {
+                return Types.JAVA_OBJECT;
+            }
+        }
     }
 
     @Override

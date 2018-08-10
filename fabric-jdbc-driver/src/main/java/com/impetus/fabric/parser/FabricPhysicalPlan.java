@@ -106,7 +106,7 @@ public class FabricPhysicalPlan extends PhysicalPlan {
                 .put(FabricColumns.TRANSACTION_ID, Types.VARCHAR)
                 .put(FabricColumns.HEADER_TYPE, Types.INTEGER)
                 .put(FabricColumns.MESSAGE_PROTOCOL_VERSION, Types.INTEGER)
-                .put(FabricColumns.TIMESTAMP, Types.JAVA_OBJECT)
+                .put(FabricColumns.TIMESTAMP, Types.TIMESTAMP)
                 .put(FabricColumns.EPOCH, Types.BIGINT)
                 .put(FabricColumns.CHANNEL_ID, Types.VARCHAR)
                 .put(FabricColumns.CREATOR_MSP, Types.VARCHAR)

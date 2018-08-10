@@ -860,13 +860,14 @@ public class QueryExecutor extends AbstractQueryExecutor {
             case FabricColumns.TIMESTAMP:
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
                 df.setLenient(false);
-                long seconds;
+                long millis;
                 try {
-                    seconds = df.parse(value.replaceAll("'", "")).getTime() / 1000;
+                    millis = df.parse(value.replaceAll("'", "")).getTime();
                 } catch (ParseException e) {
                     throw new BlkchnException(e);
                 }
-                retValue = compareNumbers(transaction.getDeserializer().getTimestamp().getSeconds(), seconds, comparator);
+                retValue = compareNumbers(transaction.getDeserializer().getTimestamp().getTime(), 
+                        millis, comparator);
                 break;
                 
             case FabricColumns.CHANNEL_ID:
