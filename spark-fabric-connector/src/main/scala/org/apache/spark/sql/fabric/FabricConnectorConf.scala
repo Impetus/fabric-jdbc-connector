@@ -55,7 +55,7 @@ object FabricConnectorConf {
     """.stripMargin)
 
   val Password = ConfigParam[String]("spark.fabric.password",
-    "",
+    "impadminpw",
     """
       | Password of hyperledger fabric network user from which connection should be made.
     """.stripMargin)
