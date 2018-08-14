@@ -59,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.impetus.blkch.BlkchnException;
+import com.impetus.blkch.sql.DataFrame;
 import com.impetus.blkch.sql.function.Endorsers;
 import com.impetus.blkch.sql.function.PolicyFile;
 import com.impetus.fabric.model.Config;
@@ -409,8 +410,9 @@ public class QueryBlock {
 
     }
     
-    public String invokeChaincode(String chaincodename, String chaincodeFunction, String[] chaincodeArgs) {
-
+    public DataFrame invokeChaincode(String chaincodename, String chaincodeFunction, String[] chaincodeArgs) {
+        List<List<Object>> data = new ArrayList<>();
+        List<String> columns = Arrays.asList("transaction_id", "is_success", "peer", "message");
         try {
             Collection<ProposalResponse> responses;
             Collection<ProposalResponse> successful = new ArrayList<>();
@@ -454,6 +456,14 @@ public class QueryBlock {
                     failed.add(response);
                 }
             }
+            for(ProposalResponse response : responses) {
+                List<Object> record = new ArrayList<>();
+                record.add(response.getTransactionID());
+                record.add(response.getStatus() == ProposalResponse.Status.SUCCESS ? true : false);
+                record.add(response.getPeer().getName());
+                record.add(response.getMessage());
+                data.add(record);
+            }
             Collection<Set<ProposalResponse>> proposalConsistencySets = SDKUtils.getProposalConsistencySets(responses);
             if (proposalConsistencySets.size() != 1) {
                 logger.info(format("Expected only one set of consistent proposal responses but got "
@@ -468,7 +478,7 @@ public class QueryBlock {
                         + firstTransactionProposalResponse.getMessage() + ". Was verified: "
                         + firstTransactionProposalResponse.isVerified();
                 logger.info(errMsg);
-                throw new BlkchnException(errMsg);
+                return new DataFrame(data, columns, new HashMap<>());
             }
             logger.info("Successfully received transaction proposal responses.");
             ProposalResponse resp = responses.iterator().next();
@@ -479,10 +489,10 @@ public class QueryBlock {
         } catch (Exception e) {
             String errMsg = "QueryBlock | invokeChaincode | " + e;
             logger.error(errMsg);
-            throw new BlkchnException(e);
+            return new DataFrame(data, columns, new HashMap<>());
 
         }
-        return "Transaction invoked successfully ";
+        return new DataFrame(data, columns, new HashMap<>());
     }
 
     public String queryChaincode(String chaincodename, String chaincodeFunction, String[] chaincodeArgs) {

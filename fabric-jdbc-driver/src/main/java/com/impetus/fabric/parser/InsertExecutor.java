@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.impetus.blkch.BlkchnException;
+import com.impetus.blkch.sql.DataFrame;
 import com.impetus.blkch.sql.insert.ColumnValue;
 import com.impetus.blkch.sql.parser.LogicalPlan;
 import com.impetus.blkch.sql.parser.TreeNode;
@@ -40,7 +41,7 @@ public class InsertExecutor {
         this.queryBlock = queryBlock;
     }
     
-    public void executeInsert() {
+    public DataFrame executeInsert() {
         TreeNode insert = logicalPlan.getInsert();
         String chaincodeName = insert.getChildType(Table.class, 0).getChildType(IdentifierNode.class, 0).getValue();
         List<String> args = new ArrayList<>();
@@ -51,6 +52,6 @@ public class InsertExecutor {
         for(IdentifierNode ident : idents) {
             args.add(Utilities.unquote(ident.getValue()));
         }
-        queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
+        return queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
     }
 }

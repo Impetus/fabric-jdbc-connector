@@ -93,8 +93,7 @@ public class FunctionExecutor {
             args.add(Utilities.unquote(ident.getValue()));
         }
         if(logicalPlan.getType().equals(SQLType.DELETE_FUNCTION)) {
-            queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
-            return null;
+            return queryBlock.invokeChaincode(chaincodeName, args.get(0), args.stream().skip(1).collect(Collectors.toList()).toArray(new String[]{}));
         } else {
             AssetSchema assetSchema;
             if(!callFunc.hasChildType(Asset.class)) {

@@ -125,16 +125,21 @@ public class FabricStatement implements BlkchnStatement {
                 return true;
 
             case INSERT:
-                new InsertExecutor(logicalPlan, queryBlock).executeInsert();
-                return false;
+                DataFrame dataframe = new InsertExecutor(logicalPlan, queryBlock).executeInsert();
+                String chaincodeName = logicalPlan.getInsert().getChildType(Table.class, 0).
+                        getChildType(IdentifierNode.class, 0).getValue();
+                resultSet = new FabricResultSet(this, dataframe, chaincodeName);
+                return true;
 
             case CREATE_ASSET:
                 new FabricAssetManager(logicalPlan, queryBlock.getConf()).executeCreateAsset();
                 return false;
 
             case DELETE_FUNCTION:
-                new FunctionExecutor(logicalPlan, queryBlock).executeCall();
-                return false;
+                dataframe = new FunctionExecutor(logicalPlan, queryBlock).executeCall();
+                chaincodeName = logicalPlan.getDeleteFunction().getChildType(IdentifierNode.class, 0).getValue();
+                resultSet = new FabricResultSet(this, dataframe, chaincodeName);
+                return true;
 
             case DROP_ASSET:
                 new FabricAssetManager(logicalPlan, queryBlock.getConf()).executeDropAsset();
