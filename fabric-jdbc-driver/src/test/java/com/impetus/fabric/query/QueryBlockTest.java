@@ -34,6 +34,7 @@ import junit.framework.TestCase;
 
 import org.hyperledger.fabric.sdk.BlockEvent;
 import org.hyperledger.fabric.sdk.Channel;
+import org.hyperledger.fabric.sdk.Enrollment;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.InstallProposalRequest;
 import org.hyperledger.fabric.sdk.InstantiateProposalRequest;
@@ -43,6 +44,7 @@ import org.hyperledger.fabric.sdk.SDKUtils;
 import org.hyperledger.fabric.sdk.TransactionProposalRequest;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
+import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -57,10 +59,11 @@ import com.impetus.fabric.model.Store;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({QueryBlock.class,HFClient.class, SDKUtils.class})
+@PrepareForTest({QueryBlock.class,HFClient.class, SDKUtils.class, HFCAClient.class})
 public class QueryBlockTest extends TestCase {
 
-
+    @Mock
+    HFCAClient mockCA;
     @Test
     public void testEnrollAndRegisterUser() throws ClassNotFoundException, SQLException, java.lang.Exception {
         String configPath = "src/test/resources/blockchain-query";
@@ -70,7 +73,11 @@ public class QueryBlockTest extends TestCase {
         when(mockuser.isEnrolled()).thenReturn(true);
         Store mockStore = mock(Store.class);
         PowerMockito.whenNew(Store.class).withAnyArguments().thenReturn(mockStore);
-//        qb.enroll();
+        PowerMockito.mockStatic(HFCAClient.class);
+        when(HFCAClient.createNewInstance(anyString(), any())).thenReturn(mockCA);
+        Enrollment enrollment = mock(Enrollment.class);
+        when(mockCA.enroll(anyString(), anyString())).thenReturn(enrollment);
+        qb.enroll();
     }
 
     @Mock
