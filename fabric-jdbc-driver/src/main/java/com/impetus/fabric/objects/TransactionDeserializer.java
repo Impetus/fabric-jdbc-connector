@@ -74,7 +74,7 @@ public class TransactionDeserializer {
             populateChannelHeader();
         }
         long millis = (_channelHeader.get().getTimestamp().getSeconds() * 1000) + 
-                (_channelHeader.get().getTimestamp().getNanos() / 1000);
+                (_channelHeader.get().getTimestamp().getNanos() / (1000 * 1000));
         return new Timestamp(millis);
     }
     

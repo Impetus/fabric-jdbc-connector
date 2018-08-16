@@ -113,6 +113,7 @@ public class QueryBlockTest extends TestCase {
 
     @Mock
     SDKUtils mockSDKUtils;
+    @SuppressWarnings("unchecked")
     @Test
     public void testInstallChainCode() throws ClassNotFoundException, SQLException, InvalidArgumentException{
 
@@ -134,11 +135,10 @@ public class QueryBlockTest extends TestCase {
 	    qb.setChannel();
         String chaincodeName ="chncodefunc";
         String version = "1.0";
-        String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
         String chaincodePath = "hyperledger/fabric/examples/chaincode/go/chaincode_example02";
 
 
-        when(mockSDKUtils.getProposalConsistencySets(anyCollection())).thenReturn(new ArrayList());
+        when(SDKUtils.getProposalConsistencySets(anyCollection())).thenReturn(new ArrayList<>());
         String result = qb.installChaincode(chaincodeName, version, qb.getConf().getConfigPath(), chaincodePath);
         assert(result.equals("Chaincode installed successfully"));
 
@@ -146,6 +146,7 @@ public class QueryBlockTest extends TestCase {
 
 
     //This test is failing because of not able to mock Java CompletableFuture properly
+    @SuppressWarnings("unchecked")
     @Test
     public void testInstantiateChaincode() throws ClassNotFoundException, SQLException, InvalidArgumentException{
 
@@ -166,15 +167,13 @@ public class QueryBlockTest extends TestCase {
         String chaincodeName ="chncodefunc";
         String version = "1.0";
         String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
-        String chaincodePath = "hyperledger/fabric/examples/chaincode/go/chaincode_example02";
 
-        BlockEvent.TransactionEvent mockTranEvent = mock(BlockEvent.TransactionEvent.class);
       CompletableFuture<BlockEvent.TransactionEvent> mockCompletableFutureTEvent = new CompletableFuture<BlockEvent.TransactionEvent>();
 
         when(mockChannel.sendTransaction(any(ArrayList.class),anyCollection())).thenReturn(mockCompletableFutureTEvent);// .thenReturn(mockCompletableFutureTEvent);
 
         try {
-            String result = qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"}, null);
+            qb.instantiateChaincode(chaincodeName,version,goPath,"testFunction",new String[] {"a","b","5","10"}, null);
         }
         catch(BlkchnException blkEx){
             //Do Nothing for Java Concurrent Error
@@ -187,7 +186,7 @@ public class QueryBlockTest extends TestCase {
         assert(true);
     }
 
-    //This test is failing because of not able to mock Java CompletableFuture properly
+    @SuppressWarnings("unchecked")
     @Test
     public void testInvokeChaincode() throws ClassNotFoundException, SQLException, InvalidArgumentException, ProposalException{
 
@@ -196,7 +195,7 @@ public class QueryBlockTest extends TestCase {
 
         Channel mockChannel = mock(Channel.class);
         when(mockClient.newChannel(anyString())).thenReturn(mockChannel);
-
+        when(mockClient.newPeer(anyString(), anyString(), any())).thenCallRealMethod();
 
 
         InstantiateProposalRequest mockInstantiateProposalRequest = mock(InstantiateProposalRequest.class);
@@ -223,18 +222,14 @@ public class QueryBlockTest extends TestCase {
         QueryBlock qb = new QueryBlock(configPath,"mychannel", null, null);
         qb.setChannel();
         String chaincodeName ="chncodefunc";
-        String version = "1.0";
-        String goPath = "/home/impetus/IdeaProjects/fabric-jdbc-driver/src/test/resources/blockchain-query/";
-        String chaincodePath = "hyperledger/fabric/examples/chaincode/go/chaincode_example02";
 
-        when(mockSDKUtils.getProposalConsistencySets(anyCollection())).thenReturn(new ArrayList());
+        when(SDKUtils.getProposalConsistencySets(anyCollection())).thenReturn(new ArrayList<>());
 
-        BlockEvent.TransactionEvent mockTranEvent = mock(BlockEvent.TransactionEvent.class);
         CompletableFuture<BlockEvent.TransactionEvent> mockCompletableFutureTEvent = new CompletableFuture<BlockEvent.TransactionEvent>();//{mockTranEvent};
         when(mockChannel.sendTransaction(any(ArrayList.class))).thenReturn(mockCompletableFutureTEvent);// .thenReturn(mockCompletableFutureTEvent);
 
         try {
-            String result = qb.invokeChaincode(chaincodeName, "testFunction", new String[]{"a", "b", "5", "10"});
+            qb.invokeChaincode(chaincodeName, "testFunction", new String[]{"a", "b", "5", "10"});
 
         }catch(BlkchnException blkEx){
             //Do Nothing for Java concurrent Error

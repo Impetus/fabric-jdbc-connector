@@ -23,6 +23,7 @@ import java.sql.Date;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 
@@ -132,6 +133,19 @@ public class FabricResultSet extends AbstractResultSet {
 
     public Date getDate(String column) throws SQLException {
         return getDate(getColumnIndex(column));
+    }
+    
+    @Override
+    public Timestamp getTimestamp(int index) throws SQLException {
+        if (index > recordData.length) {
+            throw new SQLException(String.format("Result set doesn't contain index %d", index));
+        }
+        return recordData[index - 1] == null ? null : (Timestamp)recordData[index - 1];
+    }
+    
+    @Override
+    public Timestamp getTimestamp(String column) throws SQLException {
+        return getTimestamp(getColumnIndex(column));
     }
 
     public double getDouble(int index) throws SQLException {

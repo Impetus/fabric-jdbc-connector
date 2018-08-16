@@ -133,10 +133,10 @@ public class Config {
                     Matcher match = orgPat.matcher(key);
 
                     if (match.matches() && match.groupCount() == 1) {
+                        orgCount++;
                         if (orgCount > 1) {
                             throw new BlkchnException("More than one organizations are specified in config.properties");
                         }
-                        orgCount++;
                         String orgName = match.group(1).trim();
                         configOrg = new Org(orgName, val.trim());
 

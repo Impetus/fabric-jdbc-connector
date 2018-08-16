@@ -105,7 +105,7 @@ public class QueryBlock {
     public QueryBlock(String configPath, String channel, String username, String secret) {
         conf = new Config(configPath);
         channelName = channel;
-        adminName = conf.getAdmin() != null ? conf.getAdmin() : null;
+        adminName = conf.getAdmin();
         this.username = username;
         this.secret = secret;
         this.user = new HyperUser(username, conf.getSampleOrg().getName());
@@ -282,7 +282,7 @@ public class QueryBlock {
                 newChannel.addOrderer(client.newOrderer(orderName, userOrg.getOrdererLocation(orderName),
                         conf.getOrdererProperties(orderName)));
             }
-
+            
             for (Peer peer : peers) {
                 logger.debug(peer.getName());
 
