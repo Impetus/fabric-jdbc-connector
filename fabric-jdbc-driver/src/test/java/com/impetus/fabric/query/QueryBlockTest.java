@@ -240,5 +240,49 @@ public class QueryBlockTest extends TestCase {
         assert(true);
 
     }
+    
+    @SuppressWarnings("unchecked")
+    @Test(expected=BlkchnException.class)
+    public void testInvokeNoPeerInfo() throws ClassNotFoundException, SQLException, InvalidArgumentException, ProposalException {
+        PowerMockito.mockStatic(HFClient.class);
+        when(HFClient.createNewInstance()).thenReturn(mockClient);
+
+        Channel mockChannel = mock(Channel.class);
+        when(mockClient.newChannel(anyString())).thenReturn(mockChannel);
+        when(mockClient.newPeer(anyString(), anyString(), any())).thenCallRealMethod();
+
+
+        InstantiateProposalRequest mockInstantiateProposalRequest = mock(InstantiateProposalRequest.class);
+        when(mockClient.newInstantiationProposalRequest()).thenReturn(mockInstantiateProposalRequest);
+
+        TransactionProposalRequest mockTransactionProposalRequest = mock(TransactionProposalRequest.class);
+        when(mockClient.newTransactionProposalRequest()).thenReturn(mockTransactionProposalRequest);
+
+        Collection<ProposalResponse> mockProposalResponsesList = new ArrayList<ProposalResponse>();
+        ProposalResponse mockProposalResponses = mock(ProposalResponse.class);
+        when(mockProposalResponses.getStatus()).thenReturn(ProposalResponse.Status.SUCCESS);
+        Peer mkpeer = mock(Peer.class);
+        when(mockProposalResponses.getPeer()).thenReturn(mkpeer);
+        mockProposalResponsesList.add(mockProposalResponses);
+        mockProposalResponsesList.add(mockProposalResponses);
+
+        when(mockChannel.sendTransactionProposal(any(TransactionProposalRequest.class),anyCollectionOf(Peer.class))).thenReturn(mockProposalResponsesList);
+
+
+        PowerMockito.mockStatic(SDKUtils.class);
+
+        String configPath = "src/test/resources/blockchain-query";
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        QueryBlock qb = new QueryBlock(configPath,"mychannel", null, null);
+        qb.setChannel();
+        String chaincodeName ="chncodefuncNoPeerInfo";
+
+        when(SDKUtils.getProposalConsistencySets(anyCollection())).thenReturn(new ArrayList<>());
+
+        CompletableFuture<BlockEvent.TransactionEvent> mockCompletableFutureTEvent = new CompletableFuture<BlockEvent.TransactionEvent>();//{mockTranEvent};
+        when(mockChannel.sendTransaction(any(ArrayList.class))).thenReturn(mockCompletableFutureTEvent);// .thenReturn(mockCompletableFutureTEvent);
+
+        qb.invokeChaincode(chaincodeName, "testFunction", new String[]{"a", "b", "5", "10"});
+    }
 
 }

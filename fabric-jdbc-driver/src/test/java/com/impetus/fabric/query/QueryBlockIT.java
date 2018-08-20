@@ -18,12 +18,14 @@ package com.impetus.fabric.query;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -212,6 +214,35 @@ public class QueryBlockIT {
         stat.execute(createFuncQuery);
         String upgradeFuncQuery = "UPGRADE FUNCTION chncodeFunc" + currentTimestamp + " AS 'assettransfer' WITH VERSION '2.0'";
         stat.execute(upgradeFuncQuery);
+    }
+    
+    @Test
+    public void testInsertMultiOrg() throws ClassNotFoundException, SQLException, IOException {
+        Class.forName("com.impetus.fabric.jdbc.FabricDriver");
+        File configFolder = new File("src/test/resources/blockchain-query");
+        String configPath = configFolder.getAbsolutePath();
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "admin", "adminpw");
+        Statement stat = conn.createStatement();
+        String installQuery = "CREATE FUNCTION chncodefunc_testInsertMultiOrg AS 'assettransfer' WITH VERSION '1.0' INSTALL ONLY";
+        stat.execute(installQuery);
+        FileUtils.copyFile(new File(configPath, "config_org2.properties"), new File(configPath, "config.properties"));
+        Connection conn2 = DriverManager.getConnection("jdbc:fabric://" + configPath +":mychannel", "admin", "adminpw");
+        Statement stat2 = conn2.createStatement();
+        stat2.execute(installQuery);
+        String endorsementFilePath = new File("src/test/resources/two_org_endorsement_policy.yaml").getAbsolutePath();
+        stat2.execute("CREATE CHAINCODE chncodefunc_testInsertMultiOrg AS 'assettransfer' "
+                + "WITH VERSION '1.0' WITH ENDORSEMENT POLICY FILE '"+ endorsementFilePath + "' "
+                + "INSTANTIATE ONLY");
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            // Ignore
+        }
+        FileUtils.copyFile(new File(configPath, "config_org1.properties"), new File(configPath, "config.properties"));
+        Connection conn3 = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
+        Statement stat3 = conn3.createStatement();
+        String insertQuery = "INSERT INTO chncodefunc_testInsertMultiOrg VALUES('transferAsset', 1001, 2001, 2002)";
+        stat3.execute(insertQuery);
     }
 
 

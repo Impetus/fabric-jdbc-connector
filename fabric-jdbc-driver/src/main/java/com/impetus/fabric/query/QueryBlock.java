@@ -433,6 +433,9 @@ public class QueryBlock {
             tm.put("result", ":)".getBytes(UTF_8));
             transactionProposalRequest.setTransientMap(tm);
             List<PeerInfo> peerInfos = conf.getChaincodePeers(chaincodename);
+            if(peerInfos == null) {
+                throw new BlkchnException("Endorsing peer information not provided for chaincode " + chaincodename);
+            }
             List<Peer> peers = new ArrayList<>();
             for(PeerInfo peerInfo : peerInfos) {
                 Peer peer = client.newPeer(peerInfo.getName(), peerInfo.getGrpcUrl(), peerInfo.getProperties());

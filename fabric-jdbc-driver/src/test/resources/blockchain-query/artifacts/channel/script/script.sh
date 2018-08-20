@@ -127,7 +127,7 @@ joinWithRetry () {
 }
 
 joinChannel () {
-	for ch in 0 1; do
+	for ch in 0 1 3 4; do
 		setGlobals $ch
 		joinWithRetry $ch
 		echo "===================== PEER$ch joined on the channel \"$CHANNEL_NAME\" ===================== "
