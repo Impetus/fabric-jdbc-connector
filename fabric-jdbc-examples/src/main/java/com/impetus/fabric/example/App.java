@@ -26,7 +26,7 @@ public class App {
                 throw new RuntimeException("Select option between 1 and 3");
             }
             Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-            Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath + ":" + channel, "Hari", "");
+            Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath + ":" + channel, "admin", "adminpw");
             if(option == 1) {
                 createChaincode(conn);
                 System.out.println("Chaincode created successfully");
