@@ -489,6 +489,7 @@ public class QueryBlock {
         } catch (Exception e) {
             String errMsg = "QueryBlock | invokeChaincode | " + e;
             logger.error(errMsg);
+            data.add(Arrays.asList("", false, "", e.getMessage()));
             return new DataFrame(data, columns, new HashMap<>());
 
         }

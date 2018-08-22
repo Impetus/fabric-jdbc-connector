@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -53,6 +54,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.impetus.blkch.BlkchnException;
+import com.impetus.blkch.sql.DataFrame;
 import com.impetus.fabric.model.HyperUser;
 import com.impetus.fabric.model.Store;
 
@@ -242,7 +244,7 @@ public class QueryBlockTest extends TestCase {
     }
     
     @SuppressWarnings("unchecked")
-    @Test(expected=BlkchnException.class)
+    @Test
     public void testInvokeNoPeerInfo() throws ClassNotFoundException, SQLException, InvalidArgumentException, ProposalException {
         PowerMockito.mockStatic(HFClient.class);
         when(HFClient.createNewInstance()).thenReturn(mockClient);
@@ -282,7 +284,11 @@ public class QueryBlockTest extends TestCase {
         CompletableFuture<BlockEvent.TransactionEvent> mockCompletableFutureTEvent = new CompletableFuture<BlockEvent.TransactionEvent>();//{mockTranEvent};
         when(mockChannel.sendTransaction(any(ArrayList.class))).thenReturn(mockCompletableFutureTEvent);// .thenReturn(mockCompletableFutureTEvent);
 
-        qb.invokeChaincode(chaincodeName, "testFunction", new String[]{"a", "b", "5", "10"});
+        DataFrame df = qb.invokeChaincode(chaincodeName, "testFunction", new String[]{"a", "b", "5", "10"});
+        assertEquals(df.getData().size(), 1);
+        List<Object> row = df.getData().get(0);
+        assertEquals(false, Boolean.parseBoolean(row.get(1).toString()));
+        assertEquals("Endorsing peer information not provided for chaincode chncodefuncNoPeerInfo", row.get(3).toString());
     }
 
 }

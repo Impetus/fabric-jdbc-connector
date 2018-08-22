@@ -32,6 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import static org.junit.Assert.fail;
 
 import com.impetus.test.catagory.IntegrationTest;
 
@@ -272,7 +273,22 @@ public class QueryBlockIT {
         String createFuncQuery = "CREATE FUNCTION chncodefunc_testInsertFunction AS 'assettransfer' WITH VERSION '1.0'";
         stat.execute(createFuncQuery);
         String insertQuery = "INSERT INTO chncodefunc_testInsertFunction VALUES('transferAsset', 1001, 2001, 2002)";
-        stat.execute(insertQuery);
+        boolean res = stat.execute(insertQuery);
+        if(res) {
+            ResultSet rs = stat.getResultSet();
+            if(rs.next()) {
+                boolean isSuccess = rs.getBoolean("is_success");
+                if(isSuccess) {
+                    return;
+                } else {
+                    fail("Test failed with message: " + rs.getString("message"));
+                }
+            } else {
+                fail();
+            }
+        } else {
+            fail();
+        }
     }
 
 
@@ -331,7 +347,22 @@ public class QueryBlockIT {
         Connection conn3 = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat3 = conn3.createStatement();
         String insertQuery = "INSERT INTO chncodefunc_testInsertMultiOrg VALUES('transferAsset', 1001, 2001, 2002)";
-        stat3.execute(insertQuery);
+        boolean res = stat3.execute(insertQuery);
+        if(res) {
+            ResultSet rs = stat3.getResultSet();
+            if(rs.next()) {
+                boolean isSuccess = rs.getBoolean("is_success");
+                if(isSuccess) {
+                    return;
+                } else {
+                    fail("Test failed with message: " + rs.getString("message"));
+                }
+            } else {
+                fail();
+            }
+        } else {
+            fail();
+        }
     }
 
 
