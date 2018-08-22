@@ -64,7 +64,7 @@ public class QueryBlockIT {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
 
         ResultSet rs_withAllColumn = stat.executeQuery("select * from block where block_no = 20000000");
@@ -125,7 +125,7 @@ public class QueryBlockIT {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         File configFolder = new File("src/test/resources/blockchain-query");
         String configPath = configFolder.getAbsolutePath();
-        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "Impetus User", "");
+        Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "impadmin", "impadminpw");
         Statement stat = conn.createStatement();
 
         ResultSet rs = stat.executeQuery("select previous_hash from block where previous_hash = 'abcd82f37020778c5e99b6ebc6ce609624ba391e9adc5b72207e39fe'");
