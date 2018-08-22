@@ -183,8 +183,6 @@ public class QueryExecutor extends AbstractQueryExecutor {
                 BlockInfo blockInfo = channel.queryBlockByNumber(Long.parseLong(value));
                 dataMap.put(Long.toString(blockInfo.getBlockNumber()), blockInfo);
                 return new DataNode<>(table, Arrays.asList(Long.toString(blockInfo.getBlockNumber())));
-            } catch (NumberFormatException | InvalidArgumentException e) {
-                throw new BlkchnException("Error querying block by block number " + value, e);
             } catch( ProposalException e) {
                 logger.error("Error querying block by block number " + value, e);
                 return new DataNode<>(table, new ArrayList<>());
@@ -196,8 +194,6 @@ public class QueryExecutor extends AbstractQueryExecutor {
                 BlockInfo blockInfo = channel.queryBlockByHash(Hex.decodeHex(value.replace("'", "").toCharArray()));
                 dataMap.put(Long.toString(blockInfo.getBlockNumber()), blockInfo);
                 return new DataNode<>(table, Arrays.asList(Long.toString(blockInfo.getBlockNumber())));
-            } catch (InvalidArgumentException | DecoderException e) {
-                throw new BlkchnException("Error querying block by hash " + value.replace("'", ""), e);
             } catch (ProposalException e) {
                 logger.error("Error querying block by hash " + value.replace("'", ""), e);
                 return new DataNode<>(table, new ArrayList<>());
@@ -210,8 +206,6 @@ public class QueryExecutor extends AbstractQueryExecutor {
                 TransactionInfo transactionInfo = channel.queryTransactionByID(value.replace("'", ""));
                 dataMap.put(value.replace("'", ""), new TransactionObject(blockNo, transactionInfo));
                 return new DataNode<>(table, Arrays.asList(value.replace("'", "")));
-            } catch (InvalidArgumentException e) {
-                throw new BlkchnException("Error querying transaction by id " + value.replace("'", ""), e);
             } catch (ProposalException e){
                 logger.error("Error querying transaction by id " + value.replace("'", ""), e);
                 return new DataNode<>(table, new ArrayList<>());
@@ -230,8 +224,6 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     transactions.add(transactionId);
                 }
                 return new DataNode<>(table, transactions);
-            } catch (NumberFormatException | InvalidArgumentException e) {
-                throw new BlkchnException("Error querying transactions for block number " + value, e);
             } catch(ProposalException e){
                 logger.error("Error querying transactions for block number " + value, e);
                 return new DataNode<>(table, new ArrayList<>());
@@ -251,8 +243,6 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     actions.add(Integer.toString(new Tuple2<>(transactionInfo.getTransactionID(), i).hashCode()));
                 }
                 return new DataNode<>(table, actions);
-            } catch (InvalidArgumentException e) {
-                throw new BlkchnException("Error querying transaction actions by id " + value.replace("'", ""), e);
             } catch(ProposalException e){
                 logger.error("Error querying transaction actions by id " + value.replace("'", ""), e);
                 return new DataNode<>(table, new ArrayList<>());
@@ -275,8 +265,6 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     }
                 }
                 return new DataNode<>(table, actions);
-            } catch (NumberFormatException | InvalidArgumentException e) {
-                throw new BlkchnException("Error querying transaction actions for block number " + value, e);
             } catch(ProposalException e){
                 logger.error("Error querying transaction actions for block number " + value, e);
                 return new DataNode<>(table, new ArrayList<>());
@@ -318,8 +306,6 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     }
                 }
                 return new DataNode<>(table, keys);
-            } catch (InvalidArgumentException | InvalidProtocolBufferException e) {
-                throw new BlkchnException("Error querying read write sets by id " + value.replace("'", ""), e);
             } catch(ProposalException e){
                 logger.error("Error querying read write sets by id " + value.replace("'", ""), e);
                 return new DataNode<>(table, new ArrayList<>());
@@ -364,8 +350,6 @@ public class QueryExecutor extends AbstractQueryExecutor {
                     }
                 }
                 return new DataNode<>(table, keys);
-            } catch (NumberFormatException | InvalidArgumentException | InvalidProtocolBufferException e) {
-                throw new BlkchnException("Error querying read write sets for block number " + value, e);
             } catch (ProposalException e){
                 logger.error("Error querying read write sets for block number " + value, e);
                 return new DataNode<>(table, new ArrayList<>());

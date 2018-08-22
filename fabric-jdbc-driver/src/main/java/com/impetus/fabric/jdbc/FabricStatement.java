@@ -190,17 +190,16 @@ public class FabricStatement implements BlkchnStatement {
                 Table table = logicalPlan.getQuery().getChildType(FromItem.class, 0).getChildType(Table.class, 0);
                 tableName = table.getChildType(IdentifierNode.class, 0).getValue();
                 QueryExecutor executor = new QueryExecutor(logicalPlan, queryBlock);
-                if(this.pageRange != null) {
+                if (this.pageRange != null) {
                     executor.paginate(pageRange);
                 }
                 dataframe = executor.executeQuery();
-        }
-        if(dataframe.isEmpty()){
-            DataFrame dfWithSchema = getDataFrameWithSchema(tableName,logicalPlan);
-            resultSet = new FabricResultSet(this, dfWithSchema, tableName);
-        }
-        else {
-            resultSet = new FabricResultSet(this, dataframe, tableName);
+                if (dataframe.isEmpty()) {
+                    DataFrame dfWithSchema = getDataFrameWithSchema(tableName, logicalPlan);
+                    resultSet = new FabricResultSet(this, dfWithSchema, tableName);
+                } else {
+                    resultSet = new FabricResultSet(this, dataframe, tableName);
+                }
         }
         return resultSet;
     }
