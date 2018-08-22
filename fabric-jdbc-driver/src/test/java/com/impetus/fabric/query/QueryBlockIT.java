@@ -219,7 +219,7 @@ public class QueryBlockIT {
     @Test
     public void testInsertMultiOrg() throws ClassNotFoundException, SQLException, IOException {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
-        File configFolder = new File("src/test/resources/blockchain-query");
+        File configFolder = new File("src/test/resources/blockchain-query-multi-org");
         String configPath = configFolder.getAbsolutePath();
         Connection conn = DriverManager.getConnection("jdbc:fabric://" + configPath+":mychannel", "admin", "adminpw");
         Statement stat = conn.createStatement();
