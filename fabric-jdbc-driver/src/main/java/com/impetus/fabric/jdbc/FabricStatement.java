@@ -66,7 +66,7 @@ public class FabricStatement implements BlkchnStatement {
     private int holdablity;
 
     private FabricResultSet resultSet;
-    
+
     private RangeNode<?> pageRange;
 
     FabricStatement(FabricConnection conn, int type, int concurrency, int holdability) {
@@ -143,7 +143,7 @@ public class FabricStatement implements BlkchnStatement {
             case UPGRADE_FUNCTION:
                 new FunctionExecutor(logicalPlan, queryBlock).executeUpgrade();
                 return false;
-                
+
             case CREATE_USER:
                 new CAManager(logicalPlan, queryBlock).registerUser();
                 return false;
@@ -400,7 +400,7 @@ public class FabricStatement implements BlkchnStatement {
     public void setQueryTimeout(int seconds) throws SQLException {
         throw new UnsupportedOperationException();
     }
-    
+
     @Override
     public void setPageRange(RangeNode<?> pageRange) {
         this.pageRange = pageRange;
