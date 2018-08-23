@@ -5,36 +5,101 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-                <groupId>com.impetus.fabric</groupId>
-                <artifactId>fabric-jdbc-connector</artifactId>
-                <version>1.1.0-SNAPSHOT</version>
-        </parent>
+		<groupId>com.impetus.fabric</groupId>
+		<artifactId>fabric-jdbc-connector</artifactId>
+		<version>1.1.0-SNAPSHOT</version>
+	</parent>
 	<artifactId>fabric-jdbc-examples</artifactId>
 	<name>Fabric JDBC Examples</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-                <maven.deploy.skip>true</maven.deploy.skip>
+		<maven.deploy.skip>true</maven.deploy.skip>
 	</properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.impetus.fabric</groupId>
-			<artifactId>fabric-jdbc-driver</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.38</version>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
+	<build>
+		<sourceDirectory>${src.dir}</sourceDirectory>
+	</build>
 
+	<profiles>
+		<profile>
+			<id>driver</id>
+			<properties>
+				<src.dir>src/main/java</src.dir>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>com.impetus.fabric</groupId>
+					<artifactId>fabric-jdbc-driver</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>spark</id>
+			<properties>
+				<src.dir>src/main/scala</src.dir>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.apache.spark</groupId>
+					<artifactId>spark-sql_2.11</artifactId>
+					<version>2.0.0</version>
+					<scope>provided</scope>
+				</dependency>
+				<dependency>
+					<groupId>com.impetus.fabric</groupId>
+					<artifactId>spark-fabric-connector</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>net.alchim31.maven</groupId>
+						<artifactId>scala-maven-plugin</artifactId>
+						<version>3.2.0</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>compile</goal>
+									<goal>testCompile</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-shade-plugin</artifactId>
+						<version>3.1.0</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>shade</goal>
+								</goals>
+								<configuration>
+									<filters>
+										<filter>
+											<!-- filter out signature files from signed dependencies, else 
+												repackaging fails with security ex -->
+											<artifact>*:*</artifact>
+											<excludes>
+												<exclude>META-INF/*.SF</exclude>
+												<exclude>META-INF/*.DSA</exclude>
+												<exclude>META-INF/*.RSA</exclude>
+											</excludes>
+										</filter>
+									</filters>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
