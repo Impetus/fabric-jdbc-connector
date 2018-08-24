@@ -17,6 +17,7 @@ package com.impetus.fabric.jdbc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.util.ArrayList;
@@ -24,16 +25,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.impetus.blkch.sql.query.Column;
-import com.impetus.blkch.sql.query.FunctionNode;
-import com.impetus.blkch.sql.query.SelectItem;
-import com.impetus.blkch.sql.query.StarNode;
-import com.impetus.blkch.util.Utilities;
-import com.impetus.fabric.parser.FabricPhysicalPlan;
-import com.impetus.fabric.query.FabricTables;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import com.impetus.blkch.BlkchnErrorListener;
+import com.impetus.blkch.BlkchnException;
 import com.impetus.blkch.jdbc.BlkchnStatement;
 import com.impetus.blkch.sql.DataFrame;
 import com.impetus.blkch.sql.asset.Asset;
@@ -44,15 +39,23 @@ import com.impetus.blkch.sql.parser.AbstractSyntaxTreeVisitor;
 import com.impetus.blkch.sql.parser.BlockchainVisitor;
 import com.impetus.blkch.sql.parser.CaseInsensitiveCharStream;
 import com.impetus.blkch.sql.parser.LogicalPlan;
+import com.impetus.blkch.sql.parser.LogicalPlan.SQLType;
+import com.impetus.blkch.sql.query.Column;
 import com.impetus.blkch.sql.query.FromItem;
+import com.impetus.blkch.sql.query.FunctionNode;
 import com.impetus.blkch.sql.query.IdentifierNode;
 import com.impetus.blkch.sql.query.RangeNode;
+import com.impetus.blkch.sql.query.SelectItem;
+import com.impetus.blkch.sql.query.StarNode;
 import com.impetus.blkch.sql.query.Table;
+import com.impetus.blkch.util.Utilities;
 import com.impetus.fabric.parser.CAManager;
 import com.impetus.fabric.parser.FabricAssetManager;
+import com.impetus.fabric.parser.FabricPhysicalPlan;
 import com.impetus.fabric.parser.FunctionExecutor;
 import com.impetus.fabric.parser.InsertExecutor;
 import com.impetus.fabric.parser.QueryExecutor;
+import com.impetus.fabric.query.FabricTables;
 import com.impetus.fabric.query.QueryBlock;
 
 public class FabricStatement implements BlkchnStatement {
@@ -189,6 +192,7 @@ public class FabricStatement implements BlkchnStatement {
                             .getValue();
                 }
                 dataframe = new FunctionExecutor(logicalPlan, queryBlock).executeCall();
+                resultSet = new FabricResultSet(this, dataframe, tableName);
                 break;
 
             default:
@@ -421,6 +425,29 @@ public class FabricStatement implements BlkchnStatement {
         QueryBlock queryBlock = this.connection.getQueryObject();
         QueryExecutor executor = new QueryExecutor(logicalPlan, queryBlock);
         return executor.getProbableRange();
+    }
+
+    @Override
+    public ResultSetMetaData getSchema(String sql) {
+        LogicalPlan logicalPlan = getLogicalPlan(sql);
+        if(logicalPlan.getType().equals(SQLType.QUERY)) {
+            Table table = logicalPlan.getQuery().getChildType(FromItem.class, 0).getChildType(Table.class, 0);
+            String tableName = table.getChildType(IdentifierNode.class, 0).getValue();
+            DataFrame df = getDataFrameWithSchema(tableName, logicalPlan);
+            ResultSet rs = new FabricResultSet(this, df, tableName);
+            try {
+                return rs.getMetaData();
+            } catch (SQLException e) {
+                throw new BlkchnException(e);
+            } finally {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    // Ignore
+                }
+            }
+        }
+        throw new BlkchnException("This method doesn't support sql statement of type " + logicalPlan.getType());
     }
 
 }

@@ -64,6 +64,9 @@ public class AssetSchema {
             }
             return new DataFrame(data, columnDetails.keySet().toArray(new String[]{}), new HashMap<>());
         } else if(storageType == StorageType.CSV) {
+            if(queryData.isEmpty()) {
+                return new DataFrame(data, columnDetails.keySet().toArray(new String[]{}), new HashMap<>());
+            }
             String[] records = queryData.split(lineDelimiter);
             for(String record : records) {
                 data.add(Arrays.asList(record.split(fieldDelimiter)));
