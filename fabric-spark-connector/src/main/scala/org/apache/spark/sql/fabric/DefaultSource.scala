@@ -33,7 +33,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Lo
       (key, value)
     }
     val rdd = FabricSpark.load[Row](sqlContext.sparkContext, readConf, options)
-    val schema = rdd.first.schema
+    val schema = rdd.getSchema
     BlkchnSourceRelation(rdd, schema)(sqlContext)
   }
 

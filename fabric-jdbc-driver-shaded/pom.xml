@@ -11,7 +11,7 @@
 	<artifactId>fabric-jdbc-driver-shaded</artifactId>
 	<packaging>jar</packaging>
 
-	<name>fabric-sdk-java-shaded</name>
+	<name>Fabric JDBC Driver Shaded</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>

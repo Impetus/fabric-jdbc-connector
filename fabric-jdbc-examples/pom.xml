@@ -52,7 +52,7 @@
 				</dependency>
 				<dependency>
 					<groupId>com.impetus.fabric</groupId>
-					<artifactId>spark-fabric-connector</artifactId>
+					<artifactId>fabric-spark-connector</artifactId>
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
