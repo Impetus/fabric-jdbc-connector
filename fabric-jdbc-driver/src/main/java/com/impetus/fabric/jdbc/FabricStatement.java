@@ -449,5 +449,10 @@ public class FabricStatement implements BlkchnStatement {
         }
         throw new BlkchnException("This method doesn't support sql statement of type " + logicalPlan.getType());
     }
+    
+    @Override
+    public int getArrayElementType(String table, String column) {
+        return FabricPhysicalPlan.getArrayElementType(table, column);
+    }
 
 }

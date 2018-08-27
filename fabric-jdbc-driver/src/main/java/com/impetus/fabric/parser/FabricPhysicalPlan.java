@@ -50,6 +50,8 @@ public class FabricPhysicalPlan extends PhysicalPlan {
     private static Map<String, List<String>> fabricTableColumnMap = new HashMap<>();
 
     private static Map<String, Map<String, Integer>> fabricTableColumnTypeMap = new HashMap<>();
+    
+    private static Map<Tuple2<String, String>, Integer> arrayElementTypeMap = new HashMap<>();
 
     static {
         rangeColMap.put(FabricTables.BLOCK, Arrays.asList(FabricColumns.BLOCK_NO));
@@ -148,6 +150,11 @@ public class FabricPhysicalPlan extends PhysicalPlan {
                         .put(FabricColumns.IS_DELETE, Types.BOOLEAN)
                         .put(FabricColumns.WRITE_VALUE, Types.VARCHAR)
                         .build());
+        
+        arrayElementTypeMap.put(new Tuple2<String, String>(FabricTables.TRANSACTION_ACTION, 
+                FabricColumns.CHAINCODE_ARGS), Types.VARCHAR);
+        arrayElementTypeMap.put(new Tuple2<String, String>(FabricTables.TRANSACTION_ACTION, 
+                FabricColumns.ENDORSEMENTS), Types.VARCHAR);
     }
 
     public FabricPhysicalPlan(LogicalPlan logicalPlan) {
@@ -202,5 +209,13 @@ public class FabricPhysicalPlan extends PhysicalPlan {
 
     public static Map<String, Integer> getColumnTypes(String table) {
         return fabricTableColumnTypeMap.get(table);
+    }
+    
+    public static int getArrayElementType(String table, String column) {
+        Tuple2<String, String> key = new Tuple2<>(table, column);
+        if(!arrayElementTypeMap.containsKey(key)) {
+            return Types.VARCHAR;
+        }
+        return arrayElementTypeMap.get(key);
     }
 }
