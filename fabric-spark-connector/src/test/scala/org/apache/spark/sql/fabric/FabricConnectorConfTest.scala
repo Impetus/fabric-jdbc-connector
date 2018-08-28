@@ -15,10 +15,12 @@
 ******************************************************************************/
 package org.apache.spark.sql.fabric
 
-import org.scalatest.FlatSpec
-import org.scalatest.BeforeAndAfter
 import org.apache.spark.SparkConf
+import org.scalatest.FlatSpec
 
+import com.impetus.test.catagory.UnitTest
+
+@UnitTest
 class FabricConnectorConfTest extends FlatSpec {
   
   "FabricConnectorConf" should "read values from Map" in {
