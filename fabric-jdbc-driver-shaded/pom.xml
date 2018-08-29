@@ -50,6 +50,10 @@
 						<configuration>
 							<relocations>
 								<relocation>
+									<pattern>org.bouncycastle</pattern>
+									<shadedPattern>com.impetus.org.bouncycastle</shadedPattern>
+								</relocation>
+								<relocation>
 									<pattern>io.netty</pattern>
 									<shadedPattern>com.impetus.io.netty</shadedPattern>
 								</relocation>
