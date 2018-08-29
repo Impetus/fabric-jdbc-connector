@@ -266,11 +266,9 @@ public class QueryBlock {
 
     }
     
-    public Channel reconstructChannel(List<Peer> peers) {
+    public Channel reconstructChannel(List<Peer> peers, HFClient client) {
         checkConfig();
         try {
-            HFClient client = HFClient.createNewInstance();
-            client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
             org.apache.log4j.Level setTo = null;
             setTo = org.apache.log4j.Level.DEBUG;
             org.apache.log4j.Logger.getLogger("org.hyperledger.fabric").setLevel(setTo);
@@ -423,6 +421,9 @@ public class QueryBlock {
             ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(chaincodename).build();
             logger.info(String.format("[Channel Name:- %s, Chaincode Function:- %s, Chaincode Args:- %s]",
                     channel.getName(), chaincodeFunction, Arrays.asList(chaincodeArgs)));
+            HFClient client = HFClient.createNewInstance();
+            client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
+            client.setUserContext(user);
             TransactionProposalRequest transactionProposalRequest = client.newTransactionProposalRequest();
             transactionProposalRequest.setChaincodeID(chaincodeID);
             transactionProposalRequest.setFcn(chaincodeFunction);
@@ -443,7 +444,7 @@ public class QueryBlock {
                 Peer peer = client.newPeer(peerInfo.getName(), peerInfo.getGrpcUrl(), peerInfo.getProperties());
                 peers.add(peer);
             }
-            Channel channel = reconstructChannel(peers);
+            Channel channel = reconstructChannel(peers,client);
             logger.info("sending transactionProposal to all peers with arguments");
 
             responses = channel.sendTransactionProposal(transactionProposalRequest, peers);
