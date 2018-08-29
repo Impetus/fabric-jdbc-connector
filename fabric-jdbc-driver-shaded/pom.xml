@@ -65,9 +65,14 @@
 									<pattern>io.grpc.netty</pattern>
 									<shadedPattern>com.impetus.io.grpc.netty</shadedPattern>
 								</relocation>
-								<!-- <relocation> <pattern>META-INF/native/libnetty</pattern> <shadedPattern>META-INF/native/libshadednetty</shadedPattern> 
-									</relocation> <relocation> <pattern>META-INF/native/netty</pattern> <shadedPattern>META-INF/native/shadednetty</shadedPattern> 
-									</relocation> -->
+								<relocation>
+									<pattern>META-INF/native/libnetty</pattern>
+									<shadedPattern>META-INF/native/libcom_impetus_netty</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>META-INF/native/netty</pattern>
+									<shadedPattern>META-INF/native/com_impetus_netty</shadedPattern>
+								</relocation>
 							</relocations>
 							<filters>
 								<filter>
