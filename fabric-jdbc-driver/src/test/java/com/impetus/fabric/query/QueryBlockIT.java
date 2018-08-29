@@ -278,9 +278,7 @@ public class QueryBlockIT {
             ResultSet rs = stat.getResultSet();
             if(rs.next()) {
                 boolean isSuccess = rs.getBoolean("is_success");
-                if(isSuccess) {
-                    assert(true);
-                } else {
+                if(!isSuccess) {
                     fail("Test failed with message: " + rs.getString("message"));
                 }
             } else {
@@ -295,7 +293,7 @@ public class QueryBlockIT {
         assert(rs.next());
         assert(rs.getString(1).contains("2002"));
 
-        String insertQueryWrongScenario = "INSERT INTO chncodefunc_testInsertFunction2 VALUES('transferAsset', 1001, 2001, 2002)";
+        String insertQueryWrongScenario = "INSERT INTO chncodefunc_testInsertFunction VALUES('transferAsset', 1001, 2001, 2002)";
         boolean res1 = stat.execute(insertQueryWrongScenario);
         Thread.sleep(5000);
         if(res1) {
@@ -304,8 +302,6 @@ public class QueryBlockIT {
                 boolean isSuccess = rs1.getBoolean("is_success");
                 if(isSuccess) {
                     fail("Test failed with message: " + rs.getString("message"));
-                } else {
-                    assert(true);
                 }
             } else {
                 fail();
