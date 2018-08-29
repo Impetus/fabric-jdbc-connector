@@ -139,7 +139,7 @@ joinChannel () {
 installChaincode () {
 	PEER=$1
 	setGlobals $PEER
-	peer chaincode install -n assettransfer -v 1.0 -p github.com/hyperledger/fabric/examples/assettransfer >&log.txt
+	peer chaincode install -n assetTransfer -v 1.0 -p github.com/hyperledger/fabric/examples/assettransfer >&log.txt
 	res=$?
 	cat log.txt
         verifyResult $res "Chaincode installation on remote peer PEER$PEER has Failed"
@@ -153,9 +153,9 @@ instantiateChaincode () {
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
-		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n assettransfer -v 1.0 -c '{"Args":[ ]}'  >&log.txt
+		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n assetTransfer -v 1.0 -c '{"Args":[ ]}'  >&log.txt
 	else
-		peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n assettransfer -v 1.0 -c '{"Args":[]}' >&log.txt
+		peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n assetTransfer -v 1.0 -c '{"Args":[]}' >&log.txt
 	fi
 	res=$?
 	cat log.txt
@@ -177,7 +177,7 @@ chaincodeQuery () {
   do
      sleep 3
      echo "Attempting to Query PEER$PEER ...$(($(date +%s)-starttime)) secs"
-     peer chaincode query -C $CHANNEL_NAME -n assettransfer -c '{"Args":["query","a"]}' >&log.txt
+     peer chaincode query -C $CHANNEL_NAME -n assetTransfer -c '{"Args":["query","a"]}' >&log.txt
      test $? -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
      test "$VALUE" = "$2" && let rc=0
   done
@@ -201,9 +201,9 @@ chaincodeInvoke () {
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
-	    peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n assettransfer -c '{"Args":["transferAsset", "1000", "'$FROM'", "'$TO'"]}' > log.txt
+	    peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n assetTransfer -c '{"Args":["transferAsset", "1000", "'$FROM'", "'$TO'"]}' > log.txt
 	else
-	    peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n assettransfer -c '{"Args":["transferAsset", "1000", "'$FROM'", "'$TO'"]}' > log.txt
+	    peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n assetTransfer -c '{"Args":["transferAsset", "1000", "'$FROM'", "'$TO'"]}' > log.txt
 	fi
 	res=$?
 	verifyResult $res "Invoke execution on PEER$PEER failed "
