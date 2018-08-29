@@ -590,7 +590,7 @@ public class QueryExecutor extends AbstractQueryExecutor {
         List<T> filteredKeys = dataNode.getKeys().stream().filter(key -> {
             if (FabricTables.BLOCK.equals(dataNode.getTable()) && FabricColumns.BLOCK_NO.equals(rangeNode.getColumn())) {
                 boolean include = false;
-                Long longKey = (Long) key;
+                Long longKey = Long.parseLong(key.toString());
                 for (Range<?> range : rangeNode.getRangeList().getRanges()) {
                     if (((Long) range.getMin()) <= longKey && ((Long) range.getMax()) >= longKey) {
                         include = true;
