@@ -24,6 +24,17 @@ public class InsuranceApp {
             throw new Exception("config Path or channel is null");
         }
 
+        String runApplicationOptions = "Choose from below options\n"+
+                "1 - Install Chaincode and Run application \n"+
+                "2 - ChainCode already Installed, directly run application \n"
+                ;
+        System.out.println(runApplicationOptions);
+        Scanner scanner = new Scanner(System.in);
+        int userOption = scanner.nextInt();
+        if(userOption < 1 || userOption > 2){
+            System.out.println("Selected option is invalid");
+            return;
+        }
         File srcFolder = new File("src/main/resources/flightdelayinsurance");
         String srcPath = srcFolder.getAbsolutePath();
         String destDirectory = configPath+"/src/flightdelayinsurance/";
@@ -32,26 +43,10 @@ public class InsuranceApp {
         Class.forName("com.impetus.fabric.jdbc.FabricDriver");
         Connection conn = DriverManager.getConnection("jdbc:fabric://"+configPath+":"+channelName,"admin","adminpw");
         String chainCodeName = "flightDelayInsurance";
-
-        String runApplicationOptions = "Choose from below options\n"+
-                "1 - Install Chaincode and Run application \n"+
-                "2 - ChainCode already Installed, directly run application \n"
-                ;
-        System.out.println(runApplicationOptions);
-        Scanner scanner = new Scanner(System.in);
-        int userOption = scanner.nextInt();
         if(userOption == 1){
             installAndInstiateChainCode(conn,chainCodeName);
             Thread.sleep(4000);
-
-        } else if (userOption == 2) {
-            //Proceed with further actions
-        } else {
-            System.out.println("Selected option is invalid");
-            return;
         }
-
-
         User usr = new User();
         PolicyInformation pinfo = new PolicyInformation();
         FlightInformation fInfo = new FlightInformation();
