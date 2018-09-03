@@ -22,7 +22,7 @@ It uses [blkchn-sql-driver](https://github.com/Impetus/blkchn-sql-driver) to par
 Features Added with Release 1.1.0
 =====
 * Created Spark Connector Module: Use spark connector to connect Spark with fabric.
-* Create User : allows new user to created with certificate authority
+* Create User : allows creation of new user with certificate authority
 * Install Only : This option can be given with Create and upgrade chaincode syntax.
 * Instantiate Only : This option can be used with create chaincode syntax.
 * Upgrade Only: It can be used with upgrade chaincode syntax.   
