@@ -16,8 +16,17 @@ It uses [blkchn-sql-driver](https://github.com/Impetus/blkchn-sql-driver) to par
 |---|---|
 | maven | 3.3.3 |
 |java | 1.8 |
-|fabric-sdk-java | 1.0.1 |
+|fabric-sdk-java | 1.1.0 |
+|spark|2.0.2|
  
+Features Added with Release 1.1.0
+=====
+* Created Spark Connector Module: Use spark connector to connect Spark with fabric.
+* Create User : allows creation of new user with certificate authority
+* Install Only : This option can be given with Create and upgrade chaincode syntax.
+* Instantiate Only : This option can be used with create chaincode syntax.
+* Upgrade Only: It can be used with upgrade chaincode syntax.   
+* Enrolment Certificate is stored in-memory. 
 
 Supported Features  
 =============== 
@@ -30,6 +39,7 @@ Supported Features
 - Dropping Asset schema  
 - Creating Chaincode
 - Upgrading Chaincode
+- Create User
 
 Building fabric-jdbc-connector
 ==========================
