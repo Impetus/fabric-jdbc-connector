@@ -120,7 +120,7 @@
 						</goals>
 						<configuration>
 							<executable>docker</executable>
-							<commandlineArgs>exec mysql_db db_scripts/scripts.sh</commandlineArgs>
+							<commandlineArgs>exec postgresql_db db_scripts/scripts.sh</commandlineArgs>
 							<skip>${skip.integration.tests}</skip>
 						</configuration>
 					</execution>
