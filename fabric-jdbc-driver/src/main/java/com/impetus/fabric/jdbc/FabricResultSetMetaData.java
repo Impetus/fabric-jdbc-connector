@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 import com.impetus.blkch.jdbc.BlkchnResultSetMetaData;
 import com.impetus.fabric.parser.FabricPhysicalPlan;
-import com.mysql.jdbc.ResultSetMetaData;
+import java.sql.ResultSetMetaData;
 
 public class FabricResultSetMetaData implements BlkchnResultSetMetaData {
     

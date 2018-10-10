@@ -106,13 +106,14 @@ services:
       - peer0.org1.example.com
 
   db:
-   container_name: mysql_db
-   image: mysql:5.6
+   container_name: postgresql_db
+   image: postgres:9.6
    environment:
-     - MYSQL_ROOT_PASSWORD=root
-     - MYSQL_DATABASE=test_schema
+     - POSTGRES_PASSWORD=example
+     - POSTGRES_DB=test_schema
    ports:
-     - "51000:3306"
+     - "51000:5432"
    volumes:
      - ./db_scripts/test_schema.sql:/docker-entrypoint-initdb.d/test_schema.sql
      - ./db_scripts/scripts.sh:/db_scripts/scripts.sh
+     - ./db_scripts/wait-for-it.sh:/db_scripts/wait-for-it.sh

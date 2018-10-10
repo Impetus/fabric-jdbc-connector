@@ -41,8 +41,8 @@ class TestFabricSparkDataFrame extends FlatSpec with SharedSparkSession {
     println("Staring docker...")
     var process = Runtime.getRuntime.exec("docker-compose -f src/test/resources/basic-network/artifacts/docker-compose.yml up -d --force-recreate")
     process.waitFor
-    println("Setting up mysql...")
-    process = Runtime.getRuntime.exec("docker exec mysql_db db_scripts/scripts.sh")
+    println("Setting up postgres...")
+    process = Runtime.getRuntime.exec("docker exec postgresql_db db_scripts/scripts.sh")
     process.waitFor
     println("Setting up fabric...")
     process = Runtime.getRuntime.exec("docker exec -t cli script/script.sh mychannel")
