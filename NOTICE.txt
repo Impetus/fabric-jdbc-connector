@@ -52,7 +52,7 @@ Product includes Other 3rd party software as indicated below.
         Licence Source          :http://www.apache.org/licenses/LICENSE-2.0.html
         Linking                 :Static
         Modified by Impetus     :Yes
-        Version                 :1.0.0
+        Version                 :1.1.0
         
 7.      Name                    :blkchn-sql-addons
         Source                  :
@@ -60,7 +60,7 @@ Product includes Other 3rd party software as indicated below.
         Licence Source          :http://www.apache.org/licenses/LICENSE-2.0.html
         Linking                 :Static
         Modified by Impetus     :Yes
-        Version                 :1.0.0
+        Version                 :1.1.0
         
 8.      Name                    :fabric-sdk-java
         Source                  :http://central.maven.org/maven2/org/hyperledger/fabric-sdk-java/fabric-sdk-java/1.0.1/fabric-sdk-java-1.0.1.jar
@@ -68,4 +68,4 @@ Product includes Other 3rd party software as indicated below.
         Licence Source          :http://www.apache.org/licenses/LICENSE-2.0.html
         Linking                 :Static
         Modified by Impetus     :No
-        Version                 :1.0.1
+        Version                 :1.1.0

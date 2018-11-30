@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.impetus.fabric</groupId>
 		<artifactId>fabric-jdbc-connector</artifactId>
-		<version>1.1.0-SNAPSHOT</version>
+		<version>1.1.0</version>
 	</parent>
 
 	<artifactId>fabric-jdbc-driver</artifactId>
@@ -21,7 +21,7 @@
 		<skip.integration.tests>true</skip.integration.tests>
 		<powermock.version>1.7.3</powermock.version>
 		<mockito.version>1.10.19</mockito.version>
-		<blkchn.sql.version>1.1.0-SNAPSHOT</blkchn.sql.version>
+		<blkchn.sql.version>1.1.0</blkchn.sql.version>
 	</properties>
 
 	<profiles>
