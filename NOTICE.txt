@@ -69,3 +69,11 @@ Product includes Other 3rd party software as indicated below.
         Linking                 :Static
         Modified by Impetus     :No
         Version                 :1.1.0
+
+9.      Name                    :spark-sql
+        Source                  :http://central.maven.org/maven2/org/apache/spark/spark-sql_2.11/2.0.2/spark-sql_2.11-2.0.2.jar
+        Licence                 :Apache Software License 2.0
+        Licence Source          :http://www.apache.org/licenses/LICENSE-2.0.html
+        Linking                 :Static
+        Modified by Impetus     :No
+        Version                 :2.0.2
