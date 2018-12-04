@@ -78,6 +78,13 @@
 						<goals>
 							<goal>compile</goal>
 							<goal>testCompile</goal>
+							<goal>add-source</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>doc-jar</goal>
 						</goals>
 					</execution>
 				</executions>

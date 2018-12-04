@@ -39,6 +39,22 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>empty-javadoc-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>javadoc</classifier>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>3.1.0</version>
 				<executions>
@@ -78,6 +94,7 @@
 									<shadedPattern>META-INF/native/com_impetus_netty</shadedPattern>
 								</relocation>
 							</relocations>
+							<createSourcesJar>true</createSourcesJar>
 							<filters>
 								<filter>
 									<!-- filter out signature files from signed dependencies, else repackaging 

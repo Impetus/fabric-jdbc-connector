@@ -51,17 +51,6 @@ public class Store {
 
     /**
      * Get the user with a given name
-     *
-     * @param name
-     * @param org
-     * @param mspId
-     * @param privateKeyFile
-     * @param certificateFile
-     * @return user
-     * @throws IOException
-     * @throws NoSuchAlgorithmException
-     * @throws NoSuchProviderException
-     * @throws InvalidKeySpecException
      */
     public HyperUser getMember(String name, String org, String mspId, File privateKeyFile, File certificateFile) {
         try {
