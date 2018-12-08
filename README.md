@@ -71,6 +71,27 @@ Fabric JDBC connector is a maven based project. It can be directly added as mave
  
 Build your project with the above changes to your pom.xml. 
  
+
+Recovering Disksapce from Docker 
+=================================
+If you have run example code or integration test. It will create docker images, that need to clean manually. it consume
+ approximately 100 MB of space upon running integration test once.
+
+You need to run these command to free up space.
+- remove exited docker process.  
+```
+    docker rm -v $(docker ps -a -q -f status=exited)
+```
+- remove images by giving chaincode name pattern as in below command   
+```
+    docker rmi -f `docker images|grep -i chncodefunc|awk '{ print $3 }'`
+    docker rmi -f `docker images|grep -i assettransfer|awk '{ print $3 }'`
+    docker rmi -f `docker images|grep -i sacc-1.0|awk '{ print $3 }'`
+```
+- Delete dangling volume and clain volume occupied, if everthing is clean, it will give message: "requires a minimum of 1 argument"  
+```
+    docker volume rm $(docker volume ls -qf dangling=true) 
+```
  
 Important Links 
 =============== 
