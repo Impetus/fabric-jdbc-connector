@@ -88,7 +88,7 @@ You need to run these command to free up space.
     docker rmi -f `docker images|grep -i assettransfer|awk '{ print $3 }'`
     docker rmi -f `docker images|grep -i sacc-1.0|awk '{ print $3 }'`
 ```
-- Delete dangling volume and clain volume occupied, if everthing is clean, it will give message: "requires a minimum of 1 argument"  
+- Delete dangling volume occupied, if everything is clean, it will give message: "requires a minimum of 1 argument"  
 ```
     docker volume rm $(docker volume ls -qf dangling=true) 
 ```
